@@ -27,7 +27,15 @@ export { Writer } from "./writer.mjs";
 const OWNER_USER = "owner";
 const SCOPES = ["mcp", "offline_access"];
 
-const originOf = (request, env) => (env.PUBLIC_URL ? env.PUBLIC_URL.replace(/\/+$/, "") : new URL(request.url).origin);
+// PUBLIC_URL counts only when it's a real http(s) URL; a placeholder falls back to the request's origin.
+function originOf(request, env) {
+  if (/^https?:\/\//i.test(env.PUBLIC_URL || "")) {
+    try {
+      return new URL(env.PUBLIC_URL).origin;
+    } catch {}
+  }
+  return new URL(request.url).origin;
+}
 
 // The MCP endpoint. Signed-in apps carry props from consent; API keys carry props from resolveApiKey.
 const apiHandler = {

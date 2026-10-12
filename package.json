@@ -39,15 +39,6 @@
       },
       "LANGUAGES": {
         "description": "Languages of your loop names and questions, comma-separated. For example: en or en,es."
-      },
-      "OWNER_NAME": {
-        "description": "Optional. The name shown at the top of your log."
-      },
-      "PUBLIC_URL": {
-        "description": "Optional. Your custom domain, like https://log.example.com, if you add one."
-      },
-      "PUBLISH_HOOK_URL": {
-        "description": "Optional. A deploy hook called 1 minute after the public view changes, to rebuild a site that shows it."
       }
     }
   },

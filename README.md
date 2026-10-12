@@ -74,7 +74,7 @@ The public page and `/public.json` render from an allowlist, so any new field st
 
 ## Settings
 
-Set these under your Worker's Settings, Variables and Secrets:
+The setup page asks only for `PUBLISH` and `LANGUAGES`. Add the others later under your Worker's Settings, Variables and Secrets:
 
 | Variable | What it does |
 | --- | --- |
@@ -82,7 +82,8 @@ Set these under your Worker's Settings, Variables and Secrets:
 | `LANGUAGES` | Languages of your names and questions, like `en` or `en,es` |
 | `OWNER_NAME` | The name at the top of your log |
 | `PUBLIC_URL` | Your custom domain, if you add one |
-| `PUBLISH_HOOK_URL` | Called 1 minute after the public view changes, to rebuild a site that shows it |
+
+`PUBLISH_HOOK_URL` is an optional secret: a deploy hook called 1 minute after the public view changes, to rebuild a site that shows it. Set it with `npx wrangler secret put PUBLISH_HOOK_URL`, or as a Secret in the dashboard, so it survives redeploys and stays out of your repo.
 
 Your agents can change the rest with `set_meta`: the cycle start date, the "still you" figure, the grid layout.
 

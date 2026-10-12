@@ -6,6 +6,8 @@ import { OWNER_OPS, ToolError, clone, diffState, ops, restore } from "./ops.mjs"
 import { effectiveMeta, ensureSchema, getEvents, isPublished, loadState, saveDiff } from "./store.mjs";
 
 const HOOK_DELAY_MS = 60_000;
+// Setup forms can't leave a field empty, so anything that isn't an https URL means "no hook".
+const hookUrl = (env) => (/^https:\/\/\S+$/i.test(env.PUBLISH_HOOK_URL || "") ? env.PUBLISH_HOOK_URL : null);
 
 export class Writer extends DurableObject {
   constructor(ctx, env) {
@@ -65,7 +67,7 @@ export class Writer extends DurableObject {
       args: JSON.stringify(override ? { ...args, overrideReason: reason } : args).slice(0, 8000),
     });
 
-    if (env.PUBLISH_HOOK_URL && (isPublished(state.meta, env) || isPublished(next.meta, env))) {
+    if (hookUrl(env) && (isPublished(state.meta, env) || isPublished(next.meta, env))) {
       const changed = JSON.stringify(publicView(state)) !== JSON.stringify(publicView(next));
       if (changed && !(await this.ctx.storage.getAlarm())) await this.ctx.storage.setAlarm(Date.now() + HOOK_DELAY_MS);
     }
@@ -73,8 +75,9 @@ export class Writer extends DurableObject {
   }
 
   async alarm() {
-    if (!this.env.PUBLISH_HOOK_URL) return;
-    const res = await fetch(this.env.PUBLISH_HOOK_URL, { method: "POST" });
+    const url = hookUrl(this.env);
+    if (!url) return;
+    const res = await fetch(url, { method: "POST" });
     if (!res.ok) throw new Error(`publish hook answered ${res.status}`);
   }
 }
