@@ -1,0 +1,22 @@
+---
+description: Gotchas in the log page UI (dialogs, menus, grid, scripts) for public/app.js, public/app.css and src/pages.mjs
+globs: public/**,src/pages.mjs
+alwaysApply: false
+---
+
+# UI
+
+## Menus inside dialogs
+
+A `.modal` scrolls its own content (`overflow: auto`), so anything that sticks out of it is clipped. A `details[data-menu]` opened inside a dialog (USE PROMPT in the Fix dialog) would hide under the dialog's edge.
+
+- `public/app.js` pins those menus to the viewport on `toggle`: `position: fixed`, lined up with the summary's right edge. `.up` menus open upward unless there's no room above.
+- Don't fix clipping with `overflow: visible` on `.modal`. Tall dialogs on phones need to scroll.
+- Don't add `transform` to `.modal` or its parents. A transform makes `position: fixed` relative to the dialog again, and the menu gets clipped.
+
+## Other gotchas
+
+- Dialogs open non-modal on localhost (`openDialog` in app.js), so element pickers can reach them. Check both: `.modal[open]:not(:modal)` styles the local case.
+- The CSP is `script-src 'self'`: no inline `onclick` or `<script>`. Add behaviour to `app.js` with a `data-*` hook (for example `data-confirm` on a form).
+- `app.js` wires tooltips and area focus to the first `[data-grid]` on the page. The small readout grid (`.grid.mini`) must not carry `data-grid`.
+- `details[data-menu]` gets closing on outside click and Escape for free. Reuse it for popovers (`.note`) instead of new JS.

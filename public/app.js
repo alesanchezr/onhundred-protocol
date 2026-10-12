@@ -24,6 +24,29 @@
     if (msg && !confirm(msg)) e.preventDefault();
   });
 
+  // Inside a dialog, a menu is fixed to the viewport so the dialog's scroll box doesn't clip it.
+  // It opens up as marked (.up), unless there's no room above.
+  document.addEventListener(
+    "toggle",
+    (e) => {
+      const menu = e.target;
+      if (!menu.matches?.("details[data-menu]") || !menu.open || !menu.closest("dialog")) return;
+      const list = menu.querySelector(".menu-list");
+      if (!list) return;
+      const r = menu.querySelector("summary").getBoundingClientRect();
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+      const up = menu.classList.contains("up") && r.top - list.offsetHeight - 6 >= 8;
+      Object.assign(list.style, {
+        position: "fixed",
+        right: `${vw - r.right}px`,
+        top: up ? "auto" : `${r.bottom + 6}px`,
+        bottom: up ? `${vh - r.top + 6}px` : "auto",
+      });
+    },
+    true
+  );
+
   // Prompt menus close on a click outside, once an app opens, and on Escape.
   const closeMenus = (except) =>
     document.querySelectorAll("details[data-menu][open]").forEach((m) => m !== except && m.removeAttribute("open"));
@@ -44,7 +67,7 @@
   const openDialog = (d) => (local ? d.show() : d.showModal());
   if (local) {
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !e.defaultPrevented) document.querySelectorAll("dialog.modal[open]").forEach((d) => d.close());
+      if (e.key === "Escape" && !e.defaultPrevented) document.querySelectorAll("dialog.modal[open], dialog.drawer[open]").forEach((d) => d.close());
     });
   }
 
@@ -76,6 +99,13 @@
       if (!btn) return;
       ruleDialog.querySelector("[data-rule-code]").textContent = btn.dataset.code;
       ruleDialog.querySelector("[data-rule-name]").textContent = btn.dataset.name;
+      // FIX closes this dialog (data-dialog-close) and, through data-fix, opens the fix dialog.
+      const fix = ruleDialog.querySelector("[data-rule-fix]");
+      if (fix) {
+        fix.dataset.fix = btn.dataset.fixPrompt || "";
+        fix.dataset.target = btn.dataset.code;
+        fix.setAttribute("aria-label", `Fix ${btn.dataset.code} with AI`);
+      }
       ruleDialog.querySelector("[data-rule-list]").replaceChildren(
         ...JSON.parse(btn.dataset.ruleBreak || "[]").map((m) => {
           const li = document.createElement("li");
@@ -171,6 +201,59 @@
     });
   }
 
+  // Loop page: the current level opens into every level, higher ones above and lower ones below.
+  const stack = document.querySelector("[data-level-stack]");
+  if (stack) {
+    const now = stack.querySelector(".lvl-now");
+    const hover = matchMedia("(hover: hover)");
+    let closeTimer;
+    const setOpen = (open) => {
+      clearTimeout(closeTimer);
+      stack.toggleAttribute("data-open", open);
+      now.setAttribute("aria-expanded", String(open));
+    };
+    stack.addEventListener("mouseenter", () => hover.matches && setOpen(true));
+    stack.addEventListener("mouseleave", () => {
+      if (hover.matches) closeTimer = setTimeout(() => setOpen(false), 120);
+    });
+    now.addEventListener("click", () => setOpen(!stack.hasAttribute("data-open")));
+    document.addEventListener("click", (e) => !stack.contains(e.target) && setOpen(false));
+    document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+  }
+
+  // SHOW ALL: unfolds the rest of a list in place.
+  document.querySelectorAll("[data-expand]").forEach((btn) => {
+    const box = document.getElementById(btn.dataset.expand);
+    if (!box) return;
+    btn.addEventListener("click", () => {
+      const on = !box.hasAttribute("data-expanded");
+      box.toggleAttribute("data-expanded", on);
+      btn.setAttribute("aria-expanded", String(on));
+      btn.textContent = on ? btn.dataset.less : btn.dataset.more;
+    });
+  });
+
+  // The experiments box opens the side panel.
+  const drawer = document.getElementById("exp-drawer");
+  if (drawer && typeof drawer.showModal === "function") {
+    document.querySelector("[data-drawer-open]")?.addEventListener("click", () => openDialog(drawer));
+  }
+
+  // NEXT ACTIONS: each item opens one dialog, filled with that item's prompt.
+  const askDialog = document.querySelector("[data-loop-prompt-dialog]");
+  if (askDialog && typeof askDialog.showModal === "function") {
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-loop-prompt]");
+      if (!btn) return;
+      const q = encodeURIComponent(btn.dataset.loopPrompt);
+      btn.closest("details[data-menu]")?.removeAttribute("open");
+      askDialog.querySelector("[data-prompt-title]").textContent = btn.dataset.title;
+      askDialog.querySelector("#loop-prompt").textContent = btn.dataset.loopPrompt;
+      askDialog.querySelectorAll("[data-app-href]").forEach((a) => (a.href = a.dataset.appHref.replace("{q}", q)));
+      openDialog(askDialog);
+    });
+  }
+
   const grid = document.querySelector("[data-grid]");
   if (!grid) return;
 
@@ -185,6 +268,32 @@
     })
   );
 
+  // Legend hover: dims every cell at another level. Click locks it until clicked again.
+  const levelItems = [...document.querySelectorAll(".legend [data-level]")];
+  let lockedLevel = null;
+  const focusLevel = (level) => {
+    if (level) grid.dataset.levelFocus = level;
+    else delete grid.dataset.levelFocus;
+  };
+  const toggleLock = (li) => {
+    lockedLevel = lockedLevel === li.dataset.level ? null : li.dataset.level;
+    levelItems.forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.level === lockedLevel)));
+    focusLevel(lockedLevel || li.dataset.level);
+  };
+  levelItems.forEach((li) => {
+    li.setAttribute("role", "button");
+    li.setAttribute("tabindex", "0");
+    li.setAttribute("aria-pressed", "false");
+    li.addEventListener("mouseenter", () => focusLevel(li.dataset.level));
+    li.addEventListener("mouseleave", () => focusLevel(lockedLevel));
+    li.addEventListener("click", () => toggleLock(li));
+    li.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      toggleLock(li);
+    });
+  });
+
   // Loop tooltip: hover with a mouse, tap on touch screens.
   const labels = JSON.parse(grid.dataset.tip || "{}");
   const tip = document.createElement("div");
@@ -198,7 +307,7 @@
     delete tip.dataset.on;
   };
 
-  const showTip = (cell) => {
+  const showTip = (cell, touch = false) => {
     if (!cell || !cell.dataset.loop) return hideTip();
     if (cell === tipCell) return;
     tipCell = cell;
@@ -209,6 +318,7 @@
       ["", labels.levels && labels.levels[d.s]],
       ["tip-flag", labels.flags && labels.flags[d.flag]],
       ["failed" in d ? "tip-failed" : "", labels.outcomes && labels.outcomes[d.o]],
+      ["tip-flag", touch && labels.open],
     ];
     tip.replaceChildren(
       ...lines
@@ -228,16 +338,19 @@
     tip.style.top = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + "px";
   };
 
+  // A click opens the loop's page. On touch the first tap shows the tooltip and the second opens it.
+  let pointer = "mouse";
+  grid.addEventListener("pointerdown", (e) => (pointer = e.pointerType));
   grid.addEventListener("pointerover", (e) => {
     if (e.pointerType === "mouse") showTip(e.target.closest(".cell"));
   });
   grid.addEventListener("pointerleave", hideTip);
   grid.addEventListener("click", (e) => {
-    const cell = e.target.closest(".cell");
+    const cell = e.target.closest(".cell[data-loop]");
     if (!cell) return;
     e.stopPropagation();
-    if (cell === tipCell) hideTip();
-    else showTip(cell);
+    if (pointer === "mouse" || cell === tipCell) location.href = `/loop/${encodeURIComponent(cell.dataset.loop)}`;
+    else showTip(cell, true);
   });
   document.addEventListener("click", hideTip);
   addEventListener("scroll", hideTip, { passive: true });

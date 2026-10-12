@@ -63,7 +63,9 @@ describe("fresh install", () => {
     expect(before).toContain("No loops yet");
     const empties = (html) => html.match(/data-s="empty"/g) || [];
     expect(empties(before.match(/<a class="grid mini"[\s\S]*?<\/a>/)[0])).toHaveLength(100);
-    expect(empties(before.match(/id="activity"[\s\S]*?<\/section>/)[0])).toHaveLength(100);
+    expect(empties(before.match(/id="activity"[\s\S]*?<ul class="legend">/)[0])).toHaveLength(100);
+    expect(before).toMatch(/<li data-level="empty">[\s\S]*?<span class="n">100<\/span>/);
+    expect(before).toMatch(/<li data-level="unmapped">[\s\S]*?<span class="n">0<\/span>/);
     expect(before).not.toContain('data-copy="#first-prompt"');
     expect(before).toContain('href="/connect">CONNECT YOUR AI');
     expect(before).not.toContain("claude.ai/new");
@@ -73,6 +75,7 @@ describe("fresh install", () => {
     const q = encodeURIComponent("Use Onhundred to help me build my 100 loops.");
     expect(after).toContain(`https://claude.ai/new?q=${q}`);
     expect(after).toContain(`https://chatgpt.com/?q=${q}`);
+    expect(after).toContain(`https://grok.com/?q=${q}`);
     expect(after).toContain(`https://cursor.com/link/prompt?text=${q}`);
     expect(after).toContain('data-copy="#first-prompt"');
     expect(after).not.toContain("CONNECT YOUR AI");
@@ -214,6 +217,11 @@ describe("owner pages", () => {
     expect(page).toContain("DELEGATED");
     expect(page).toMatch(/\d+ of 100 approved/);
     expect(page).toContain("HISTORY");
+    const cells = (html) => html.match(/class="cell"/g) || [];
+    const grid = page.match(/<div class="grid" data-grid[\s\S]*?<ul class="legend">/)[0];
+    expect(grid).toMatch(/data-loop=/);
+    expect(cells(grid)).toHaveLength(100);
+    expect(cells(page.match(/<a class="grid mini"[\s\S]*?<\/a>/)[0])).toHaveLength(100);
     const connect = await (await app().fetch(new Request(`${BASE}/connect`, { headers: { Cookie: cookie } }))).text();
     expect(connect).toContain("https://grok.com/connectors");
     expect(connect).toContain(
@@ -462,6 +470,18 @@ describe("protocol versions", () => {
     expect(publicPage).toContain(`<meta property="og:image" content="${BASE}/og.png">`);
   });
 
+  it("offers FIX in the rule dialog of a proposed loop that breaks a rule", async () => {
+    await onV10();
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const code = (await call(key, "propose_loops", { loops: [loop("Decide what the guests drink", "P-HOM")] })).data.result.proposed[0];
+    expect((await call(key, "adopt_protocol")).error).toBeNull();
+
+    const page = await ownerPage(await ownerCookie());
+    expect(page).toContain(`data-fix-prompt="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.1 rules: name (en) starts with a failing verb (decide).`);
+    expect(page).toMatch(/data-dialog-close data-rule-fix><svg[^]*?<\/svg>FIX<\/button>/);
+    expect(page.match(/data-fix-dialog/g)).toHaveLength(1);
+  });
+
   it("saves a scheduled upgrade once its cycle starts, as a system event", async () => {
     await onV10();
     const set = (k, v) => env.DB.prepare("INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(k, JSON.stringify(v));
@@ -475,6 +495,84 @@ describe("protocol versions", () => {
     const ev = await env.DB.prepare("SELECT actor, tool FROM events ORDER BY id DESC LIMIT 1").first();
     expect(ev).toEqual({ actor: "system", tool: "adopt_protocol" });
     expect(await writer(env).write({ actor: "system", access: "owner" })).toEqual({ ok: true, changed: false });
+  });
+});
+
+describe("loop pages", () => {
+  const setPublish = (on) =>
+    env.DB.prepare("INSERT INTO meta (key, value) VALUES ('publish', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(JSON.stringify(on)).run();
+  const get = (path, cookie) => app().fetch(new Request(`${BASE}${path}`, { headers: cookie ? { Cookie: cookie } : {}, redirect: "manual" }));
+  async function approvedLoop(key, spec) {
+    const code = (await call(key, "propose_loops", { loops: [spec] })).data.result.proposed[0];
+    expect((await call(key, "approve_loops", { codes: [code] })).error).toBeNull();
+    return code;
+  }
+  const cooking = {
+    ...loop("Cook the Sunday batch", "P-HOM"),
+    evidence: "Calendar: Sunday cooking block",
+    triage: { time: 3, frequency: 4, rules: 4, digital: 3, risk: 1 },
+  };
+
+  it("shows the owner every field, history and the AI prompts", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const code = await approvedLoop(key, cooking);
+    const cookie = await ownerCookie();
+    const res = await get(`/loop/${code}`, cookie);
+    expect(res.status).toBe(200);
+    const page = await res.text();
+    expect(page).toContain("<h1>Cook the Sunday batch</h1>");
+    expect(page).toContain("DONE WHEN</span>The result is visible outside my head");
+    expect(page).toContain("Calendar: Sunday cooking block");
+    expect(page).toContain("data-level-stack");
+    expect(page).toContain("NO EXPERIMENTS YET");
+    expect(page).toContain("Approved by the owner");
+    expect(page).toContain("score 13, Automate now");
+    expect(page).toContain("NEXT ACTIONS");
+    expect(page).toContain(`data-loop-prompt="Use Onhundred to rename ${code}, Cook the Sunday batch.`);
+    expect(page).toContain("data-loop-prompt-dialog");
+    expect(page).toContain('data-app-href="https://claude.ai/new?q={q}"');
+    expect(page).toContain('<a href="/">LOG</a></li><li>PERSONAL</li><li>HOME</li>');
+
+    const log = await (await get("/", cookie)).text();
+    expect(log).toContain(`data-loop="${code}"`);
+  });
+
+  it("canonicalizes the code and answers 404 for codes that aren't loops", async () => {
+    const cookie = await ownerCookie();
+    const lower = await get("/loop/p-hom-01", cookie);
+    expect(lower.status).toBe(303);
+    expect(lower.headers.get("Location")).toBe("/loop/P-HOM-01");
+    expect((await get("/loop/P-HOM-99", cookie)).status).toBe(404);
+    expect((await get("/loop/NOPE", cookie)).status).toBe(404);
+  });
+
+  it("sends visitors to sign-in while the log is private", async () => {
+    await setPublish(false);
+    const res = await get("/loop/P-HOM-01");
+    expect(res.status).toBe(303);
+    expect(res.headers.get("Location")).toMatch(/^\/login\?next=%2Floop%2FP-HOM-01/);
+  });
+
+  it("shows visitors only public fields, and no name for a private partner loop", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const code = await approvedLoop(key, cooking);
+    const partner = await approvedLoop(key, loop("Plan the date night", "R-PAR"));
+    await setPublish(true);
+
+    const res = await get(`/loop/${code}`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Cache-Control")).toBe("public, max-age=30");
+    const page = await res.text();
+    expect(page).toContain("Cook the Sunday batch");
+    expect(page).not.toContain("Calendar: Sunday cooking block");
+    expect(page).not.toContain("NEXT ACTIONS");
+    expect(page).not.toContain("data-loop-prompt");
+    expect(page).not.toContain("Approved by the owner");
+
+    const hidden = await (await get(`/loop/${partner}`)).text();
+    expect(hidden).toContain("<h1>Private loop</h1>");
+    expect(hidden).not.toContain("Plan the date night");
+    expect(hidden).not.toContain("The result is visible outside my head");
   });
 });
 
@@ -499,5 +597,23 @@ describe("publishing from the owner page", () => {
     const after = await ownerPage();
     expect(after).not.toContain("Your progress is private.");
     expect(after).not.toContain("SOMEONE");
+  });
+
+  it("shows the owner what visitors see at /?view=public", async () => {
+    const cookie = await ownerCookie();
+    const get = async (path, headers = {}) => (await app().fetch(new Request(`${BASE}${path}`, { headers }))).text();
+    expect(await get("/", { Cookie: cookie })).toContain('href="/?view=public"');
+
+    const preview = await get("/?view=public", { Cookie: cookie });
+    expect(preview).toContain("This is what visitors see.");
+    expect(preview).toContain("DELEGATED");
+    expect(preview).not.toContain("HISTORY");
+    expect(preview).not.toContain('href="/?view=public"');
+    expect(await get("/?view=public")).not.toContain("This is what visitors see.");
+
+    await env.DB.prepare("INSERT INTO meta (key, value) VALUES ('publish', 'false') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
+    const hidden = await get("/?view=public", { Cookie: cookie });
+    expect(hidden).toContain("This is what visitors see.");
+    expect(hidden).toContain("This log is private.");
   });
 });
