@@ -1,26 +1,114 @@
-# Onhundred Protocol log
+<p align="center">
+  <a href="https://onhundred.com"><img src="./public/wordmark.png" alt="Onhundred" width="440"></a>
+</p>
 
-Your own log for the [Onhundred Protocol](./docs/protocol.md): hand your 100 recurring responsibilities to AI agents, one experiment at a time. It runs on your Cloudflare account, and your data never leaves it.
+<h3 align="center">Hand your 100 recurring responsibilities to AI agents.<br>One experiment at a time.</h3>
 
-[![Tests](https://github.com/onhundred/protocol-log/actions/workflows/test.yml/badge.svg)](https://github.com/onhundred/protocol-log/actions/workflows/test.yml)
-[![Release](https://img.shields.io/github/v/release/onhundred/protocol-log)](https://github.com/onhundred/protocol-log/releases)
-[![License](https://img.shields.io/github/license/onhundred/protocol-log)](./LICENSE)
+<p align="center">
+  Your own log and MCP server for the <a href="./docs/protocol.md">Onhundred Protocol</a>.<br>
+  It runs on your Cloudflare account, and your data never leaves it.
+</p>
 
-![The log page: the delegated figure, the cycle and the grid of 100 loops](./docs/images/log.png)
+<p align="center">
+  <a href="https://github.com/onhundred/protocol-log/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/onhundred/protocol-log/test.yml?branch=main&style=flat-square&label=tests&labelColor=0A0A09" alt="Tests"></a>
+  <a href="https://github.com/onhundred/protocol-log/releases"><img src="https://img.shields.io/github/v/release/onhundred/protocol-log?style=flat-square&label=release&labelColor=0A0A09&color=C6F432" alt="Release"></a>
+  <a href="./docs/protocol.md"><img src="https://img.shields.io/badge/protocol-v1.1-C6F432?style=flat-square&labelColor=0A0A09" alt="Protocol v1.1"></a>
+  <a href="#what-your-agent-can-do"><img src="https://img.shields.io/badge/MCP-38%20tools-C6F432?style=flat-square&labelColor=0A0A09" alt="MCP: 38 tools"></a>
+  <a href="https://workers.cloudflare.com"><img src="https://img.shields.io/badge/runs%20on-Cloudflare%20Workers-C6F432?style=flat-square&labelColor=0A0A09&logo=cloudflare&logoColor=white" alt="Runs on Cloudflare Workers"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-C6F432?style=flat-square&labelColor=0A0A09" alt="License: Apache 2.0"></a>
+</p>
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/onhundred/protocol-log)
+<p align="center">
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="#how-it-works"><b>How it works</b></a> ·
+  <a href="#connect-your-ai"><b>Connect your AI</b></a> ·
+  <a href="#what-your-agent-can-do"><b>Tools</b></a> ·
+  <a href="./docs/protocol.md"><b>Read the protocol</b></a> ·
+  <a href="https://onhundred.com"><b>See it live</b></a>
+</p>
 
-## Warning
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/onhundred/protocol-log"><img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" height="36"></a>
+</p>
 
-This protocol hands parts of your life and your work to AI agents. It can strain your relationships, disrupt your company and expose your data. Nobody knows how it ends, because nobody has finished it yet.
+<p align="center">
+  <img src="./docs/images/log.png" alt="The log page: the delegated figure, the cycle and the grid of 100 loops" width="880">
+</p>
 
-**Don't start if you can't stop the moment someone you love asks you to.**
+<div align="center">
 
-If it works, you get back the hours, the money and the attention you spend on everything a machine can do for you.
+| **100** | **3** | **2 weeks** | **38** | **2 minutes** |
+| :---: | :---: | :---: | :---: | :---: |
+| loops in your life | loops at a time | per cycle | MCP tools | to deploy |
 
-**Delegate agency.**
+</div>
 
----
+It's easy to say AI will change your work. It's harder to say which loops, by how much and at what cost. This protocol answers that one loop at a time, and keeps the receipts.
+
+Ale Sánchez runs it on his own life and publishes every result at [onhundred.com](https://onhundred.com). This repository is the log behind it. Deploy your own and run it on yours.
+
+> [!WARNING]
+> This protocol hands parts of your life and your work to AI agents. It can strain your relationships, disrupt your company and expose your data. Nobody knows how it ends, because nobody has finished it yet.
+>
+> **Don't start if you can't stop the moment someone you love asks you to.**
+>
+> If it works, you get back the hours, the money and the attention you spend on everything a machine can do for you.
+>
+> **Delegate agency.**
+
+## How it works
+
+You split your life (or your job) into exactly 100 recurring responsibilities, called **loops**. Then, a few at a time, you hand each one to an AI agent. It stays there only if the evidence shows it works.
+
+```mermaid
+flowchart LR
+  A["1 · Inventory"] --> B["2 · Measure"] --> C["3 · Choose"] --> D["4 · Experiment"] --> E["5 · Hold"]
+  E -- "next level" --> C
+  D -- "not achieved" --> C
+```
+
+1. **Inventory.** Your agent proposes your 100 loops. You approve the list.
+2. **Measure.** You watch each loop happen 3 times to record what it really costs.
+3. **Choose.** You work on 3 loops at a time: one easy, one hard and one fun.
+4. **Experiment.** You write a question, a bet and how you'll know it worked. Then you try.
+5. **Hold.** It has to keep working for 3 more weeks before the loop moves up a level.
+
+Each loop climbs 3 levels: **Help me**, **Do it, I approve** and **Do it alone**.
+
+**3 rules that never bend:** success is defined before a stage starts and never changed afterward. Failures are recorded with the same weight as successes. Nobody else is affected by a delegation without knowing and agreeing to it.
+
+## What you get
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h4>An agent that does the work</h4>
+      38 MCP tools, 4 documents and 3 starter prompts. Claude, ChatGPT, Grok, Cursor and Claude Code build your loops and run your experiments.
+    </td>
+    <td width="33%" valign="top">
+      <h4>Rules agents can't break</h4>
+      Every change is checked against the protocol. A change that breaks a rule is rejected, with the rule it broke.
+    </td>
+    <td width="33%" valign="top">
+      <h4>You approve what goes public</h4>
+      Names, questions, bets and lessons an agent writes wait for you, in your AI app or on your log page.
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top">
+      <h4>Nothing is erased</h4>
+      The history is append-only. Every change carries the name of the agent that made it. An undo is a new event.
+    </td>
+    <td width="33%" valign="top">
+      <h4>Private by default</h4>
+      Your log stays private until you publish it. Even then, evidence, consent, notes and partner loops stay out.
+    </td>
+    <td width="33%" valign="top">
+      <h4>Yours, on your account</h4>
+      A Worker, a database and nightly backups on your Cloudflare account. The free plan is enough. Export it all as JSON.
+    </td>
+  </tr>
+</table>
 
 ## Quick start
 
@@ -32,15 +120,20 @@ You need:
 
 Then:
 
-1. Click **Deploy to Cloudflare** above.
+1. Click **Deploy to Cloudflare**.
 2. On the setup page, set `OWNER_PASSWORD` and `COOKIE_ENCRYPTION_KEY`.
 3. Open your Worker's address and sign in with your owner password.
 4. Go to **Connect** and add your log to your AI app.
 5. Ask it: "Help me build my 100 loops."
 
-It takes about 2 minutes.
+It takes about 2 minutes. Writing your 100 loops takes longer.
 
-## What the button creates
+<p>
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/onhundred/protocol-log"><img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare" height="32"></a>
+</p>
+
+<details>
+<summary><b>What the button creates</b></summary>
 
 - **A Worker** with your log page and an MCP server at `/mcp`.
 - **A D1 database** with your loops, experiments, connections and the full history of changes. The tables are created on first use.
@@ -55,18 +148,32 @@ The setup page asks for 2 secrets:
 
 At this size, usage stays within Cloudflare's free allowances. If R2 isn't on in your account yet, the dashboard asks you to turn it on first.
 
+</details>
+
 ## Connect your AI
 
 Open your Worker's address, sign in, and go to **Connect**. Every app uses the same address: `https://<your-worker>/mcp`.
 
 ![The Connect page: the MCP server address and 1-click setup for Claude, ChatGPT and Grok](./docs/images/connect.png)
 
-- **Claude:** Customize, Connectors, Add custom connector. Paste the address, click Connect and sign in.
-- **ChatGPT:** Settings, Apps. Create an app with the address and OAuth, then sign in. Custom apps depend on your plan.
-- **Grok:** Connectors, New Connector, Custom. Paste the address and sign in.
-- **Cursor:** add `{"mcpServers": {"onhundred": {"url": "https://<your-worker>/mcp"}}}` to `~/.cursor/mcp.json`, then click Connect.
-- **Claude Code:** `claude mcp add --transport http onhundred https://<your-worker>/mcp`, then `/mcp` to sign in.
-- **API agents** (the xAI Grok API, the OpenAI Responses API, the Anthropic MCP connector, your own bots): create an API key under **Connections** and send it as the bearer token. The Connect page has the examples.
+| App | How to connect |
+| --- | --- |
+| **Claude** | Customize, Connectors, Add custom connector. Paste the address, click Connect and sign in. |
+| **ChatGPT** | Settings, Apps. Create an app with the address and OAuth, then sign in. Custom apps depend on your plan. |
+| **Grok** | Connectors, New Connector, Custom. Paste the address and sign in. |
+| **Cursor** | Add the snippet below to `~/.cursor/mcp.json`, then click Connect. |
+| **Claude Code** | Run the command below, then `/mcp` to sign in. |
+| **API agents** | Create an API key under **Connections** and send it as the bearer token. The Connect page has the examples. |
+
+```json
+{ "mcpServers": { "onhundred": { "url": "https://<your-worker>/mcp" } } }
+```
+
+```bash
+claude mcp add --transport http onhundred https://<your-worker>/mcp
+```
+
+API agents include the xAI Grok API, the OpenAI Responses API, the Anthropic MCP connector and your own bots.
 
 Then ask: "Help me build my 100 loops."
 
@@ -169,7 +276,20 @@ The public page and `/public.json` render from an allowlist, so any new field st
 - **Export:** sign in and click **Export** for the whole log as JSON. It includes private fields, and leaves out your password, API keys and connections.
 - **Backups:** a snapshot lands in your R2 bucket every night at `snapshots/YYYY-MM-DD.json`.
 
-## Settings
+## Security
+
+- **Your sign-in** is the owner password, checked in constant time. The session cookie is signed with `COOKIE_ENCRYPTION_KEY`, lasts 30 days and is `HttpOnly`, `Secure` and `SameSite=Lax`.
+- **Failed sign-ins:** 10 failures from 1 address lock sign-in from there for 15 minutes.
+- **AI apps** sign in through OAuth with your owner password. Each one gets a grant you can revoke under **Connections**.
+- **API keys** start with `ohk_`, are shown once and are stored only as a SHA-256 hash.
+- **Owner forms** only accept requests from your log's own address.
+
+Found a vulnerability? Report it privately, as [SECURITY.md](./SECURITY.md) explains. Please don't open a public issue.
+
+## Reference
+
+<details>
+<summary><b>Settings</b>: the variables you can change after setup</summary>
 
 The setup page asks only for `PUBLISH` and `LANGUAGES`. Add the others later under your Worker's Settings, Variables and Secrets:
 
@@ -184,7 +304,10 @@ The setup page asks only for `PUBLISH` and `LANGUAGES`. Add the others later und
 
 Your agents can change the rest with `set_meta`: the cycle start date, the "still you" figure, the grid layout.
 
-## Updates
+</details>
+
+<details>
+<summary><b>Updates</b>: how new versions reach your log, and how to roll back</summary>
 
 New versions of this template are published as releases named `vX.Y.Z`. Once a week, the **Update from template** workflow in your repository checks for a newer one. You can also run it from the Actions tab.
 
@@ -204,17 +327,10 @@ Changes to the workflow file itself can't be applied by the workflow. When one s
 
 Rolling back is always safe for your data: database changes only ever add tables and columns, never drop or rename them.
 
-## Security
+</details>
 
-- **Your sign-in** is the owner password, checked in constant time. The session cookie is signed with `COOKIE_ENCRYPTION_KEY`, lasts 30 days and is `HttpOnly`, `Secure` and `SameSite=Lax`.
-- **Failed sign-ins:** 10 failures from 1 address lock sign-in from there for 15 minutes.
-- **AI apps** sign in through OAuth with your owner password. Each one gets a grant you can revoke under **Connections**.
-- **API keys** start with `ohk_`, are shown once and are stored only as a SHA-256 hash.
-- **Owner forms** only accept requests from your log's own address.
-
-Found a vulnerability? Report it privately, as [SECURITY.md](./SECURITY.md) explains. Please don't open a public issue.
-
-## Troubleshooting
+<details>
+<summary><b>Troubleshooting</b>: forgotten password, locked sign-in, missing tools</summary>
 
 - **I forgot my owner password.** In the Cloudflare dashboard, open your Worker, then Settings, Variables and Secrets, and set a new `OWNER_PASSWORD`. Or run `npx wrangler secret put OWNER_PASSWORD`. Changing `COOKIE_ENCRYPTION_KEY` too signs out every browser.
 - **Sign-in says it's locked.** Too many wrong passwords from your address. Wait 15 minutes.
@@ -224,7 +340,10 @@ Found a vulnerability? Report it privately, as [SECURITY.md](./SECURITY.md) expl
 - **The update workflow opened an issue instead of a pull request.** Follow the link in the issue, then allow GitHub Actions to create pull requests in Settings, Actions, General.
 - **My install never gets updates.** If you deployed it before October 2026, it came from the `app/` folder of `onhundred/web`. Copy `.github/workflows/update-from-template.yml` from this repository into yours, once.
 
-## Uninstall and delete your data
+</details>
+
+<details>
+<summary><b>Uninstall and delete your data</b></summary>
 
 1. Export your log first if you want to keep a copy.
 2. Remove the connector from each AI app.
@@ -232,9 +351,17 @@ Found a vulnerability? Report it privately, as [SECURITY.md](./SECURITY.md) expl
 4. Under Storage and Databases, delete the D1 database (`onhundred-log`), empty and delete the R2 bucket (`onhundred-log-backups`), and delete the KV namespace your Worker used. The names may differ if you changed them at setup.
 5. Delete your copy of this repository on GitHub.
 
+</details>
+
 ## Status
 
 Early. This is v1 of the template, and the protocol is pending external review. It is part of Social Experiment 001: Ale Sánchez runs the protocol on his own life and publishes the results at [onhundred.com](https://onhundred.com). Rules can change between protocol versions. Your log keeps its version until you adopt a new one.
+
+To hear about new protocol versions, click **Watch**, then **Custom**, then **Releases**.
+
+## Contributing
+
+Bug reports, fixes and translations are welcome. [CONTRIBUTING.md](./CONTRIBUTING.md) covers local development, the checks a change must pass and how releases work. Questions go to [Discussions](https://github.com/onhundred/protocol-log/discussions).
 
 ## Credit and license
 
@@ -254,6 +381,10 @@ Your log page and `/public.json` already include this credit. To show it on your
 <a href="https://onhundred.com"><img src="https://raw.githubusercontent.com/onhundred/protocol-log/main/public/badge.svg" alt="Follows the Onhundred Protocol" height="28"></a>
 ```
 
-## Contributing
+---
 
-Bug reports, fixes and translations are welcome. [CONTRIBUTING.md](./CONTRIBUTING.md) covers local development, the checks a change must pass and how releases work.
+<p align="center">
+  <a href="https://onhundred.com"><img src="./public/favicon.svg" alt="Onhundred" width="40"></a>
+  <br>
+  <sub>Built by <a href="https://onhundred.com">Ale Sánchez</a> for Social Experiment 001. Delegate agency.</sub>
+</p>
