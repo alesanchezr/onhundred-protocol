@@ -2,7 +2,7 @@
   <a href="https://onhundred.com"><img src="./public/wordmark.png" alt="Onhundred" width="440"></a>
 </p>
 
-<h3 align="center">Hand your 100 recurring responsibilities to AI agents.<br>One experiment at a time.</h3>
+<h3 align="center">Hand your 100 recurring responsibilities to AI agents.<br>One experiment at a time</h3>
 
 <p align="center">
   Your own log and MCP server for the <a href="./docs/protocol.md">Onhundred Protocol</a>.<br>
