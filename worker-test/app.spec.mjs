@@ -61,7 +61,10 @@ describe("fresh install", () => {
     const ownerPage = async () => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
     const before = await ownerPage();
     expect(before).toContain("No loops yet");
-    expect(before).toContain('data-copy="#first-prompt"');
+    const empties = (html) => html.match(/data-s="empty"/g) || [];
+    expect(empties(before.match(/<a class="grid mini"[\s\S]*?<\/a>/)[0])).toHaveLength(100);
+    expect(empties(before.match(/id="activity"[\s\S]*?<\/section>/)[0])).toHaveLength(100);
+    expect(before).not.toContain('data-copy="#first-prompt"');
     expect(before).toContain('href="/connect">CONNECT YOUR AI');
     expect(before).not.toContain("claude.ai/new");
 
@@ -71,6 +74,7 @@ describe("fresh install", () => {
     expect(after).toContain(`https://claude.ai/new?q=${q}`);
     expect(after).toContain(`https://chatgpt.com/?q=${q}`);
     expect(after).toContain(`https://cursor.com/link/prompt?text=${q}`);
+    expect(after).toContain('data-copy="#first-prompt"');
     expect(after).not.toContain("CONNECT YOUR AI");
   });
 });
@@ -438,7 +442,14 @@ describe("protocol versions", () => {
     expect((await call(key, "propose_loops", { loops: [loop("Choose the summer camp", "R-KID")] })).error).toMatch(/failing verb \(choose\)/);
 
     const cookie = await ownerCookie();
-    expect(await ownerPage(cookie)).toContain("Breaks v1.1 rules");
+    const page = await ownerPage(cookie);
+    expect(page).toContain("Breaks v1.1 rules");
+    expect(page).toContain(`data-fix="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.1 rules: name (en) starts with a failing verb (decide).`);
+    expect(page).toContain(`aria-label="Fix ${code} with AI"`);
+    expect(page).toMatch(new RegExp(`data-target="${code}"><svg[^]*?</svg>FIX</button></li>`));
+    expect(page).toContain("data-fix-dialog");
+    expect(page).toContain('data-copy="#fix-prompt"');
+    expect(page).toContain('data-app-href="https://claude.ai/new?q={q}"');
 
     expect((await call(key, "set_meta", { publish: true })).error).toBeNull();
     const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();

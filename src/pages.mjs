@@ -53,7 +53,7 @@ export function html(body, { status = 200, headers = {}, cache = "no-store", for
 
 const CREDIT = P.attribution;
 
-function layout({ title, ownerName, owner = false, body, current = "", origin = "" }) {
+function layout({ title, ownerName, version = P.version, owner = false, body, current = "", origin = "" }) {
   const link = (href, label) => `<a href="${href}"${current === href ? ' aria-current="page"' : ""}>${label}</a>`;
   const description = `${ownerName ? `${ownerName}'s log` : "A log"} that follows the ${CREDIT.text}.`;
   const nav = owner
@@ -85,7 +85,7 @@ function layout({ title, ownerName, owner = false, body, current = "", origin = 
 </head>
 <body>
 <header class="top">
-<a class="brand" href="/"><b>ON</b>HUNDRED PROTOCOL${ownerName ? ` · ${esc(ownerName.toUpperCase())}` : ""}</a>
+<a class="brand" href="/"><img src="/wordmark.svg" alt="Onhundred" width="68" height="9"><span>PROTOCOL v${esc(version)}${ownerName ? ` · ${esc(ownerName.toUpperCase())}` : ""}</span></a>
 ${nav}
 </header>
 <main>
@@ -158,15 +158,34 @@ export function changeNote(change) {
   return `${head} Delegated went from ${change.delegatedBefore} to ${change.delegatedAfter} with no change in loops.`;
 }
 
+// With no loops yet, the grid shows the 100 empty squares the inventory will fill.
+const per = Math.floor(P.limits.loops / P.branchOrder.length);
+const EMPTY_SLOTS = Object.fromEntries(
+  P.branchOrder.map((b, i) => [b, i === P.branchOrder.length - 1 ? P.limits.loops - per * i : per])
+);
+
+const drawGrid = (view, meta, opts = {}) =>
+  renderGrid(
+    { ...view, meta: { ...view.meta, grid: meta.grid } },
+    {
+      lang: meta.languages[0],
+      metric: "delegated",
+      labels: { areas: AREAS, private: "Private loop" },
+      slots: view.loops.length ? {} : EMPTY_SLOTS,
+      ...opts,
+    }
+  );
+
 // The figure leads; everything else is a labelled status row beside it (below it on phones).
+// The small grid at the end of the row only shows on wide screens, where it opens the full one (the next section).
 function readout(view, meta) {
   const m = view.metrics;
   const approved = view.loops.length;
   const row = (label, value, note = "") =>
-    `<div><dt>${label}</dt><dd>${value}${note ? `<small>${note}</small>` : ""}</dd></div>`;
+    `<div><dt>${label}</dt><dd>${value}${note ? noteButton(note) : ""}</dd></div>`;
   const stage = meta.stage ? ` · ${esc(meta.stage)}` : "";
   const rows = [
-    row("CYCLE", meta.cycle ? `Cycle ${esc(meta.cycle)} · day ${esc(meta.day)}${stage}` : "Not started", meta.cycle ? "" : "Cycle 1 starts when the inventory is frozen."),
+    row(`CYCLE ${esc(meta.cycle || 1)}`, meta.cycle ? `Day ${esc(meta.day)}${stage}` : "Not started", meta.cycle ? "" : "Starts when the inventory is frozen."),
     row(
       "INVENTORY",
       meta.mode === "frozen" ? `v${esc(meta.inventoryVersion || 1)} · ${approved} loops` : `${approved} of ${P.limits.loops} approved`,
@@ -177,9 +196,11 @@ function readout(view, meta) {
   const change = meta.protocolChange;
   const current = changeIsCurrent(change, new Date().toISOString().slice(0, 10));
   rows.push(row("PROTOCOL", `v${esc(meta.protocolVersion)}`, current ? esc(changeNote(change)) : ""));
+  const mini = drawGrid(view, meta, { compact: true });
   return `<section class="readout">
 <h1 class="figure"><span class="pct">${m.delegatedPoints}</span><span class="cap">OF ${P.limits.loops}<br>DELEGATED</span></h1>
 <dl class="status">${rows.join("")}</dl>
+<a class="grid mini" href="#activity" role="button" aria-expanded="false" aria-controls="activity" data-grid-toggle style="grid-template-columns:${mini.columns}" aria-label="Show the full delegation grid">${mini.html}</a>
 </section>`;
 }
 
@@ -200,11 +221,21 @@ const APP_ICONS = {
   ),
 };
 
-// circle-help from Lucide (ISC license).
-const HELP_ICON = svg(
-  '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
-  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+// UI icons from Phosphor (MIT license), bold weight: https://phosphoricons.com
+const phosphor = (d) =>
+  `<svg viewBox="0 0 256 256" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
+
+const HELP_ICON = phosphor(
+  "M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm92-52A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM128,64c-24.26,0-44,17.94-44,40v4a12,12,0,0,0,24,0v-4c0-8.82,9-16,20-16s20,7.18,20,16-9,16-20,16a12,12,0,0,0-12,12v8a12,12,0,0,0,23.73,2.56C158.31,137.88,172,122.37,172,104,172,81.94,152.26,64,128,64Z"
 );
+
+const INFO_ICON = phosphor(
+  "M108,84a16,16,0,1,1,16,16A16,16,0,0,1,108,84Zm128,44A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Zm-72,36.68V132a20,20,0,0,0-20-20,12,12,0,0,0-4,23.32V164a20,20,0,0,0,20,20,12,12,0,0,0,4-23.32Z"
+);
+
+// data-menu gives it the prompt menus' closing: a click outside or Escape.
+const noteButton = (text) =>
+  `<details class="note" data-menu><summary aria-label="More about this">${INFO_ICON}</summary><div class="note-pop" role="note">${text}</div></details>`;
 
 const FIRST_PROMPT = "Use Onhundred to help me build my 100 loops.";
 
@@ -215,34 +246,53 @@ const OPEN_IN = [
   { id: "cursor", name: "Cursor", href: (q) => `https://cursor.com/link/prompt?text=${q}` },
 ];
 
+const CARET_ICON = phosphor(
+  "M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"
+);
+const COPY_ICON = phosphor(
+  "M216,28H88A12,12,0,0,0,76,40V76H40A12,12,0,0,0,28,88V216a12,12,0,0,0,12,12H168a12,12,0,0,0,12-12V180h36a12,12,0,0,0,12-12V40A12,12,0,0,0,216,28ZM156,204H52V100H156Zm48-48H180V88a12,12,0,0,0-12-12H100V52H204Z"
+);
+
+// One button for every way to use a prompt: each app, then COPY for any other chat.
+// With no prompt, each link carries a {q} template that app.js fills when its dialog opens.
+const promptMenu = (source, prompt, { up = false } = {}) => {
+  const link = (a) =>
+    prompt == null ? `href="#" data-app-href="${esc(a.href("{q}"))}"` : `href="${esc(a.href(encodeURIComponent(prompt)))}"`;
+  const apps = OPEN_IN.map(
+    (a) => `<a class="menu-item" ${link(a)} target="_blank" rel="noopener" aria-label="Open the prompt in ${a.name}">${APP_ICONS[a.id]}${a.name.toUpperCase()}</a>`
+  ).join("");
+  return `<details class="menu${up ? " up" : ""}" data-menu><summary class="btn signal">USE PROMPT${CARET_ICON}</summary><div class="menu-list">${apps}<button class="menu-item" type="button" data-copy="${source}" aria-label="Copy the prompt">${COPY_ICON}COPY</button></div></details>`;
+};
+
 function emptyState(owner, connected) {
   if (!owner) return `<section class="block empty-state"><h2>No loops yet</h2><p>The inventory is still being built.</p></section>`;
-  const q = encodeURIComponent(FIRST_PROMPT);
-  const next = connected
-    ? `<div class="actions open-in"><span class="label">OPEN IN</span>${OPEN_IN.map(
-        (a) => `<a class="btn app-btn" href="${esc(a.href(q))}" target="_blank" rel="noopener" aria-label="Open the prompt in ${a.name}">${APP_ICONS[a.id]}${a.name.toUpperCase()}</a>`
-      ).join("")}</div>`
-    : `<aside class="help-box"><span class="help-icon">${HELP_ICON}</span><div><p>The prompt works once an AI app is connected to your log.</p><a class="btn signal" href="/connect">CONNECT YOUR AI</a></div></aside>`;
+  if (!connected) {
+    return `<section class="block empty-state">
+<h2>No loops yet</h2>
+<p>Your AI app proposes them and you approve each one here.</p>
+<aside class="help-box"><span class="help-icon">${HELP_ICON}</span><div><p>Connect an AI app to your log to start.</p><a class="btn signal" href="/connect">CONNECT YOUR AI</a></div></aside>
+</section>`;
+  }
   return `<section class="block empty-state">
 <h2>No loops yet</h2>
 <p>Your AI app proposes them and you approve each one here. Start with this prompt:</p>
-<div class="copy"><code id="first-prompt">${esc(FIRST_PROMPT)}</code><button class="btn" type="button" data-copy="#first-prompt">COPY</button></div>
-${next}
+<div class="copy"><code id="first-prompt">${esc(FIRST_PROMPT)}</code>${promptMenu("#first-prompt", FIRST_PROMPT)}</div>
 </section>`;
 }
 
-function gridSection(view, meta, owner, connected) {
-  if (!view.loops.length) return emptyState(owner, connected);
-  const { html: cells, columns } = renderGrid(
-    { ...view, meta: { ...view.meta, grid: meta.grid } },
-    { lang: meta.languages[0], metric: "delegated", labels: { areas: AREAS, private: "Private loop" } }
-  );
+function gridSection(view, meta, owner, connected, hasProposals) {
+  const { html: cells, columns } = drawGrid(view, meta);
+  if (!view.loops.length) {
+    return `<section class="block" id="activity">
+<div class="grid" data-grid style="grid-template-columns:${columns}" role="img" aria-label="Delegation grid: no loops yet">${cells}</div>
+</section>${hasProposals ? "" : emptyState(owner, connected)}`;
+  }
   const counts = view.metrics.counts;
   const legend = LEVELS.map(
     (l) =>
       `<li><i class="cell" data-s="${l}"></i><span class="lv">${l.toUpperCase()}<small>${esc(LEVEL_NOTES[l])}</small></span><span class="n">${counts[l]}</span></li>`
   ).join("");
-  return `<section class="block">
+  return `<section class="block" id="activity">
 <div class="grid" data-grid data-tip="${esc(JSON.stringify(TIP))}" style="grid-template-columns:${columns}" role="img" aria-label="Delegation grid: each square is 1 loop">${cells}</div>
 <ul class="legend">${legend}</ul>
 </section>`;
@@ -264,8 +314,12 @@ function experimentsSection(experiments, lang) {
   return `<section class="block"><h2 class="title">EXPERIMENTS</h2><ul class="exps">${rows}</ul></section>`;
 }
 
-const CHECK_ICON =
-  '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHECK_ICON = phosphor(
+  "M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"
+);
+const WARNING_ICON = phosphor(
+  "M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM216,199.85a.42.42,0,0,1-.53.15H40.55a.42.42,0,0,1-.53-.15.31.31,0,0,1,0-.31L127.45,47.67a.58.58,0,0,1,1.1,0L216,199.54A.31.31,0,0,1,216,199.85ZM116,136V104a12,12,0,0,1,24,0v32a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,176Z"
+);
 
 // One approve button per loop. Without JavaScript each button posts on its own; with it, the
 // button opens the confirmation dialog, which can also approve every loop that passes the rules.
@@ -277,7 +331,7 @@ function proposedCard(proposed, broken, lang, published) {
       const bad = broken.has(l.code);
       const replaces = l.replaces?.length ? l.replaces.join(", ") : "";
       const button = bad
-        ? `<button class="icon-btn" type="button" disabled title="Rename it first: its text breaks a rule" aria-label="Can't approve ${esc(l.code)} yet">${CHECK_ICON}</button>`
+        ? `<button class="icon-btn warn" type="button" title="Why ${esc(l.code)} can't be approved yet" aria-label="Why ${esc(l.code)} can't be approved yet" data-rule-break="${esc(JSON.stringify(broken.get(l.code)))}" data-code="${esc(l.code)}" data-name="${esc(name)}">${WARNING_ICON}</button>`
         : `<form method="post" action="/owner/action" data-approve-one><input type="hidden" name="op" value="approve_loops"><input type="hidden" name="codes" value="${esc(l.code)}"><button class="icon-btn" type="submit" title="Approve ${esc(l.code)}" aria-label="Approve ${esc(l.code)}: ${esc(name)}" data-code="${esc(l.code)}" data-name="${esc(name)}" data-replaces="${esc(replaces)}">${CHECK_ICON}</button></form>`;
       return `<li class="row approve-row"><span class="code">${esc(l.code)}</span><span><b>${esc(name)}</b>${bad ? ` <span class="flag-bad">BREAKS A RULE · RENAME FIRST</span>` : ""}<small>Done when: ${esc(pickText(l.doneWhen, lang))}${replaces ? ` · replaces ${esc(replaces)}` : ""} · by ${esc(l.proposedBy || "")}</small></span>${button}</li>`;
     })
@@ -301,12 +355,50 @@ function proposedCard(proposed, broken, lang, published) {
 <label class="modal-all"><input type="checkbox" data-approve-all> Approve all ${eligible.length} proposed loops that pass the rules</label>
 <div class="actions"><button class="btn signal" type="submit" data-approve-submit>APPROVE</button><button class="btn" type="button" data-approve-cancel>CANCEL</button></div>
 </form>
+</dialog>
+<dialog class="modal" data-dialog data-rule-dialog aria-labelledby="rule-title">
+<h3 id="rule-title"><span data-rule-code></span> breaks a rule</h3>
+<p class="modal-loop" data-rule-name></p>
+<ul class="modal-list" data-rule-list></ul>
+<p>It can't be approved with this text. Rename it with your AI app, then approve the new name here.</p>
+<div class="actions"><button class="btn" type="button" data-dialog-close>CLOSE</button></div>
 </dialog>`;
   const hint = broken.size && eligible.length < proposed.length ? " Loops that break a rule need a new name first." : "";
   return `<div class="card"><h3>Proposed loops (${proposed.length})</h3><p class="hint">Approve each loop with its button.${hint}</p><ul class="plain">${rows}</ul>${dialog}</div>`;
 }
 
-function pendingSection(state, published) {
+const fixPrompt = (v, version) =>
+  `Use Onhundred to fix ${v.target} in my log. It breaks the protocol v${version} rules: ${v.message.slice(v.target.length + 2)} Rewrite it in every language of the log, then tell me what changed.`;
+
+const ROBOT_ICON = phosphor(
+  "M72,104a16,16,0,1,1,16,16A16,16,0,0,1,72,104Zm96,16a16,16,0,1,0-16-16A16,16,0,0,0,168,120Zm68-40V192a36,36,0,0,1-36,36H56a36,36,0,0,1-36-36V80A36,36,0,0,1,56,44h60V16a12,12,0,0,1,24,0V44h60A36,36,0,0,1,236,80Zm-24,0a12,12,0,0,0-12-12H56A12,12,0,0,0,44,80V192a12,12,0,0,0,12,12H200a12,12,0,0,0,12-12Zm-12,82a30,30,0,0,1-30,30H86a30,30,0,0,1,0-60h84A30,30,0,0,1,200,162Zm-80-6v12h16V156ZM86,168H96V156H86a6,6,0,0,0,0,12Zm90-6a6,6,0,0,0-6-6H160v12h10A6,6,0,0,0,176,162Z"
+);
+
+// One dialog for every FIX button; each button carries its own prompt.
+const fixDialog = () => `<dialog class="modal" data-dialog data-fix-dialog aria-labelledby="fix-title">
+<h3 id="fix-title">Fix <span data-fix-target></span> with AI</h3>
+<p class="modal-loop">Open the prompt in your AI app, or copy it into any chat connected to your log.</p>
+<div class="copy block-code"><pre id="fix-prompt"></pre></div>
+<div class="actions"><button class="btn" type="button" data-dialog-close>CANCEL</button>${promptMenu("#fix-prompt", null, { up: true })}</div>
+</dialog>`;
+
+function breaksCard(breaks, connected) {
+  const rows = breaks.items
+    .map((v) => {
+      const fix = connected
+        ? `<button class="btn signal small fix-btn" type="button" aria-label="Fix ${esc(v.target)} with AI" data-fix="${esc(fixPrompt(v, breaks.version))}" data-target="${esc(v.target)}">${ROBOT_ICON}FIX</button>`
+        : "";
+      return `<li class="row${connected ? " fix-row" : ""}"><span class="code">${esc(v.target)}</span><span>${esc(v.message.slice(v.target.length + 2))}</span>${fix}</li>`;
+    })
+    .join("");
+  const how = breaks.adopted
+    ? "Fix each one with your AI app, then approve the new names here. A text that breaks a rule can't be approved."
+    : "Adopting isn't blocked by these. Fix them with your AI app, before or after you adopt.";
+  const connect = connected ? fixDialog() : `<div class="actions"><a class="btn signal" href="/connect">CONNECT YOUR AI</a></div>`;
+  return `<div class="card"><h3>Breaks v${esc(breaks.version)} rules (${breaks.items.length})</h3><p>${how}</p><ul class="plain">${rows}</ul>${connect}</div>`;
+}
+
+function pendingSection(state, published, connected) {
   const lang = state.meta.languages[0];
   const text = pendingItems(state);
   const proposed = state.loops.filter((l) => l.proposed && !l.retired);
@@ -314,18 +406,15 @@ function pendingSection(state, published) {
   const baselines = state.loops.filter((l) => l.pendingBaseline);
   const breaks = pendingRuleBreaks(state);
   // approve_loops refuses the whole batch if one name breaks a rule, so those can't be approved yet.
-  const broken = new Set(validate(state).filter((v) => v.rule === "name" || v.rule === "voice").map((v) => v.target));
+  const broken = new Map();
+  for (const v of validate(state)) {
+    if (v.rule !== "name" && v.rule !== "voice") continue;
+    if (!broken.has(v.target)) broken.set(v.target, []);
+    broken.get(v.target).push(v.message.slice(v.target.length + 2));
+  }
   if (!text.length && !proposed.length && !retirements.length && !baselines.length && !breaks.items.length) return "";
   const parts = [];
-  if (breaks.items.length) {
-    const rows = breaks.items
-      .map((v) => `<li class="row"><span class="code">${esc(v.target)}</span><span>${esc(v.message.slice(v.target.length + 2))}</span></li>`)
-      .join("");
-    const how = breaks.adopted
-      ? "Ask your AI app to rename these. Approving stays refused while a text breaks a rule."
-      : "Adopting isn't blocked by these. Ask your AI app to rename them, before or after you adopt.";
-    parts.push(`<div class="card"><h3>Breaks v${esc(breaks.version)} rules (${breaks.items.length})</h3><p>${how}</p><ul class="plain">${rows}</ul></div>`);
-  }
+  if (breaks.items.length) parts.push(breaksCard(breaks, connected));
   if (proposed.length) parts.push(proposedCard(proposed, broken, lang, published));
   if (text.length) {
     const rows = text
@@ -377,8 +466,8 @@ export function logPage({ state, owner, events = [], url, upgrade, configured: i
     owner ? protocolNotice(meta, upgrade) : "",
     owner && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
     readout(view, meta),
-    gridSection(view, meta, owner, hasConnections),
-    owner ? pendingSection(state, published) : "",
+    gridSection(view, meta, owner, hasConnections, owner && state.loops.some((l) => l.proposed && !l.retired)),
+    owner ? pendingSection(state, published, hasConnections) : "",
     experimentsSection(view.experiments, lang),
     owner ? eventsSection(events) : "",
   ].join("\n");

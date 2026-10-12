@@ -7,13 +7,79 @@
     if (!source) return;
     try {
       await navigator.clipboard.writeText(source.textContent);
-      const label = btn.textContent;
+      const label = btn.innerHTML;
       btn.textContent = "COPIED";
-      setTimeout(() => (btn.textContent = label), 1500);
+      setTimeout(() => {
+        btn.innerHTML = label;
+        btn.closest("details[data-menu]")?.removeAttribute("open");
+      }, 1500);
     } catch {
       getSelection().selectAllChildren(source);
     }
   });
+
+  // Prompt menus close on a click outside, once an app opens, and on Escape.
+  const closeMenus = (except) =>
+    document.querySelectorAll("details[data-menu][open]").forEach((m) => m !== except && m.removeAttribute("open"));
+  document.addEventListener("click", (e) => {
+    const menu = e.target.closest("details[data-menu]");
+    closeMenus(menu);
+    if (menu && e.target.closest("a.menu-item")) menu.removeAttribute("open");
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !document.querySelector("details[data-menu][open]")) return;
+    e.preventDefault();
+    closeMenus();
+  });
+
+  // A modal dialog sits in the browser's top layer, where element pickers in dev tools can't reach it.
+  // Local dev opens dialogs non-modal instead; .modal:not(:modal) in app.css draws their backdrop.
+  const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const openDialog = (d) => (local ? d.show() : d.showModal());
+  if (local) {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !e.defaultPrevented) document.querySelectorAll("dialog.modal[open]").forEach((d) => d.close());
+    });
+  }
+
+  // Plain dialogs close on CANCEL, on the backdrop, and once an app opens.
+  document.addEventListener("click", (e) => {
+    const d = e.target.closest("dialog[data-dialog]");
+    if (d && (e.target === d || e.target.closest("[data-dialog-close], a.menu-item"))) d.close();
+  });
+
+  // Fix with AI: one dialog, filled with the prompt of the row whose button opened it.
+  const fixDialog = document.querySelector("[data-fix-dialog]");
+  if (fixDialog && typeof fixDialog.showModal === "function") {
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-fix]");
+      if (!btn) return;
+      const q = encodeURIComponent(btn.dataset.fix);
+      fixDialog.querySelector("[data-fix-target]").textContent = btn.dataset.target;
+      fixDialog.querySelector("#fix-prompt").textContent = btn.dataset.fix;
+      fixDialog.querySelectorAll("[data-app-href]").forEach((a) => (a.href = a.dataset.appHref.replace("{q}", q)));
+      openDialog(fixDialog);
+    });
+  }
+
+  // Rule break: a proposed loop that can't be approved explains which rule its text breaks.
+  const ruleDialog = document.querySelector("[data-rule-dialog]");
+  if (ruleDialog && typeof ruleDialog.showModal === "function") {
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-rule-break]");
+      if (!btn) return;
+      ruleDialog.querySelector("[data-rule-code]").textContent = btn.dataset.code;
+      ruleDialog.querySelector("[data-rule-name]").textContent = btn.dataset.name;
+      ruleDialog.querySelector("[data-rule-list]").replaceChildren(
+        ...JSON.parse(btn.dataset.ruleBreak || "[]").map((m) => {
+          const li = document.createElement("li");
+          li.textContent = m;
+          return li;
+        })
+      );
+      openDialog(ruleDialog);
+    });
+  }
 
   // Export confirmation: explains the file before the download starts.
   const exportDialog = document.querySelector("[data-export-dialog]");
@@ -21,7 +87,7 @@
     document.addEventListener("click", (e) => {
       if (!e.target.closest("[data-export-open]")) return;
       e.preventDefault();
-      exportDialog.showModal();
+      openDialog(exportDialog);
     });
     exportDialog.querySelector("[data-export-cancel]").addEventListener("click", () => exportDialog.close());
     exportDialog.querySelector("form").addEventListener("submit", () => setTimeout(() => exportDialog.close()));
@@ -68,12 +134,34 @@
       allBox.checked = false;
       allBox.parentElement.hidden = all.length < 2;
       render();
-      dialog.showModal();
+      openDialog(dialog);
     });
     allBox.addEventListener("change", render);
     q("[data-approve-cancel]").addEventListener("click", () => dialog.close());
     dialog.addEventListener("click", (e) => {
       if (e.target === dialog) dialog.close();
+    });
+  }
+
+  // The small grid in the readout opens and closes the full one.
+  const gridToggle = document.querySelector("[data-grid-toggle]");
+  const fullGrid = document.getElementById("activity");
+  if (gridToggle && fullGrid) {
+    const setOpen = (open) => {
+      fullGrid.toggleAttribute("data-open", open);
+      gridToggle.setAttribute("aria-expanded", String(open));
+      // Without the hash, :target in app.css stops holding it open.
+      if (!open && location.hash === "#activity") history.replaceState(null, "", location.pathname + location.search);
+    };
+    setOpen(location.hash === "#activity");
+    gridToggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      setOpen(!fullGrid.hasAttribute("data-open"));
+    });
+    gridToggle.addEventListener("keydown", (e) => {
+      if (e.key !== " ") return;
+      e.preventDefault();
+      gridToggle.click();
     });
   }
 

@@ -125,5 +125,5 @@ export async function revokeAgent(db, id) {
 }
 
 export async function hasConnections(db) {
-  return Boolean(await db.prepare("SELECT 1 AS one FROM agents LIMIT 1").first());
+  return Boolean(await db.prepare("SELECT 1 AS one FROM agents WHERE revoked_at IS NULL LIMIT 1").first());
 }

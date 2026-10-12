@@ -12,8 +12,8 @@ The Onhundred name and logo are not licensed by either license. See TRADEMARKS.m
 
 Third-party material:
 
-- The help icon (circle-help) in src/pages.mjs is from Lucide, https://lucide.dev.
-  Copyright (c) Lucide Contributors. ISC License.
+- The help, check and robot icons in src/pages.mjs are from Phosphor Icons, https://phosphoricons.com.
+  Copyright (c) 2023 Phosphor Icons. MIT License.
 - The Claude, ChatGPT and Cursor marks in src/pages.mjs are from @lobehub/icons,
   https://github.com/lobehub/lobe-icons. Copyright (c) LobeHub. MIT License.
   The marks themselves are trademarks of their owners and identify their apps only.
