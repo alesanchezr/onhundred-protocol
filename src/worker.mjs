@@ -18,7 +18,7 @@ import {
   sessionCookie,
 } from "./auth.mjs";
 import { handleMcp } from "./mcp.mjs";
-import { connectPage, connectionsPage, consentPage, html, logPage, loginPage, messagePage, privatePage } from "./pages.mjs";
+import { connectPage, connectionsPage, consentPage, html, logPage, loginPage, loopPage, messagePage, privatePage } from "./pages.mjs";
 import { getEvents, isPublished, logEvent, readState, snapshot } from "./store.mjs";
 import { writer } from "./writer.mjs";
 
@@ -140,12 +140,32 @@ async function route(request, env) {
 
   if (path === "/") {
     const connected = await hasConnections(env.DB);
+    if (owner && url.searchParams.get("view") === "public") {
+      return html(
+        published
+          ? logPage({ state, owner: false, url, configured: true, preview: true })
+          : privatePage({ meta, origin, configured: true, hasConnections: true, preview: true })
+      );
+    }
     if (owner) {
       const events = await getEvents(env.DB, { limit: 30 });
       return html(logPage({ state, owner, events, url, upgrade: compareVersions(meta.protocolVersion, P.version) < 0, configured: configured(env), hasConnections: connected, published }));
     }
     if (published) return html(logPage({ state, owner: false, url, configured: true }), { cache: "public, max-age=30" });
     return html(privatePage({ meta, origin, configured: configured(env), hasConnections: connected }));
+  }
+
+  // A loop's page: public once the log is published, with private fields and actions for the owner.
+  if (path.startsWith("/loop/") && method === "GET" && (owner || published)) {
+    const raw = path.slice("/loop/".length);
+    const code = raw.toUpperCase();
+    if (raw !== code) return redirect(`/loop/${code}`);
+    const events = owner
+      ? (await getEvents(env.DB, { target: code, limit: 200 })).filter((e) => String(e.target || "").split(",").includes(code))
+      : [];
+    const page = loopPage({ state, owner, code, events, connected: owner && (await hasConnections(env.DB)), url });
+    if (!page) return messagePage({ meta, title: "Not found", text: `No loop has the code ${code}.`, status: 404 });
+    return html(page, owner ? {} : { cache: "public, max-age=30" });
   }
 
   // Owner only from here.
