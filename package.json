@@ -1,6 +1,6 @@
 {
   "name": "onhundred-protocol-log",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Your own Onhundred Protocol log: an MCP server for your agents, a private grid page and a D1 database, on your Cloudflare account.",
@@ -15,8 +15,17 @@
   },
   "cloudflare": {
     "label": "Onhundred Protocol log",
-    "products": ["Workers", "D1", "R2", "KV", "Durable Objects"],
-    "categories": ["ai", "storage"],
+    "products": [
+      "Workers",
+      "D1",
+      "R2",
+      "KV",
+      "Durable Objects"
+    ],
+    "categories": [
+      "ai",
+      "storage"
+    ],
     "bindings": {
       "OWNER_PASSWORD": {
         "description": "The password you type to sign in to your log and to allow AI apps like Claude and ChatGPT to connect. Choose a long one."
