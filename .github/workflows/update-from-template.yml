@@ -1,7 +1,7 @@
 # Keeps this install up to date with the Onhundred template.
-# Once a week (or from the Actions tab) it looks for a newer app-v* release of TEMPLATE_REPO and
+# Once a week (or from the Actions tab) it looks for a newer vX.Y.Z release of TEMPLATE_REPO and
 # opens a pull request with it. Merging the pull request deploys it.
-# Set the repository variable TEMPLATE_REPO to follow a fork. Default: onhundred/web.
+# Set the repository variable TEMPLATE_REPO to follow a fork. Default: onhundred/protocol-log.
 name: Update from template
 
 on:
@@ -22,7 +22,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     env:
-      TEMPLATE_REPO: ${{ vars.TEMPLATE_REPO || 'onhundred/web' }}
+      TEMPLATE_REPO: ${{ vars.TEMPLATE_REPO || 'onhundred/protocol-log' }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -35,7 +35,7 @@ jobs:
       - name: Find the latest release
         id: release
         run: |
-          latest=$(git ls-remote --tags --refs "https://github.com/$TEMPLATE_REPO.git" 'app-v*' | sed 's#.*refs/tags/##' | sort -V | tail -n 1)
+          latest=$(git ls-remote --tags --refs "https://github.com/$TEMPLATE_REPO.git" 'v*' | sed 's#.*refs/tags/##' | sort -V | tail -n 1)
           current=$(node -p "try { require('./.template/manifest.json').tag || '' } catch { '' }")
           echo "Latest release: ${latest:-none}. This install: ${current:-no manifest yet}."
           echo "tag=$latest" >> "$GITHUB_OUTPUT"
@@ -52,15 +52,14 @@ jobs:
         env:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
-          git clone --depth 1 --branch "$TAG" --filter=blob:none --sparse "https://github.com/$TEMPLATE_REPO.git" /tmp/template
-          git -C /tmp/template sparse-checkout set app
+          git clone --depth 1 --branch "$TAG" "https://github.com/$TEMPLATE_REPO.git" /tmp/template
 
       # The release's own copy of the script runs, so fixes to it apply from this update on.
       - name: Apply it
         if: steps.release.outputs.skip != 'true'
         env:
           TAG: ${{ steps.release.outputs.tag }}
-        run: node /tmp/template/app/scripts/update-from-template.mjs /tmp/template/app --repo . --tag "$TAG" --summary /tmp/summary.json --body /tmp/body.md
+        run: node /tmp/template/scripts/update-from-template.mjs /tmp/template --repo . --tag "$TAG" --summary /tmp/summary.json --body /tmp/body.md
 
       - name: Open a pull request
         if: steps.release.outputs.skip != 'true'

@@ -1,0 +1,51 @@
+---
+description: How experiments and their stages are registered and stored
+globs: seed/experiments.json,src/**/*.mjs
+alwaysApply: false
+---
+
+# Experiments
+
+An experiment is a question nobody can answer yet, a bet that can lose, and up to 3 stages (protocol section 8). Write the question and the bet with [docs/VOICE.md](mdc:docs/VOICE.md): the question in the subject's voice, one sentence; the bet as If, then, because.
+
+## The card is complete before the first stage
+
+```json
+{
+  "code": "EXP-07",
+  "slot": "easy",
+  "question": { "en": "Can an agent send every birthday message and gift on time?", "es": "..." },
+  "hypothesis": { "en": "If ..., then ..., because ...", "es": "..." },
+  "loops": ["R-FAM-01", "R-FAM-02"],
+  "startLevel": "mapped",
+  "goal": "delegated",
+  "registeredAt": "2026-09-07",
+  "peopleInvolved": "Private. Who, and proof of their consent.",
+  "stages": []
+}
+```
+
+- `slot` is easy, hard or fun. A fun slot needs `funReason`. At most 3 open experiments, one per slot.
+- Easy loops come from the Automate now group, hard loops have Clear rules or Digital data of 2 or less, and no slot takes a Not yet loop. Only loops at mapped or above.
+- `goal` never exceeds a loop's ceiling.
+- After registration the card only grows. Never rewrite the question, the bet or a started stage.
+
+## Stage tries are append-only
+
+```json
+{ "stage": 1, "try": 2, "level": "assisted", "start": "2026-10-05", "deadline": "2026-10-18",
+  "approach": "...", "why": "...", "successTests": "...", "stopEarly": "...", "cost": "...", "risks": "...",
+  "outcome": "achieved", "closedAt": "2026-10-18", "hold": { "result": "passed", "at": "2026-11-08" } }
+```
+
+- Stage n aims for the level n steps above `startLevel`. Stages never skip a level.
+- A new try of the same stage starts only after the last one closed as notAchieved or terminated, or its hold failed. The approach never changes mid-stage: terminate and register a new try.
+- The next stage starts only after the previous one is achieved and its hold passed (3 weeks).
+- `outcome`, `closedAt` and `hold` are set once and never edited.
+- `learned` is the public summary, in every language of the log. Leave it out until there is something real to say. `notes` and `reason` stay private.
+
+## Conclusion
+
+`"conclusion": { "at": "...", "level": "delegated", "hypothesis": "confirmed" | "refuted" | "unclear" }`. A refuted bet is a result, not a failure, and is published the same way.
+
+Statuses (REGISTERED, RUNNING, HOLDING, LEVEL REACHED, NOT ACHIEVED, TERMINATED, CONCLUDED) are derived by `experimentStatus()` in [lib/protocol.mjs](mdc:lib/protocol.mjs). Never store them.

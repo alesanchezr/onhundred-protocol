@@ -1,0 +1,23 @@
+---
+description: Onhundred copywriting rules (VOICE.md) for seed data, the README, page copy and MCP tool text
+globs: README.md,seed/**,src/**/*.mjs
+alwaysApply: false
+---
+
+# Voice
+
+Every word follows [docs/VOICE.md](mdc:docs/VOICE.md). Read it before writing copy.
+
+- **Two voices.** The lab (rules, labels, statuses, tool descriptions, errors) is short, exact and impersonal. The subject (Ale, first person) is candid and specific: manifesto, confession lines, experiment questions.
+- **Mechanical rules** (checked by `voiceIssues()` in `lib/protocol.mjs` for public loop and experiment text):
+  - no em-dashes; use a period, a comma or a colon
+  - no exclamation marks
+  - never use: leverage, unlock, empower, revolutionize, game-changer, seamless, cutting-edge, supercharge, journey, delve, robust, AI-powered, 10x, hack, "in today's world", "the future of work"
+  - retired words: part (say loop), task, test (say experiment; "success tests" is fine), subject (except the Social Experiment 001 framing), free slot, Phase 0
+- **Sentences:** numbers as digits, under 25 words, active voice, second person for instructions.
+- **Levels in plain words:** Help me (assisted), Do it, I approve (delegated), Do it alone (autonomous).
+- **Deadpan only,** at most 1 per page, aimed at the subject or the method, never at other people. No humor in consent, children, health, data handling or legal text.
+- **Field notes are real or absent.** Never invent an anecdote or a `learned` note.
+- **Error messages** state the rule, then give a 1-sentence reason.
+- **Spanish:** neutral Latin American, "tú". Fixed words: loop (kept in English), experimento, apuesta, etapa, bitácora.
+- **The protocol's Warning** is used verbatim and never edited for tone.

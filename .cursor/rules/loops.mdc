@@ -1,0 +1,52 @@
+---
+description: How to create, name and store loops (the 100 squares of the grid)
+globs: seed/loops.json,docs/LOOPS.md,src/**/*.mjs
+alwaysApply: false
+---
+
+# Loops
+
+A loop is one recurring responsibility that ends in a result outside your head. Read [docs/LOOPS.md](mdc:docs/LOOPS.md) before proposing, renaming, splitting or merging one, and [docs/VOICE.md](mdc:docs/VOICE.md) before writing any name.
+
+## Every loop passes the six tests
+
+Stranger, done, action, one-rule, everyone-has-one and ceiling. If it fails one, rewrite it, split it or drop it.
+
+## Names
+
+- A verb and an object, 8 words or fewer, in every language of the log.
+- No names of people and no identifying details. "My partner," never her name.
+- Name the output, not the decision behind it: "Get weeknight dinner on the table," not "Decide what's for dinner."
+- Never start with: decide, choose, remember, remind, track, monitor, keep an eye on, stay on top of, think about, prepare, review, manage, handle. `validate()` enforces these by the log's protocol version: decide and choose fail from v1.1 (`naming.since` in [protocol.json](mdc:protocol.json)).
+
+## Storage (`seed/loops.json`, D1 `loops` in the app)
+
+```json
+{
+  "code": "R-PAR-01",
+  "level": "mapped",
+  "name": { "en": "Plan and book our date night", "es": "Planear y reservar nuestra cita" },
+  "doneWhen": { "en": "The table is booked and on both calendars.", "es": "..." },
+  "estimate": { "howOften": "weekly", "hoursPerWeek": 1.5 },
+  "triage": { "time": 2, "frequency": 3, "rules": 3, "digital": 4, "risk": 3, "source": "baseline" },
+  "baseline": { "occurrences": 3, "confidence": "normal", "hoursPerWeek": 1.5, "approvedAt": "2026-03-30" },
+  "evidence": "Calendar: recurring Friday events"
+}
+```
+
+Optional: `measuring`, `over500`, `published` (R-PAR only), `visibility`, `changedCycle`, `retired`, `drops`.
+
+## Rules enforced by `validate()` in [lib/protocol.mjs](mdc:lib/protocol.mjs)
+
+- Codes are `BRANCH-AREA-NN` from protocol section 2.4 and are never reused. Retire a loop with `retired: true`, never delete it.
+- A frozen inventory has exactly 100 active loops. Building mode allows 0 to 100.
+- Ceilings (protocol 9.3): R-KID and P-HLT and C-PPL cap at assisted, R-PAR at delegated, P-FIN with `over500` at delegated.
+- Mapped and above need an approved `baseline`. Above mapped needs an achieved stage at that level whose hold passed.
+- Only unmapped loops can be `measuring`, 5 at most.
+- Levels change only through holds and drops, never by editing `level` directly.
+
+## Private by default
+
+`evidence` is never published. R-PAR loops stay hidden until `published: true`. `publicView()` is an allowlist: a new field is private until it is added there.
+
+Run `npm test` after editing the seed. The tests validate the sample against every rule.

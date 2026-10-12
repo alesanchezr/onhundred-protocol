@@ -1,5 +1,5 @@
 {
-  "name": "onhundred-protocol-app",
+  "name": "onhundred-protocol-log",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,9 @@
     "deploy": "wrangler deploy",
     "migrate:local": "wrangler d1 migrations apply DB --local",
     "test": "node --test test/*.test.mjs && vitest run",
-    "types": "wrangler types"
+    "types": "wrangler types",
+    "docs": "node scripts/build-docs.mjs",
+    "release": "node scripts/release.mjs"
   },
   "cloudflare": {
     "label": "Onhundred Protocol log",

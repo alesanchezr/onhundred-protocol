@@ -1,6 +1,6 @@
 // Copies a newer template release over this install, keeping what belongs to the install.
 // Run by .github/workflows/update-from-template.yml; also works by hand:
-//   node scripts/update-from-template.mjs /path/to/template/app --tag app-v1.1.0 [--repo .] [--summary f.json] [--body f.md]
+//   node scripts/update-from-template.mjs /path/to/protocol-log --tag v1.1.0 [--repo .] [--summary f.json] [--body f.md]
 //
 // - Template files overwrite local ones. Local edits to template files are listed, not kept.
 // - wrangler.jsonc is merged: the install keeps its name, vars, routes, account_id and resource ids.
@@ -155,7 +155,7 @@ async function differs(a, b) {
   return false;
 }
 
-export function prBody(summary, { templateRepo = "onhundred/web" } = {}) {
+export function prBody(summary, { templateRepo = "onhundred/protocol-log" } = {}) {
   const { to, protocol, edited, removed, workflowChanged, firstManifest } = summary;
   const lines = [`## Update to ${to}`, "", `Release notes: https://github.com/${templateRepo}/releases/tag/${to}`, ""];
   if (protocol.from && protocol.to && protocol.from !== protocol.to)
@@ -175,7 +175,7 @@ export function prBody(summary, { templateRepo = "onhundred/web" } = {}) {
       "",
       "### The update workflow changed",
       "",
-      `GitHub doesn't let this workflow change its own files. Copy \`app/.github/workflows/\` from [${to}](https://github.com/${templateRepo}/tree/${to}/app/.github/workflows) into \`.github/workflows/\` by hand.`
+      `GitHub doesn't let this workflow change its own files. Copy \`.github/workflows/\` from [${to}](https://github.com/${templateRepo}/tree/${to}/.github/workflows) into \`.github/workflows/\` by hand.`
     );
   lines.push("", "`wrangler.jsonc` keeps your name, vars, routes, account_id and resource ids.");
   return lines.join("\n") + "\n";
@@ -194,7 +194,7 @@ if (isMain) {
   const template = args.find((a, i) => !a.startsWith("--") && !args[i - 1]?.startsWith("--"));
   const tag = opt("tag");
   if (!template || !tag) {
-    console.error("usage: node scripts/update-from-template.mjs <template app dir> --tag app-vX.Y.Z [--repo .] [--summary f.json] [--body f.md]");
+    console.error("usage: node scripts/update-from-template.mjs <template dir> --tag vX.Y.Z [--repo .] [--summary f.json] [--body f.md]");
     process.exit(2);
   }
   const summary = await update({ repo: opt("repo") || ".", template, tag });

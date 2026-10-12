@@ -57,24 +57,24 @@ async function dirs() {
 test("the manifest finds files edited since the last update, and secrets are never touched", async () => {
   const { root, tpl, repo } = await dirs();
   try {
-    const first = await update({ repo, template: tpl, tag: "app-v1.1.0" });
+    const first = await update({ repo, template: tpl, tag: "v1.1.0" });
     assert.equal(first.firstManifest, true);
     assert.deepEqual(first.protocol, { from: "1.0", to: "1.1" });
     assert.equal(first.workflowChanged, true);
     assert.equal(await readFile(join(repo, ".dev.vars"), "utf8"), "OWNER_PASSWORD=secret\n");
     const manifest = JSON.parse(await readFile(join(repo, MANIFEST), "utf8"));
-    assert.equal(manifest.tag, "app-v1.1.0");
+    assert.equal(manifest.tag, "v1.1.0");
     assert.ok(manifest.files["src/worker.mjs"]);
     assert.equal(manifest.files[".github/workflows/update.yml"], undefined);
 
     await writeFile(join(repo, "src", "worker.mjs"), "export default { edited: true };\n");
-    const second = await update({ repo, template: tpl, tag: "app-v1.2.0" });
+    const second = await update({ repo, template: tpl, tag: "v1.2.0" });
     assert.deepEqual(second.edited, ["src/worker.mjs"]);
     assert.equal(await readFile(join(repo, "src", "worker.mjs"), "utf8"), "export default {};\n", "template files overwrite local edits");
     assert.equal(parseJsonc(await readFile(join(repo, "wrangler.jsonc"), "utf8")).name, "ale-log");
 
     const body = prBody(second);
-    assert.match(body, /Release notes: https:\/\/github.com\/onhundred\/web\/releases\/tag\/app-v1.2.0/);
+    assert.match(body, /Release notes: https:\/\/github.com\/onhundred\/protocol-log\/releases\/tag\/v1.2.0/);
     assert.match(body, /`src\/worker.mjs`/);
     assert.match(body, /merge to deploy, then reconnect your AI app/);
   } finally {
