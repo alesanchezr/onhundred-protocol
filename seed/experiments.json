@@ -1,0 +1,370 @@
+[
+  {
+    "code": "EXP-01",
+    "slot": "easy",
+    "question": {
+      "en": "Can an agent pay my bills without me checking each one?",
+      "es": "¿Puede un agente pagar mis cuentas sin que yo revise cada una?"
+    },
+    "hypothesis": {
+      "en": "If an agent pays every bill from a list I approve once a month, then nothing will be paid late for 6 weeks, because late payments come from my memory, not my money.",
+      "es": "Si un agente paga cada cuenta a partir de una lista que apruebo una vez al mes, entonces nada se pagará tarde en 6 semanas, porque los pagos atrasados vienen de mi memoria, no de mi dinero."
+    },
+    "loops": ["P-FIN-01", "P-FIN-02", "P-FIN-03"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-04-06",
+    "peopleInvolved": "Only me.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-04-06", "deadline": "2026-04-19",
+        "approach": "The agent reads the bank and the bill inbox and drafts each payment. I send it.",
+        "why": "The bills already arrive by email with amounts and due dates.",
+        "successTests": "Every draft has the right amount and date for 2 weeks.",
+        "stopEarly": "A draft has the wrong account.",
+        "cost": "Under $10 in AI usage.",
+        "risks": "A wrong amount. Detected by comparing against last month.",
+        "outcome": "achieved", "closedAt": "2026-04-19",
+        "hold": { "result": "passed", "at": "2026-05-10" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-05-11", "deadline": "2026-05-24",
+        "approach": "The agent schedules each payment and I approve it in one tap.",
+        "why": "Stage 1 drafts needed no corrections.",
+        "successTests": "0 late payments and 0 wrong amounts.",
+        "stopEarly": "Any payment over the approved amount.",
+        "cost": "Under $10 in AI usage.",
+        "risks": "Paying a bill twice. Detected by a daily bank check.",
+        "outcome": "achieved", "closedAt": "2026-05-24",
+        "hold": { "result": "passed", "at": "2026-06-14" }
+      }
+    ],
+    "conclusion": { "at": "2026-06-14", "level": "delegated", "hypothesis": "confirmed" }
+  },
+  {
+    "code": "EXP-02",
+    "slot": "hard",
+    "question": {
+      "en": "Can an agent write my investor update so well that nobody asks who wrote it?",
+      "es": "¿Puede un agente escribir mi informe a inversionistas tan bien que nadie pregunte quién lo escribió?"
+    },
+    "hypothesis": {
+      "en": "If an agent drafts and sends the monthly investor update from my notes, then investors will ask no more questions than usual, because the update is mostly numbers.",
+      "es": "Si un agente redacta y envía el informe mensual a inversionistas a partir de mis notas, entonces los inversionistas no harán más preguntas de lo normal, porque el informe es casi todo números."
+    },
+    "loops": ["C-LDR-01"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-04-06",
+    "peopleInvolved": "Investors were told updates may be drafted by an agent.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-04-06", "deadline": "2026-04-26",
+        "approach": "The agent drafts the update from the finance sheet and my voice notes. I edit and send it.",
+        "why": "Most of the update is numbers that already live in a sheet.",
+        "successTests": "I change less than 20% of the draft.",
+        "stopEarly": "A wrong figure reaches a draft I almost sent.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "A wrong number. Detected by checking against the finance sheet.",
+        "outcome": "achieved", "closedAt": "2026-04-26",
+        "hold": { "result": "passed", "at": "2026-05-17" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-05-18", "deadline": "2026-06-14",
+        "approach": "The agent writes and sends the update after I approve it.",
+        "why": "Stage 1 drafts needed small edits only.",
+        "successTests": "Investor questions stay at or below the 3-month average.",
+        "stopEarly": "An investor reports a wrong figure.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Tone that sounds unlike me. Detected by replies.",
+        "outcome": "notAchieved", "closedAt": "2026-06-14"
+      }
+    ],
+    "conclusion": { "at": "2026-06-21", "level": "assisted", "hypothesis": "refuted" }
+  },
+  {
+    "code": "EXP-03",
+    "slot": "fun",
+    "funReason": "Dinner gets decided 5 times a week and nobody wants to decide it.",
+    "question": {
+      "en": "Can an agent decide what my family eats on weeknights?",
+      "es": "¿Puede un agente decidir qué come mi familia entre semana?"
+    },
+    "hypothesis": {
+      "en": "If an agent picks and orders weeknight dinners from a list of what we like, then we'll eat at home more often, because deciding is what we avoid.",
+      "es": "Si un agente elige y pide las cenas entre semana a partir de una lista de lo que nos gusta, entonces comeremos más en casa, porque decidir es lo que evitamos."
+    },
+    "loops": ["P-HOM-03", "P-HOM-04"],
+    "startLevel": "mapped",
+    "goal": "autonomous",
+    "registeredAt": "2026-04-13",
+    "peopleInvolved": "My family at home. Everyone agreed.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-04-13", "deadline": "2026-04-26",
+        "approach": "The agent proposes 3 dinners each afternoon. I pick and order.",
+        "why": "We already repeat a short list of meals.",
+        "successTests": "I accept a proposal on 4 of 5 weeknights.",
+        "stopEarly": "An allergy is ignored.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Proposals nobody wants. Detected by the acceptance rate.",
+        "outcome": "achieved", "closedAt": "2026-04-26",
+        "hold": { "result": "passed", "at": "2026-05-17" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-05-18", "deadline": "2026-05-31",
+        "approach": "The agent orders dinner and the groceries after one approval each.",
+        "why": "Stage 1 proposals were accepted almost every night.",
+        "successTests": "Dinner is ordered by 6 pm on 5 of 5 weeknights.",
+        "stopEarly": "An order goes over the weekly budget.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Wrong delivery time. Detected by the order tracker.",
+        "outcome": "achieved", "closedAt": "2026-05-31",
+        "hold": { "result": "passed", "at": "2026-06-21" }
+      },
+      {
+        "stage": 3, "try": 1, "level": "autonomous",
+        "start": "2026-06-22", "deadline": "2026-07-05",
+        "approach": "The agent orders without approval inside the weekly budget.",
+        "why": "Approvals in stage 2 were never refused.",
+        "successTests": "Dinner is ordered by 6 pm on 5 of 5 weeknights, within budget.",
+        "stopEarly": "A weekly budget is exceeded.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Budget drift. Detected by a weekly spending report.",
+        "outcome": "achieved", "closedAt": "2026-07-05",
+        "hold": { "result": "passed", "at": "2026-07-26" }
+      }
+    ],
+    "conclusion": { "at": "2026-07-26", "level": "autonomous", "hypothesis": "confirmed" }
+  },
+  {
+    "code": "EXP-04",
+    "slot": "easy",
+    "question": {
+      "en": "Can an agent answer my customers without me reading every reply?",
+      "es": "¿Puede un agente responder a mis clientes sin que yo lea cada respuesta?"
+    },
+    "hypothesis": {
+      "en": "If an agent answers routine support emails and refunds within the policy, then customer satisfaction stays at the baseline, because most questions repeat.",
+      "es": "Si un agente responde los correos de soporte rutinarios y reembolsa dentro de la política, entonces la satisfacción de los clientes se mantiene en la línea base, porque la mayoría de las preguntas se repiten."
+    },
+    "loops": ["C-SUP-01", "C-SUP-02"],
+    "startLevel": "mapped",
+    "goal": "autonomous",
+    "registeredAt": "2026-06-15",
+    "peopleInvolved": "Customers get the standard notice. The support team agreed.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-06-15", "deadline": "2026-06-28",
+        "approach": "The agent drafts replies and refunds in the help desk. I send them.",
+        "why": "40 routine emails a week follow the same 6 answers.",
+        "successTests": "90% of drafts sent without edits.",
+        "stopEarly": "A refund outside the policy is drafted.",
+        "cost": "Under $20 in AI usage.",
+        "risks": "A wrong answer. Detected by satisfaction scores.",
+        "outcome": "achieved", "closedAt": "2026-06-28",
+        "hold": { "result": "passed", "at": "2026-07-19" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-07-20", "deadline": "2026-08-02",
+        "approach": "The agent sends replies and refunds after a batch approval twice a day.",
+        "why": "Stage 1 drafts rarely needed edits.",
+        "successTests": "Satisfaction at or above baseline. 0 refunds outside the policy.",
+        "stopEarly": "Satisfaction drops 10 points.",
+        "cost": "Under $20 in AI usage.",
+        "risks": "Slow approvals. Detected by reply time.",
+        "outcome": "achieved", "closedAt": "2026-08-02",
+        "hold": { "result": "passed", "at": "2026-08-23" }
+      },
+      {
+        "stage": 3, "try": 1, "level": "autonomous",
+        "start": "2026-08-24", "deadline": "2026-09-06",
+        "approach": "The agent replies and refunds without approval.",
+        "why": "Batch approvals were never changed in stage 2.",
+        "successTests": "Satisfaction at or above baseline for 2 weeks.",
+        "stopEarly": "A customer complains about an agent reply.",
+        "cost": "Under $20 in AI usage.",
+        "risks": "Edge cases answered with a routine reply. Detected by reopen rate.",
+        "outcome": "notAchieved", "closedAt": "2026-09-06"
+      }
+    ],
+    "conclusion": { "at": "2026-09-06", "level": "delegated", "hypothesis": "confirmed" }
+  },
+  {
+    "code": "EXP-05",
+    "slot": "hard",
+    "question": {
+      "en": "Can an agent renegotiate a supplier contract and get a better price?",
+      "es": "¿Puede un agente renegociar un contrato con un proveedor y conseguir un mejor precio?"
+    },
+    "hypothesis": {
+      "en": "If an agent negotiates renewals by email with suppliers who agreed to it, then it will get at least 5% off, because suppliers expect a person to give up first.",
+      "es": "Si un agente negocia renovaciones por correo con proveedores que aceptaron, entonces conseguirá al menos un 5% de descuento, porque los proveedores esperan que una persona ceda primero."
+    },
+    "loops": ["C-OPS-02"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-06-22",
+    "peopleInvolved": "3 suppliers agreed in writing.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-06-22", "deadline": "2026-07-19",
+        "approach": "The agent drafts each negotiation email and a target price. I send them.",
+        "why": "Past renewals show the same 3 arguments.",
+        "successTests": "Drafts reach a price at least 5% lower on 2 of 3 renewals.",
+        "stopEarly": "A supplier threatens to end the contract.",
+        "cost": "Under $10 in AI usage.",
+        "risks": "A worse price. Detected against the current contract.",
+        "outcome": "achieved", "closedAt": "2026-07-19",
+        "hold": { "result": "passed", "at": "2026-08-09" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-08-10", "deadline": "2026-09-06",
+        "approach": "The agent sends the emails and I approve the final terms.",
+        "why": "Stage 1 drafts worked with small edits.",
+        "successTests": "At least 5% off on 2 of 3 renewals.",
+        "stopEarly": "A supplier asks to speak to a person.",
+        "cost": "Under $10 in AI usage.",
+        "risks": "A damaged relationship. Detected by supplier replies.",
+        "outcome": "terminated", "closedAt": "2026-08-28",
+        "reason": "A supplier asked to speak to a person."
+      }
+    ],
+    "conclusion": { "at": "2026-09-13", "level": "assisted", "hypothesis": "unclear" }
+  },
+  {
+    "code": "EXP-06",
+    "slot": "fun",
+    "funReason": "I want to know whether the planning is what she values.",
+    "question": {
+      "en": "Can an agent plan a date night my partner actually enjoys?",
+      "es": "¿Puede un agente planear una cita que mi pareja de verdad disfrute?"
+    },
+    "hypothesis": {
+      "en": "If an agent plans and books our date nights from what we liked before, then she'll rate them as high as mine, because I mostly repeat what worked.",
+      "es": "Si un agente planea y reserva nuestras citas a partir de lo que nos gustó antes, entonces ella las calificará igual que las mías, porque casi siempre repito lo que funcionó."
+    },
+    "loops": ["R-PAR-01"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-07-27",
+    "peopleInvolved": "My partner. She agreed and can stop it at any time.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-07-27", "deadline": "2026-08-09",
+        "approach": "The agent proposes 2 plans each week. I choose and book.",
+        "why": "Our past dates follow a pattern I can describe.",
+        "successTests": "She rates the date 4 of 5 or higher, 2 weeks in a row.",
+        "stopEarly": "She asks to stop.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "A plan she dislikes. Detected by her rating.",
+        "outcome": "achieved", "closedAt": "2026-08-09",
+        "hold": { "result": "passed", "at": "2026-08-30" }
+      },
+      {
+        "stage": 2, "try": 1, "level": "delegated",
+        "start": "2026-08-31", "deadline": "2026-09-13",
+        "approach": "The agent books the plan after I approve it.",
+        "why": "Stage 1 plans were rated as high as mine.",
+        "successTests": "She rates the date 4 of 5 or higher, 2 weeks in a row.",
+        "stopEarly": "She asks to stop.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "A booking on a night she can't make. Detected by the shared calendar.",
+        "outcome": "notAchieved", "closedAt": "2026-09-13"
+      },
+      {
+        "stage": 2, "try": 2, "level": "delegated",
+        "start": "2026-09-14", "deadline": "2026-09-27",
+        "approach": "The agent books the plan after I approve it, using the shared calendar first.",
+        "why": "Try 1 booked a night she was busy.",
+        "successTests": "She rates the date 4 of 5 or higher, 2 weeks in a row.",
+        "stopEarly": "She asks to stop.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "A plan that repeats too often. Detected by her rating.",
+        "outcome": "achieved", "closedAt": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "code": "EXP-07",
+    "slot": "easy",
+    "question": {
+      "en": "Can an agent send every birthday message and gift on time?",
+      "es": "¿Puede un agente enviar cada mensaje y regalo de cumpleaños a tiempo?"
+    },
+    "hypothesis": {
+      "en": "If an agent sends the messages and ships the gifts from a list I approve, then nobody gets a late birthday for 2 months, because I only forget the date, not the person.",
+      "es": "Si un agente envía los mensajes y los regalos a partir de una lista que apruebo, entonces nadie recibe un cumpleaños tarde en 2 meses, porque solo olvido la fecha, no a la persona."
+    },
+    "loops": ["R-FAM-01", "R-FAM-02", "R-FRN-02"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-09-07",
+    "peopleInvolved": "Family and friends who get messages. They know the protocol is running.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-09-07", "deadline": "2026-09-20",
+        "approach": "The agent drafts each message and picks a gift 3 days before. I send and buy.",
+        "why": "Birthdays and past gifts are already in my contacts and email.",
+        "successTests": "Every message and gift is ready 3 days before the date.",
+        "stopEarly": "A message goes to the wrong person.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Generic messages. Detected by how many I rewrite.",
+        "outcome": "notAchieved", "closedAt": "2026-09-20"
+      },
+      {
+        "stage": 1, "try": 2, "level": "assisted",
+        "start": "2026-10-05", "deadline": "2026-10-18",
+        "approach": "The agent drafts each message from our last conversation and picks a gift 5 days before.",
+        "why": "Try 1 drafts were too generic and gifts arrived late.",
+        "successTests": "Every message and gift is ready 5 days before the date.",
+        "stopEarly": "A message goes to the wrong person.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "Shipping delays. Detected by tracking numbers."
+      }
+    ]
+  },
+  {
+    "code": "EXP-08",
+    "slot": "hard",
+    "question": {
+      "en": "Can an agent file my quarterly tax estimates without an accountant?",
+      "es": "¿Puede un agente presentar mis pagos provisionales de impuestos sin un contador?"
+    },
+    "hypothesis": {
+      "en": "If an agent calculates my quarterly estimates from my bank data, then its numbers will match my accountant's within 2%, because the rules are public.",
+      "es": "Si un agente calcula mis pagos provisionales a partir de mis datos bancarios, entonces sus números coincidirán con los de mi contador con un margen del 2%, porque las reglas son públicas."
+    },
+    "loops": ["P-ADM-02"],
+    "startLevel": "mapped",
+    "goal": "delegated",
+    "registeredAt": "2026-09-14",
+    "peopleInvolved": "My accountant checks every number.",
+    "stages": [
+      {
+        "stage": 1, "try": 1, "level": "assisted",
+        "start": "2026-09-14", "deadline": "2026-10-11",
+        "approach": "The agent calculates the estimate. My accountant and I check it before filing.",
+        "why": "Income and expenses are already in 2 bank accounts.",
+        "successTests": "The estimate is within 2% of the accountant's number.",
+        "stopEarly": "A calculation uses the wrong tax rate.",
+        "cost": "Under $5 in AI usage.",
+        "risks": "A wrong filing. Detected by the accountant's check.",
+        "outcome": "terminated", "closedAt": "2026-09-30",
+        "reason": "The agent used last year's tax rate."
+      }
+    ]
+  }
+]

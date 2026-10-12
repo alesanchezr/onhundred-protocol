@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local development. On deploy, the Cloudflare setup page asks for both.
+
+# The password you type to sign in to your log and to allow AI apps to connect.
+OWNER_PASSWORD=choose-a-long-password
+
+# Signs your sign-in cookie. 32 characters or more. Generate one with: openssl rand -hex 32
+COOKIE_ENCRYPTION_KEY=replace-with-openssl-rand-hex-32

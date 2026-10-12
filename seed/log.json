@@ -1,0 +1,19 @@
+{
+  "sample": true,
+  "protocolVersion": "1.0",
+  "mode": "frozen",
+  "inventoryVersion": 1,
+  "languages": ["en", "es"],
+  "ownerName": "Ale Sánchez",
+  "stillMetric": true,
+  "publish": true,
+  "companyFigures": false,
+  "cycle": 16,
+  "day": 5,
+  "stage": "delegate",
+  "cycleOneStart": "2026-03-09",
+  "grid": {
+    "cols": { "R": 4, "P": 4, "C": 3 },
+    "seeds": { "R": 7, "P": 13, "C": 29 }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "name": "onhundred-protocol-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Your own Onhundred Protocol log: an MCP server for your agents, a private grid page and a D1 database, on your Cloudflare account.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply DB --local",
+    "test": "node --test test/*.test.mjs && vitest run",
+    "types": "wrangler types"
+  },
+  "cloudflare": {
+    "label": "Onhundred Protocol log",
+    "products": ["Workers", "D1", "R2", "KV", "Durable Objects"],
+    "categories": ["ai", "storage"],
+    "bindings": {
+      "OWNER_PASSWORD": {
+        "description": "The password you type to sign in to your log and to allow AI apps like Claude and ChatGPT to connect. Choose a long one."
+      },
+      "COOKIE_ENCRYPTION_KEY": {
+        "description": "Signs your sign-in cookie. 32 characters or more. Generate one in a terminal with: openssl rand -hex 32"
+      },
+      "DB": {
+        "description": "Your log: loops, experiments, connections and the full history of changes."
+      },
+      "BACKUPS": {
+        "description": "A JSON snapshot of the log, written every night."
+      },
+      "OAUTH_KV": {
+        "description": "Sign-in grants for the AI apps you connect."
+      },
+      "WRITER": {
+        "description": "Applies every change one at a time, so two agents can never break a rule together."
+      },
+      "PUBLISH": {
+        "description": "\"true\" makes your grid and /public.json visible to everyone. Leave \"false\" to keep the log private."
+      },
+      "LANGUAGES": {
+        "description": "Languages of your loop names and questions, comma-separated. For example: en or en,es."
+      },
+      "OWNER_NAME": {
+        "description": "Optional. The name shown at the top of your log."
+      },
+      "PUBLIC_URL": {
+        "description": "Optional. Your custom domain, like https://log.example.com, if you add one."
+      },
+      "PUBLISH_HOOK_URL": {
+        "description": "Optional. A deploy hook called 1 minute after the public view changes, to rebuild a site that shows it."
+      }
+    }
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^1.2.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.0",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.149.0"
+  }
+}

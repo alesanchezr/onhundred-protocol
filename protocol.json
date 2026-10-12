@@ -1,0 +1,116 @@
+{
+  "version": "1.0",
+  "levels": ["unmapped", "mapped", "assisted", "delegated", "autonomous"],
+  "branchOrder": ["R", "P", "C"],
+  "branches": {
+    "C": {
+      "key": "company",
+      "name": "Company",
+      "areas": {
+        "SAL": "Sales",
+        "MKT": "Marketing",
+        "SUP": "Support",
+        "FIN": "Finance",
+        "OPS": "Operations",
+        "PRD": "Product",
+        "PPL": "People",
+        "LDR": "Leadership"
+      }
+    },
+    "P": {
+      "key": "personal",
+      "name": "Personal",
+      "areas": {
+        "FIN": "Finance",
+        "HOM": "Home",
+        "HLT": "Health",
+        "INC": "Income",
+        "ADM": "Administration"
+      }
+    },
+    "R": {
+      "key": "relationships",
+      "name": "Relationships",
+      "areas": {
+        "PAR": "Partner",
+        "KID": "Children",
+        "FAM": "Family",
+        "FRN": "Friends",
+        "NET": "Professional network"
+      }
+    }
+  },
+  "ceilings": {
+    "R-KID": "assisted",
+    "R-PAR": "delegated",
+    "P-HLT": "assisted",
+    "C-PPL": "assisted"
+  },
+  "financialCeiling": { "amountUsd": 500, "level": "delegated", "areas": ["P-FIN"] },
+  "consentRequired": ["R-PAR"],
+  "triage": {
+    "criteria": ["time", "frequency", "rules", "digital", "risk"],
+    "min": 1,
+    "max": 5,
+    "automateNow": { "minScore": 13, "maxRisk": 2 },
+    "notYet": { "minRisk": 4 },
+    "hardMaxRulesOrDigital": 2
+  },
+  "limits": {
+    "loops": 100,
+    "experimentSlots": ["easy", "hard", "fun"],
+    "measuringSlots": 5,
+    "maxStages": 3,
+    "occurrencesToMeasure": 3,
+    "measuringCapDays": 90,
+    "holdWeeks": 3,
+    "failureDays": 5,
+    "cycleWeeks": 2
+  },
+  "outcomes": ["achieved", "notAchieved", "terminated"],
+  "holds": ["passed", "failed"],
+  "drops": {
+    "failingDays": "oneLevel",
+    "harm": "mapped",
+    "consentLost": "mapped"
+  },
+  "conclusions": ["confirmed", "refuted", "unclear"],
+  "naming": {
+    "maxWords": 8,
+    "failingVerbs": [
+      "remember",
+      "remind",
+      "track",
+      "monitor",
+      "keep an eye on",
+      "stay on top of",
+      "think about",
+      "prepare",
+      "review",
+      "manage",
+      "handle"
+    ]
+  },
+  "voice": {
+    "neverUse": [
+      "leverage",
+      "unlock",
+      "empower",
+      "revolutionize",
+      "game-changer",
+      "seamless",
+      "cutting-edge",
+      "supercharge",
+      "journey",
+      "delve",
+      "robust",
+      "ai-powered",
+      "10x",
+      "hack",
+      "in today's world",
+      "the future of work"
+    ],
+    "retired": ["part", "parts", "task", "tasks", "test", "tests"],
+    "retiredAllowedAfter": ["success"]
+  }
+}

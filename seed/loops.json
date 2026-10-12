@@ -1,0 +1,2854 @@
+[
+  {
+    "code": "R-PAR-01",
+    "level": "assisted",
+    "name": {
+      "en": "Plan and book our date night",
+      "es": "Planear y reservar nuestra cita"
+    },
+    "doneWhen": {
+      "en": "The table or tickets are booked and on both calendars.",
+      "es": "La reserva está hecha y en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: recurring Friday events",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "published": true,
+    "visibility": 3
+  },
+  {
+    "code": "R-PAR-02",
+    "level": "unmapped",
+    "name": {
+      "en": "Buy the anniversary gift",
+      "es": "Comprar el regalo de aniversario"
+    },
+    "doneWhen": {
+      "en": "The gift is bought and arrives before the date.",
+      "es": "El regalo está comprado y llega antes de la fecha."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 3,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: order confirmations each June",
+    "published": false
+  },
+  {
+    "code": "R-PAR-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Book our trips together",
+      "es": "Reservar nuestros viajes juntos"
+    },
+    "doneWhen": {
+      "en": "Flights and lodging are booked and shared.",
+      "es": "Los vuelos y el alojamiento están reservados y compartidos."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 5,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: airline and hotel confirmations",
+    "published": false
+  },
+  {
+    "code": "R-PAR-04",
+    "level": "mapped",
+    "name": {
+      "en": "Split and pay our shared expenses",
+      "es": "Dividir y pagar nuestros gastos compartidos"
+    },
+    "doneWhen": {
+      "en": "Each shared expense is split and paid.",
+      "es": "Cada gasto compartido está dividido y pagado."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: weekly transfers between accounts",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "published": false
+  },
+  {
+    "code": "R-PAR-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Plan and book a weekend away",
+      "es": "Planear y reservar un fin de semana fuera"
+    },
+    "doneWhen": {
+      "en": "Lodging and transport are booked.",
+      "es": "El alojamiento y el transporte están reservados."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: weekend blocks",
+    "published": false
+  },
+  {
+    "code": "R-PAR-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Send flowers on the dates that matter",
+      "es": "Enviar flores en las fechas importantes"
+    },
+    "doneWhen": {
+      "en": "The flowers are delivered on the date.",
+      "es": "Las flores llegan en la fecha."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: florist receipts",
+    "published": false
+  },
+  {
+    "code": "R-PAR-07",
+    "level": "unmapped",
+    "name": {
+      "en": "Schedule our weekly time together",
+      "es": "Agendar nuestro tiempo juntos cada semana"
+    },
+    "doneWhen": {
+      "en": "The time is blocked on both calendars.",
+      "es": "El tiempo está bloqueado en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: shared events",
+    "published": false
+  },
+  {
+    "code": "R-KID-01",
+    "level": "mapped",
+    "name": {
+      "en": "Answer the school group chat",
+      "es": "Responder el chat de padres del colegio"
+    },
+    "doneWhen": {
+      "en": "Every question for me in the chat has a reply.",
+      "es": "Cada pregunta para mí en el chat tiene respuesta."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 5,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Voice notes: daily mentions of the chat",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-KID-02",
+    "level": "mapped",
+    "name": {
+      "en": "Sign and return school permission forms",
+      "es": "Firmar y devolver los permisos del colegio"
+    },
+    "doneWhen": {
+      "en": "The signed form is back at school before the deadline.",
+      "es": "El permiso firmado vuelve al colegio antes de la fecha límite."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 3,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email: school forms",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-KID-03",
+    "level": "mapped",
+    "name": {
+      "en": "Pay school fees and activities",
+      "es": "Pagar el colegio y las actividades"
+    },
+    "doneWhen": {
+      "en": "Every school charge is paid on time.",
+      "es": "Cada cobro del colegio está pagado a tiempo."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: school payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.3,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-KID-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Book the kids' doctor and dentist visits",
+      "es": "Reservar las citas médicas de los niños"
+    },
+    "doneWhen": {
+      "en": "The visit is booked and on the family calendar.",
+      "es": "La cita está reservada y en el calendario familiar."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: clinic appointments"
+  },
+  {
+    "code": "R-KID-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Schedule school pickups and drop-offs",
+      "es": "Agendar quién lleva y recoge a los niños"
+    },
+    "doneWhen": {
+      "en": "Every pickup and drop-off has a name on the calendar.",
+      "es": "Cada entrada y salida tiene un responsable en el calendario."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 5,
+      "rules": 3,
+      "digital": 3,
+      "risk": 4,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: school-day blocks"
+  },
+  {
+    "code": "R-KID-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Buy school supplies and uniforms",
+      "es": "Comprar útiles y uniformes escolares"
+    },
+    "doneWhen": {
+      "en": "Everything on the school list is delivered.",
+      "es": "Todo lo de la lista escolar está entregado."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 5,
+      "digital": 4,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Email: school supply list"
+  },
+  {
+    "code": "R-FAM-01",
+    "level": "mapped",
+    "name": {
+      "en": "Send birthday messages to family",
+      "es": "Enviar mensajes de cumpleaños a la familia"
+    },
+    "doneWhen": {
+      "en": "Each family member gets a message on their birthday.",
+      "es": "Cada familiar recibe un mensaje en su cumpleaños."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Contacts: birthdays; messages sent late twice",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.3,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "visibility": 1,
+    "changedCycle": 16
+  },
+  {
+    "code": "R-FAM-02",
+    "level": "mapped",
+    "name": {
+      "en": "Buy and ship family birthday gifts",
+      "es": "Comprar y enviar regalos de cumpleaños familiares"
+    },
+    "doneWhen": {
+      "en": "The gift arrives on or before the birthday.",
+      "es": "El regalo llega el día del cumpleaños o antes."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.6
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email: gift orders",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.6,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "changedCycle": 16
+  },
+  {
+    "code": "R-FAM-03",
+    "level": "mapped",
+    "name": {
+      "en": "Plan the family weekend",
+      "es": "Planear el fin de semana en familia"
+    },
+    "doneWhen": {
+      "en": "The plan is booked and on the family calendar.",
+      "es": "El plan está reservado y en el calendario familiar."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 4,
+      "rules": 2,
+      "digital": 3,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: weekend events",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-FAM-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Book the family holiday trip",
+      "es": "Reservar el viaje familiar de vacaciones"
+    },
+    "doneWhen": {
+      "en": "Flights and lodging are booked for everyone.",
+      "es": "Los vuelos y el alojamiento están reservados para todos."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 1,
+      "rules": 3,
+      "digital": 5,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: travel bookings",
+    "measuring": true
+  },
+  {
+    "code": "R-FAM-05",
+    "level": "mapped",
+    "name": {
+      "en": "Schedule the weekly call with my parents",
+      "es": "Agendar la llamada semanal con mis papás"
+    },
+    "doneWhen": {
+      "en": "The call is on both calendars.",
+      "es": "La llamada está en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 4,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: Sunday calls",
+    "baseline": {
+      "occurrences": 1,
+      "confidence": "low",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-FAM-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Book the family birthday dinners",
+      "es": "Reservar las cenas de cumpleaños familiares"
+    },
+    "doneWhen": {
+      "en": "The table is booked and everyone has the details.",
+      "es": "La mesa está reservada y todos tienen los detalles."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: restaurant confirmations"
+  },
+  {
+    "code": "R-FAM-07",
+    "level": "mapped",
+    "name": {
+      "en": "Send money to family each month",
+      "es": "Enviar dinero a la familia cada mes"
+    },
+    "doneWhen": {
+      "en": "The transfer arrives on the agreed day.",
+      "es": "La transferencia llega el día acordado."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Bank: monthly transfers",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-FAM-08",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to the family group chat",
+      "es": "Responder el chat familiar"
+    },
+    "doneWhen": {
+      "en": "Every question for me in the chat has a reply.",
+      "es": "Cada pregunta para mí en el chat tiene respuesta."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 5,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Voice notes: chat mentions"
+  },
+  {
+    "code": "R-FRN-01",
+    "level": "mapped",
+    "name": {
+      "en": "Plan and book a monthly dinner with friends",
+      "es": "Planear y reservar una cena mensual con amigos"
+    },
+    "doneWhen": {
+      "en": "The table is booked and everyone confirmed.",
+      "es": "La mesa está reservada y todos confirmaron."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: monthly dinners",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.4,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-FRN-02",
+    "level": "mapped",
+    "name": {
+      "en": "Send birthday messages to friends",
+      "es": "Enviar mensajes de cumpleaños a los amigos"
+    },
+    "doneWhen": {
+      "en": "Each friend gets a message on their birthday.",
+      "es": "Cada amigo recibe un mensaje en su cumpleaños."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 5,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Contacts: birthdays",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "changedCycle": 16
+  },
+  {
+    "code": "R-FRN-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to invitations from friends",
+      "es": "Responder las invitaciones de los amigos"
+    },
+    "doneWhen": {
+      "en": "Every invitation has a yes or no.",
+      "es": "Cada invitación tiene un sí o un no."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email and chat: invitations"
+  },
+  {
+    "code": "R-FRN-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Buy gifts for friends' weddings",
+      "es": "Comprar regalos para bodas de amigos"
+    },
+    "doneWhen": {
+      "en": "The gift is bought from the registry before the date.",
+      "es": "El regalo está comprado de la lista antes de la fecha."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Email: wedding registries"
+  },
+  {
+    "code": "R-FRN-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Plan the yearly trip with friends",
+      "es": "Planear el viaje anual con amigos"
+    },
+    "doneWhen": {
+      "en": "Dates, flights and lodging are booked.",
+      "es": "Las fechas, los vuelos y el alojamiento están reservados."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 3,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Chat: trip planning threads"
+  },
+  {
+    "code": "R-FRN-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Settle shared bills with friends",
+      "es": "Saldar cuentas compartidas con amigos"
+    },
+    "doneWhen": {
+      "en": "Every shared bill is settled.",
+      "es": "Cada cuenta compartida está saldada."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Bank: transfers to friends"
+  },
+  {
+    "code": "R-NET-01",
+    "level": "mapped",
+    "name": {
+      "en": "Reply to introduction requests",
+      "es": "Responder solicitudes de presentación"
+    },
+    "doneWhen": {
+      "en": "Each request has a yes, a no or an introduction sent.",
+      "es": "Cada solicitud tiene un sí, un no o una presentación enviada."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email: introduction threads",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-NET-02",
+    "level": "mapped",
+    "name": {
+      "en": "Send thank-you notes after meetings",
+      "es": "Enviar notas de agradecimiento después de reuniones"
+    },
+    "doneWhen": {
+      "en": "The note is sent within 1 day.",
+      "es": "La nota se envía en 1 día."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Email: follow-up notes",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "R-NET-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Schedule coffee with former colleagues",
+      "es": "Agendar cafés con excolegas"
+    },
+    "doneWhen": {
+      "en": "The coffee is on both calendars.",
+      "es": "El café está en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 4,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: coffee meetings"
+  },
+  {
+    "code": "R-NET-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to messages from professional contacts",
+      "es": "Responder mensajes de contactos profesionales"
+    },
+    "doneWhen": {
+      "en": "Every message has a reply within 2 days.",
+      "es": "Cada mensaje tiene respuesta en 2 días."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 2
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 5,
+      "rules": 2,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email and social inbox volume"
+  },
+  {
+    "code": "R-NET-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Write and send recommendation letters",
+      "es": "Escribir y enviar cartas de recomendación"
+    },
+    "doneWhen": {
+      "en": "The letter is sent before the deadline.",
+      "es": "La carta se envía antes de la fecha límite."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 3,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: recommendation requests"
+  },
+  {
+    "code": "R-NET-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Send introductions between people who should meet",
+      "es": "Enviar presentaciones entre personas que deberían conocerse"
+    },
+    "doneWhen": {
+      "en": "The introduction email is sent.",
+      "es": "El correo de presentación está enviado."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 2,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: introductions sent"
+  },
+  {
+    "code": "P-FIN-01",
+    "level": "delegated",
+    "name": {
+      "en": "Pay the monthly household bills",
+      "es": "Pagar las cuentas mensuales de la casa"
+    },
+    "doneWhen": {
+      "en": "Every bill is paid before its due date.",
+      "es": "Cada cuenta está pagada antes de su vencimiento."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: utility payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-FIN-02",
+    "level": "delegated",
+    "name": {
+      "en": "Pay the credit card balance in full",
+      "es": "Pagar el saldo total de la tarjeta"
+    },
+    "doneWhen": {
+      "en": "The full balance is paid before the due date.",
+      "es": "El saldo total está pagado antes del vencimiento."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: card payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "over500": true
+  },
+  {
+    "code": "P-FIN-03",
+    "level": "delegated",
+    "name": {
+      "en": "Pay the quarterly property tax",
+      "es": "Pagar el impuesto predial trimestral"
+    },
+    "doneWhen": {
+      "en": "The tax is paid before the due date.",
+      "es": "El impuesto está pagado antes del vencimiento."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: tax payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "over500": true
+  },
+  {
+    "code": "P-FIN-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Move savings into investments each month",
+      "es": "Mover ahorros a inversiones cada mes"
+    },
+    "doneWhen": {
+      "en": "The transfer is made and invested.",
+      "es": "La transferencia está hecha e invertida."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 4,
+      "source": "estimate"
+    },
+    "evidence": "Bank: brokerage transfers",
+    "over500": true
+  },
+  {
+    "code": "P-FIN-05",
+    "level": "mapped",
+    "name": {
+      "en": "Cancel subscriptions nobody uses",
+      "es": "Cancelar suscripciones que nadie usa"
+    },
+    "doneWhen": {
+      "en": "Unused subscriptions are cancelled.",
+      "es": "Las suscripciones sin uso están canceladas."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Bank: recurring charges",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-FIN-06",
+    "level": "mapped",
+    "name": {
+      "en": "File receipts for monthly expenses",
+      "es": "Archivar los recibos de gastos del mes"
+    },
+    "doneWhen": {
+      "en": "Every receipt is filed under its month.",
+      "es": "Cada recibo está archivado en su mes."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.7
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 4,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Email: receipts",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.7,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-FIN-07",
+    "level": "unmapped",
+    "name": {
+      "en": "Renew the home and car insurance",
+      "es": "Renovar los seguros de casa y auto"
+    },
+    "doneWhen": {
+      "en": "The new policy is active before the old one ends.",
+      "es": "La nueva póliza está activa antes de que venza la anterior."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: insurance renewals"
+  },
+  {
+    "code": "P-FIN-08",
+    "level": "unmapped",
+    "name": {
+      "en": "Dispute wrong charges on statements",
+      "es": "Disputar cobros incorrectos en los estados de cuenta"
+    },
+    "doneWhen": {
+      "en": "The dispute is filed with the bank.",
+      "es": "La disputa está presentada al banco."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Bank: disputes"
+  },
+  {
+    "code": "P-HOM-01",
+    "level": "mapped",
+    "name": {
+      "en": "Book home repairs and maintenance",
+      "es": "Reservar reparaciones y mantenimiento de la casa"
+    },
+    "doneWhen": {
+      "en": "The visit is booked and confirmed.",
+      "es": "La visita está reservada y confirmada."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.8
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 3,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: contractor visits",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.8,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-HOM-02",
+    "level": "mapped",
+    "name": {
+      "en": "Pay and schedule the cleaning service",
+      "es": "Pagar y agendar el servicio de limpieza"
+    },
+    "doneWhen": {
+      "en": "The visit is booked and paid.",
+      "es": "La visita está reservada y pagada."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 5,
+      "digital": 4,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Bank: weekly payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-HOM-03",
+    "level": "autonomous",
+    "name": {
+      "en": "Decide and order dinner on weeknights",
+      "es": "Decidir y pedir la cena entre semana"
+    },
+    "doneWhen": {
+      "en": "Dinner is chosen and ordered by 6 pm.",
+      "es": "La cena está elegida y pedida antes de las 6 pm."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 3
+    },
+    "triage": {
+      "time": 4,
+      "frequency": 5,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Voice notes: dinner decided at 7 pm, 5 days a week",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 3,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "visibility": 2
+  },
+  {
+    "code": "P-HOM-04",
+    "level": "autonomous",
+    "name": {
+      "en": "Order the weekly groceries",
+      "es": "Hacer el pedido semanal del supermercado"
+    },
+    "doneWhen": {
+      "en": "The order is placed and the delivery is booked.",
+      "es": "El pedido está hecho y la entrega está agendada."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Email: grocery orders",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-HOM-05",
+    "level": "mapped",
+    "name": {
+      "en": "Reorder household supplies before they run out",
+      "es": "Volver a pedir productos de la casa"
+    },
+    "doneWhen": {
+      "en": "The supplies are ordered before they run out.",
+      "es": "Los productos están pedidos antes de que se acaben."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 4,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Email: supply orders",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-HOM-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Schedule car service and repairs",
+      "es": "Agendar el servicio y las reparaciones del auto"
+    },
+    "doneWhen": {
+      "en": "The service is booked.",
+      "es": "El servicio está reservado."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: car service"
+  },
+  {
+    "code": "P-HOM-07",
+    "level": "unmapped",
+    "name": {
+      "en": "Return online orders that don't fit",
+      "es": "Devolver compras en línea que no sirven"
+    },
+    "doneWhen": {
+      "en": "The return is shipped and the refund requested.",
+      "es": "La devolución está enviada y el reembolso solicitado."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Email: return labels"
+  },
+  {
+    "code": "P-HOM-08",
+    "level": "unmapped",
+    "name": {
+      "en": "Renew the home internet and phone plans",
+      "es": "Renovar los planes de internet y teléfono"
+    },
+    "doneWhen": {
+      "en": "The plan is renewed at the best available price.",
+      "es": "El plan está renovado al mejor precio disponible."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: provider notices"
+  },
+  {
+    "code": "P-HLT-01",
+    "level": "mapped",
+    "name": {
+      "en": "Book doctor and dentist appointments",
+      "es": "Reservar citas con el médico y el dentista"
+    },
+    "doneWhen": {
+      "en": "The appointment is booked and on my calendar.",
+      "es": "La cita está reservada y en mi calendario."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: clinic appointments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-HLT-02",
+    "level": "mapped",
+    "name": {
+      "en": "Refill prescriptions before they run out",
+      "es": "Resurtir recetas antes de que se acaben"
+    },
+    "doneWhen": {
+      "en": "The refill is ordered before the last dose.",
+      "es": "El resurtido está pedido antes de la última dosis."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 4,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Pharmacy: order history",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-10-06"
+    },
+    "changedCycle": 16
+  },
+  {
+    "code": "P-HLT-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Book weekly training sessions",
+      "es": "Reservar las sesiones de entrenamiento de la semana"
+    },
+    "doneWhen": {
+      "en": "Every session is booked for the week.",
+      "es": "Cada sesión está reservada para la semana."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Gym app: bookings",
+    "measuring": true
+  },
+  {
+    "code": "P-HLT-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Submit medical insurance claims",
+      "es": "Enviar reclamos al seguro médico"
+    },
+    "doneWhen": {
+      "en": "The claim is submitted with every receipt.",
+      "es": "El reclamo está enviado con todos los recibos."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: insurer messages"
+  },
+  {
+    "code": "P-HLT-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Schedule yearly checkups",
+      "es": "Agendar los chequeos anuales"
+    },
+    "doneWhen": {
+      "en": "Every checkup is booked.",
+      "es": "Cada chequeo está reservado."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 4,
+      "digital": 4,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Calendar: yearly visits"
+  },
+  {
+    "code": "P-INC-01",
+    "level": "mapped",
+    "name": {
+      "en": "Send invoices for consulting work",
+      "es": "Enviar las facturas por consultorías"
+    },
+    "doneWhen": {
+      "en": "The invoice is sent within 2 days of the work.",
+      "es": "La factura se envía en 2 días después del trabajo."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email: invoices sent",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.3,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-INC-02",
+    "level": "mapped",
+    "name": {
+      "en": "Collect payments from late clients",
+      "es": "Cobrar pagos atrasados de clientes"
+    },
+    "doneWhen": {
+      "en": "The payment arrives or the client has a new date.",
+      "es": "El pago llega o el cliente tiene una nueva fecha."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Bank: late payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.3,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-INC-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to speaking invitations",
+      "es": "Responder invitaciones para dar charlas"
+    },
+    "doneWhen": {
+      "en": "Every invitation has a yes or no.",
+      "es": "Cada invitación tiene un sí o un no."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 2,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: event invitations"
+  },
+  {
+    "code": "P-INC-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Publish the weekly newsletter",
+      "es": "Publicar el boletín semanal"
+    },
+    "doneWhen": {
+      "en": "The newsletter is sent to subscribers.",
+      "es": "El boletín está enviado a los suscriptores."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 3
+    },
+    "triage": {
+      "time": 4,
+      "frequency": 4,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email platform: weekly sends"
+  },
+  {
+    "code": "P-INC-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Collect rent from the rental property",
+      "es": "Cobrar el alquiler de la propiedad"
+    },
+    "doneWhen": {
+      "en": "The rent arrives by the 5th of the month.",
+      "es": "El alquiler llega antes del día 5 del mes."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Bank: rent deposits"
+  },
+  {
+    "code": "P-ADM-01",
+    "level": "mapped",
+    "name": {
+      "en": "Renew passports and IDs before they expire",
+      "es": "Renovar pasaportes e identificaciones antes de que venzan"
+    },
+    "doneWhen": {
+      "en": "The renewal appointment is booked or the new document arrives.",
+      "es": "La cita de renovación está reservada o llega el nuevo documento."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 3,
+      "digital": 3,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Documents: expiry dates",
+    "baseline": {
+      "occurrences": 1,
+      "confidence": "low",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-ADM-02",
+    "level": "mapped",
+    "name": {
+      "en": "File the quarterly tax estimates",
+      "es": "Presentar los pagos provisionales de impuestos"
+    },
+    "doneWhen": {
+      "en": "The estimate is filed and paid before the deadline.",
+      "es": "El pago provisional está presentado y pagado antes de la fecha límite."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 2,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Email: accountant threads",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-ADM-03",
+    "level": "unmapped",
+    "name": {
+      "en": "File the yearly tax return",
+      "es": "Presentar la declaración anual de impuestos"
+    },
+    "doneWhen": {
+      "en": "The return is filed before the deadline.",
+      "es": "La declaración está presentada antes de la fecha límite."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 3,
+      "risk": 4,
+      "source": "estimate"
+    },
+    "evidence": "Email: accountant threads"
+  },
+  {
+    "code": "P-ADM-04",
+    "level": "mapped",
+    "name": {
+      "en": "Pay traffic and parking fines",
+      "es": "Pagar multas de tránsito y estacionamiento"
+    },
+    "doneWhen": {
+      "en": "The fine is paid before it grows.",
+      "es": "La multa está pagada antes de que aumente."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 5,
+      "digital": 4,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Email: city notices",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "P-ADM-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Renew the car registration",
+      "es": "Renovar el registro del auto"
+    },
+    "doneWhen": {
+      "en": "The new registration is active.",
+      "es": "El nuevo registro está activo."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.1
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 5,
+      "digital": 4,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Email: registration notices"
+  },
+  {
+    "code": "P-ADM-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Scan and file important mail",
+      "es": "Escanear y archivar el correo importante"
+    },
+    "doneWhen": {
+      "en": "The letter is scanned and filed.",
+      "es": "La carta está escaneada y archivada."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 2,
+      "risk": 1,
+      "source": "estimate"
+    },
+    "evidence": "Voice notes: paper mail"
+  },
+  {
+    "code": "P-ADM-07",
+    "level": "unmapped",
+    "name": {
+      "en": "Book visa appointments for travel",
+      "es": "Reservar citas de visa para viajes"
+    },
+    "doneWhen": {
+      "en": "The appointment is booked before the trip.",
+      "es": "La cita está reservada antes del viaje."
+    },
+    "estimate": {
+      "howOften": "yearly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: consulate messages"
+  },
+  {
+    "code": "C-SAL-01",
+    "level": "mapped",
+    "name": {
+      "en": "Follow up after a product demo",
+      "es": "Dar seguimiento después de una demo"
+    },
+    "doneWhen": {
+      "en": "The follow-up email is sent within 1 day.",
+      "es": "El correo de seguimiento se envía en 1 día."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 2
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 4,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: demos; Email: follow-ups",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-SAL-02",
+    "level": "mapped",
+    "name": {
+      "en": "Send the proposal after a discovery call",
+      "es": "Enviar la propuesta tras una llamada de diagnóstico"
+    },
+    "doneWhen": {
+      "en": "The proposal is sent within 2 days.",
+      "es": "La propuesta se envía en 2 días."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 2
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Drive: proposal documents",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-SAL-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Chase contracts that haven't been signed",
+      "es": "Dar seguimiento a contratos sin firmar"
+    },
+    "doneWhen": {
+      "en": "The contract is signed or the lead says no.",
+      "es": "El contrato está firmado o el prospecto dice que no."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "E-signature: pending contracts",
+    "measuring": true
+  },
+  {
+    "code": "C-SAL-04",
+    "level": "mapped",
+    "name": {
+      "en": "Book first calls with new leads",
+      "es": "Agendar primeras llamadas con nuevos prospectos"
+    },
+    "doneWhen": {
+      "en": "The call is on both calendars.",
+      "es": "La llamada está en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 5,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: discovery calls",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-SAL-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Send the weekly sales forecast",
+      "es": "Enviar el pronóstico semanal de ventas"
+    },
+    "doneWhen": {
+      "en": "The forecast is sent every Monday.",
+      "es": "El pronóstico se envía cada lunes."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Drive: forecast sheet"
+  },
+  {
+    "code": "C-SAL-06",
+    "level": "unmapped",
+    "name": {
+      "en": "Renew contracts with current clients",
+      "es": "Renovar contratos con clientes actuales"
+    },
+    "doneWhen": {
+      "en": "The renewal is signed before the contract ends.",
+      "es": "La renovación está firmada antes de que termine el contrato."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.6
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "CRM: renewal dates"
+  },
+  {
+    "code": "C-MKT-01",
+    "level": "mapped",
+    "name": {
+      "en": "Publish the company blog posts",
+      "es": "Publicar los artículos del blog de la empresa"
+    },
+    "doneWhen": {
+      "en": "The post is live on the blog.",
+      "es": "El artículo está publicado en el blog."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 2
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Drive: draft documents",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 2,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-MKT-02",
+    "level": "unmapped",
+    "name": {
+      "en": "Publish posts on company social accounts",
+      "es": "Publicar en las redes sociales de la empresa"
+    },
+    "doneWhen": {
+      "en": "The posts are live on schedule.",
+      "es": "Las publicaciones salen a tiempo."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 2.5
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 5,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Social scheduler history",
+    "measuring": true
+  },
+  {
+    "code": "C-MKT-03",
+    "level": "mapped",
+    "name": {
+      "en": "Send the monthly email to customers",
+      "es": "Enviar el correo mensual a los clientes"
+    },
+    "doneWhen": {
+      "en": "The email is sent to the customer list.",
+      "es": "El correo está enviado a la lista de clientes."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email platform: monthly sends",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-MKT-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to press and podcast requests",
+      "es": "Responder solicitudes de prensa y pódcasts"
+    },
+    "doneWhen": {
+      "en": "Every request has a yes or no.",
+      "es": "Cada solicitud tiene un sí o un no."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: press requests"
+  },
+  {
+    "code": "C-MKT-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Book speakers for company events",
+      "es": "Reservar ponentes para eventos de la empresa"
+    },
+    "doneWhen": {
+      "en": "Every speaker slot is confirmed.",
+      "es": "Cada espacio de ponente está confirmado."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: speaker threads"
+  },
+  {
+    "code": "C-SUP-01",
+    "level": "delegated",
+    "name": {
+      "en": "Reply to routine customer support emails",
+      "es": "Responder correos de soporte rutinarios"
+    },
+    "doneWhen": {
+      "en": "Every routine email has a reply within 4 hours.",
+      "es": "Cada correo rutinario tiene respuesta en 4 horas."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 4
+    },
+    "triage": {
+      "time": 4,
+      "frequency": 5,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Help desk: 40 routine emails a week",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 4,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    },
+    "visibility": 2
+  },
+  {
+    "code": "C-SUP-02",
+    "level": "delegated",
+    "name": {
+      "en": "Refund orders that meet the refund policy",
+      "es": "Reembolsar pedidos que cumplen la política"
+    },
+    "doneWhen": {
+      "en": "The refund is issued and the customer told.",
+      "es": "El reembolso está hecho y el cliente avisado."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Payments: refund history",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-SUP-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Escalate bugs reported by customers",
+      "es": "Escalar errores reportados por clientes"
+    },
+    "doneWhen": {
+      "en": "The bug is filed with steps to reproduce it.",
+      "es": "El error está registrado con los pasos para reproducirlo."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Help desk: bug tags"
+  },
+  {
+    "code": "C-SUP-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to customer reviews on public sites",
+      "es": "Responder reseñas de clientes en sitios públicos"
+    },
+    "doneWhen": {
+      "en": "Every review has a public reply.",
+      "es": "Cada reseña tiene una respuesta pública."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 3,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Review sites: notifications"
+  },
+  {
+    "code": "C-FIN-01",
+    "level": "mapped",
+    "name": {
+      "en": "Send invoices to clients each month",
+      "es": "Enviar facturas a los clientes cada mes"
+    },
+    "doneWhen": {
+      "en": "Every invoice is sent by the 3rd.",
+      "es": "Cada factura se envía antes del día 3."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.6
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Accounting: invoices",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.6,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-FIN-02",
+    "level": "mapped",
+    "name": {
+      "en": "Chase overdue client invoices",
+      "es": "Cobrar facturas vencidas de clientes"
+    },
+    "doneWhen": {
+      "en": "The invoice is paid or has a new date.",
+      "es": "La factura está pagada o tiene una nueva fecha."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.8
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Accounting: overdue report",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.8,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-FIN-03",
+    "level": "mapped",
+    "name": {
+      "en": "Pay supplier invoices on time",
+      "es": "Pagar facturas de proveedores a tiempo"
+    },
+    "doneWhen": {
+      "en": "Every invoice is paid before its due date.",
+      "es": "Cada factura está pagada antes de su vencimiento."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.7
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Bank: supplier payments",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.7,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-FIN-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Approve team expense reports",
+      "es": "Aprobar los reportes de gastos del equipo"
+    },
+    "doneWhen": {
+      "en": "Every report is approved or returned.",
+      "es": "Cada reporte está aprobado o devuelto."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Expense tool: approvals"
+  },
+  {
+    "code": "C-FIN-05",
+    "level": "unmapped",
+    "name": {
+      "en": "Send the monthly numbers to the accountant",
+      "es": "Enviar los números del mes al contador"
+    },
+    "doneWhen": {
+      "en": "The accountant has every file by the 5th.",
+      "es": "El contador tiene todos los archivos antes del día 5."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Email: accountant threads"
+  },
+  {
+    "code": "C-OPS-01",
+    "level": "unmapped",
+    "name": {
+      "en": "Renew software subscriptions and licenses",
+      "es": "Renovar suscripciones y licencias de software"
+    },
+    "doneWhen": {
+      "en": "Every renewal is paid or cancelled on purpose.",
+      "es": "Cada renovación está pagada o cancelada a propósito."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Bank: software charges"
+  },
+  {
+    "code": "C-OPS-02",
+    "level": "assisted",
+    "name": {
+      "en": "Renegotiate supplier contracts before they renew",
+      "es": "Renegociar contratos con proveedores antes de renovarlos"
+    },
+    "doneWhen": {
+      "en": "The new terms are signed before the renewal date.",
+      "es": "Los nuevos términos están firmados antes de la renovación."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 2,
+      "rules": 2,
+      "digital": 3,
+      "risk": 3,
+      "source": "baseline"
+    },
+    "evidence": "Email: supplier renewals",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-OPS-03",
+    "level": "mapped",
+    "name": {
+      "en": "Send the agenda before each meeting",
+      "es": "Enviar la agenda antes de cada reunión"
+    },
+    "doneWhen": {
+      "en": "The agenda is in every invite 1 day before.",
+      "es": "La agenda está en cada invitación 1 día antes."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 5,
+      "rules": 4,
+      "digital": 5,
+      "risk": 1,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: meetings without agendas",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-OPS-04",
+    "level": "mapped",
+    "name": {
+      "en": "Send notes and next steps after meetings",
+      "es": "Enviar notas y próximos pasos después de reuniones"
+    },
+    "doneWhen": {
+      "en": "Notes and owners are sent within 2 hours.",
+      "es": "Las notas y los responsables se envían en 2 horas."
+    },
+    "estimate": {
+      "howOften": "daily",
+      "hoursPerWeek": 2.5
+    },
+    "triage": {
+      "time": 3,
+      "frequency": 5,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar and meeting recordings",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 2.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-PRD-01",
+    "level": "mapped",
+    "name": {
+      "en": "Publish the release notes",
+      "es": "Publicar las notas de versión"
+    },
+    "doneWhen": {
+      "en": "The notes are live with every release.",
+      "es": "Las notas están publicadas con cada versión."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Repository: releases",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 0.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-PRD-02",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to feature requests from customers",
+      "es": "Responder solicitudes de funciones de clientes"
+    },
+    "doneWhen": {
+      "en": "Every request has a reply and a status.",
+      "es": "Cada solicitud tiene respuesta y un estado."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 2,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Help desk: feature tags"
+  },
+  {
+    "code": "C-PRD-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Sort and file incoming bug reports",
+      "es": "Clasificar y registrar los reportes de errores"
+    },
+    "doneWhen": {
+      "en": "Every report is filed with a priority.",
+      "es": "Cada reporte está registrado con una prioridad."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 4,
+      "rules": 3,
+      "digital": 5,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Issue tracker: new issues"
+  },
+  {
+    "code": "C-PPL-01",
+    "level": "mapped",
+    "name": {
+      "en": "Schedule interviews with candidates",
+      "es": "Agendar entrevistas con candidatos"
+    },
+    "doneWhen": {
+      "en": "The interview is on both calendars.",
+      "es": "La entrevista está en los dos calendarios."
+    },
+    "estimate": {
+      "howOften": "weekly",
+      "hoursPerWeek": 1
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 4,
+      "digital": 5,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Calendar: interviews",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1,
+      "moneyUsd": 0,
+      "approvedAt": "2026-10-06"
+    },
+    "changedCycle": 16
+  },
+  {
+    "code": "C-PPL-02",
+    "level": "unmapped",
+    "name": {
+      "en": "Send offer letters to hired candidates",
+      "es": "Enviar cartas de oferta a candidatos contratados"
+    },
+    "doneWhen": {
+      "en": "The signed offer is back.",
+      "es": "La oferta firmada está de vuelta."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.2
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 1,
+      "rules": 4,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "E-signature: offers"
+  },
+  {
+    "code": "C-PPL-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Pay the team's payroll each month",
+      "es": "Pagar la nómina del equipo cada mes"
+    },
+    "doneWhen": {
+      "en": "Everyone is paid on the agreed day.",
+      "es": "Todos reciben su pago el día acordado."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.3
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 3,
+      "rules": 5,
+      "digital": 5,
+      "risk": 4,
+      "source": "estimate"
+    },
+    "evidence": "Payroll: monthly runs"
+  },
+  {
+    "code": "C-LDR-01",
+    "level": "assisted",
+    "name": {
+      "en": "Send the monthly investor update",
+      "es": "Enviar el informe mensual a inversionistas"
+    },
+    "doneWhen": {
+      "en": "The update is sent by the 10th.",
+      "es": "El informe se envía antes del día 10."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 1.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 3,
+      "rules": 2,
+      "digital": 4,
+      "risk": 2,
+      "source": "baseline"
+    },
+    "evidence": "Email: investor updates",
+    "baseline": {
+      "occurrences": 3,
+      "confidence": "normal",
+      "hoursPerWeek": 1.5,
+      "moneyUsd": 0,
+      "approvedAt": "2026-03-30"
+    }
+  },
+  {
+    "code": "C-LDR-02",
+    "level": "unmapped",
+    "name": {
+      "en": "Send the agenda for the board meeting",
+      "es": "Enviar la agenda de la junta directiva"
+    },
+    "doneWhen": {
+      "en": "The agenda and materials are sent 1 week before.",
+      "es": "La agenda y los materiales se envían 1 semana antes."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.8
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 2,
+      "rules": 3,
+      "digital": 4,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Drive: board documents"
+  },
+  {
+    "code": "C-LDR-03",
+    "level": "unmapped",
+    "name": {
+      "en": "Reply to partnership proposals",
+      "es": "Responder propuestas de alianzas"
+    },
+    "doneWhen": {
+      "en": "Every proposal has a yes, a no or a call booked.",
+      "es": "Cada propuesta tiene un sí, un no o una llamada agendada."
+    },
+    "estimate": {
+      "howOften": "monthly",
+      "hoursPerWeek": 0.4
+    },
+    "triage": {
+      "time": 1,
+      "frequency": 2,
+      "rules": 2,
+      "digital": 4,
+      "risk": 3,
+      "source": "estimate"
+    },
+    "evidence": "Email: partnership threads"
+  },
+  {
+    "code": "C-LDR-04",
+    "level": "unmapped",
+    "name": {
+      "en": "Publish the quarterly goals for the team",
+      "es": "Publicar los objetivos trimestrales del equipo"
+    },
+    "doneWhen": {
+      "en": "The goals are published where the team works.",
+      "es": "Los objetivos están publicados donde trabaja el equipo."
+    },
+    "estimate": {
+      "howOften": "quarterly",
+      "hoursPerWeek": 0.5
+    },
+    "triage": {
+      "time": 2,
+      "frequency": 1,
+      "rules": 2,
+      "digital": 3,
+      "risk": 2,
+      "source": "estimate"
+    },
+    "evidence": "Drive: goal documents"
+  }
+]
