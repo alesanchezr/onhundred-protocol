@@ -67,6 +67,13 @@ test("public view hides private fields and unpublished partner loops", async () 
   assert.equal(c.estimate, undefined, "company figures stay private by default");
 });
 
+test("public view credits the protocol and its author", async () => {
+  const { attribution } = publicView(await seed());
+  assert.equal(attribution.text, "Onhundred Protocol by Ale Sánchez");
+  assert.equal(attribution.url, "https://onhundred.com");
+  assert.equal(attribution.license, "CC BY 4.0");
+});
+
 test("frozen inventory needs exactly 100 loops", async () => {
   const state = await seed();
   state.loops.pop();

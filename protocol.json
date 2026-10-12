@@ -1,5 +1,11 @@
 {
   "version": "1.1",
+  "attribution": {
+    "text": "Onhundred Protocol by Ale Sánchez",
+    "url": "https://onhundred.com",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+  },
   "levels": ["unmapped", "mapped", "assisted", "delegated", "autonomous"],
   "branchOrder": ["R", "P", "C"],
   "branches": {

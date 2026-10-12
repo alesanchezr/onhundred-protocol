@@ -1,0 +1,19 @@
+Onhundred Protocol log
+Copyright 2026 Ale Sánchez
+https://onhundred.com
+
+This product includes software developed by Ale Sánchez as part of the Onhundred Protocol.
+Section 4(d) of the Apache License 2.0 requires copies and derivative works to keep this notice.
+A public log that calls itself the Onhundred Protocol also keeps the "Onhundred Protocol by
+Ale Sánchez" credit on its pages, as TRADEMARKS.md describes.
+
+The protocol text in docs/ is licensed separately under CC BY 4.0. See docs/LICENSE.md.
+The Onhundred name and logo are not licensed by either license. See TRADEMARKS.md.
+
+Third-party material:
+
+- The help icon (circle-help) in src/pages.mjs is from Lucide, https://lucide.dev.
+  Copyright (c) Lucide Contributors. ISC License.
+- The Claude, ChatGPT and Cursor marks in src/pages.mjs are from @lobehub/icons,
+  https://github.com/lobehub/lobe-icons. Copyright (c) LobeHub. MIT License.
+  The marks themselves are trademarks of their owners and identify their apps only.

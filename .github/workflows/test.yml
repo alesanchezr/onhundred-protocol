@@ -1,0 +1,24 @@
+# Runs the protocol rules and the Worker tests on every pull request and push to main.
+# Only in onhundred/protocol-log: installs made from the template skip it and spend no Actions minutes.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.repository == 'onhundred/protocol-log'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test

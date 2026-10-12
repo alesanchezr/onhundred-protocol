@@ -4,6 +4,8 @@ A method for delegating your life and work to AI agents.
 
 Oct 12, 2026 · Reference application: Ale Sánchez · Pending external review
 
+By Ale Sánchez · [onhundred.com](https://onhundred.com) · Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Credit it as: "Based on the Onhundred Protocol by Ale Sánchez, onhundred.com, CC BY 4.0."
+
 ## Warning
 
 This protocol hands parts of your life and your work to AI agents. It can strain your relationships, disrupt your company and expose your data. Nobody knows how it ends, because nobody has finished it yet.

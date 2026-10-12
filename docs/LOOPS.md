@@ -123,3 +123,7 @@ One row per loop, with these columns:
 - [ ] Most readers do a version of it (needed for loops you start with).
 - [ ] The level where the agent acts fits the area's ceiling.
 - [ ] A verb and an object, 8 words or fewer, no names.
+
+---
+
+Part of the Onhundred Protocol by Ale Sánchez, [onhundred.com](https://onhundred.com). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

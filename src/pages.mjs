@@ -51,8 +51,11 @@ export function html(body, { status = 200, headers = {}, cache = "no-store", for
   return new Response(body, { status, headers: h });
 }
 
-function layout({ title, ownerName, owner = false, body, current = "" }) {
+const CREDIT = P.attribution;
+
+function layout({ title, ownerName, owner = false, body, current = "", origin = "" }) {
   const link = (href, label) => `<a href="${href}"${current === href ? ' aria-current="page"' : ""}>${label}</a>`;
+  const description = `${ownerName ? `${ownerName}'s log` : "A log"} that follows the ${CREDIT.text}.`;
   const nav = owner
     ? `<nav class="nav">${link("/", "LOG")}${link("/connect", "CONNECT")}${link("/connections", "CONNECTIONS")}<a href="/export" data-export-open>EXPORT</a><form method="post" action="/logout"><button type="submit" class="linkish">SIGN OUT</button></form></nav>`
     : `<nav class="nav"><a href="/login">SIGN IN</a></nav>`;
@@ -64,6 +67,16 @@ function layout({ title, ownerName, owner = false, body, current = "" }) {
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex">
 <title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Onhundred Protocol">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:image" content="${esc(origin)}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Onhundred">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -79,7 +92,7 @@ ${nav}
 ${body}
 </main>
 ${owner ? exportDialog() : ""}
-<footer class="foot">Onhundred Protocol v${esc(P.version)}. Your data lives in your Cloudflare account.</footer>
+<footer class="foot">Follows the <a href="${esc(CREDIT.url)}" rel="noopener">${esc(CREDIT.text)}</a>. v${esc(P.version)}. Your data lives in your Cloudflare account.</footer>
 </body>
 </html>`;
 }
@@ -369,7 +382,7 @@ export function logPage({ state, owner, events = [], url, upgrade, configured: i
     experimentsSection(view.experiments, lang),
     owner ? eventsSection(events) : "",
   ].join("\n");
-  return layout({ title, ownerName: meta.ownerName, owner, body, current: "/" });
+  return layout({ title, ownerName: meta.ownerName, owner, body, current: "/", origin: url?.origin });
 }
 
 export function privatePage({ meta, origin, configured: isConfigured, hasConnections }) {
@@ -381,7 +394,7 @@ ${mcpUrlBox(origin)}
 <p><a class="btn signal" href="/login">SIGN IN</a></p>
 ${!hasConnections ? `<p class="muted">First time here? Sign in with the owner password you chose when you deployed, then connect your first AI app.</p>` : ""}
 </section>`;
-  return layout({ title: "Onhundred Protocol log", ownerName: meta.ownerName, body });
+  return layout({ title: "Onhundred Protocol log", ownerName: meta.ownerName, body, origin });
 }
 
 function setupNotice() {
@@ -471,7 +484,7 @@ ${codeBlock("anthropic", anthropic)}
 <ul class="starters">${PROMPTS.map((p) => `<li><b>${esc(p.title)}</b><small>${esc(p.description)}</small></li>`).join("")}</ul>
 <p class="muted">Apps that support MCP prompts list these as shortcuts. In the others, type the request.</p>
 </section>`;
-  return layout({ title: "Connect your AI Agent · Onhundred Protocol", ownerName: meta.ownerName, owner: true, body, current: "/connect" });
+  return layout({ title: "Connect your AI Agent · Onhundred Protocol", ownerName: meta.ownerName, owner: true, body, current: "/connect", origin });
 }
 
 // ---------------------------------------------------------------------------

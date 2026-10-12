@@ -47,7 +47,8 @@ async function dirs() {
   await writeFile(join(tpl, "wrangler.jsonc"), TEMPLATE_WRANGLER);
   await writeFile(join(tpl, "protocol.json"), '{ "version": "1.1" }');
   await writeFile(join(tpl, "src", "worker.mjs"), "export default {};\n");
-  await writeFile(join(tpl, ".github", "workflows", "update.yml"), "name: update\n");
+  await writeFile(join(tpl, ".github", "workflows", "update-from-template.yml"), "name: update\n");
+  await writeFile(join(tpl, ".github", "workflows", "test.yml"), "name: tests\n");
   await writeFile(join(repo, "wrangler.jsonc"), INSTALL_WRANGLER);
   await writeFile(join(repo, "protocol.json"), '{ "version": "1.0" }');
   await writeFile(join(repo, ".dev.vars"), "OWNER_PASSWORD=secret\n");
@@ -65,7 +66,12 @@ test("the manifest finds files edited since the last update, and secrets are nev
     const manifest = JSON.parse(await readFile(join(repo, MANIFEST), "utf8"));
     assert.equal(manifest.tag, "v1.1.0");
     assert.ok(manifest.files["src/worker.mjs"]);
-    assert.equal(manifest.files[".github/workflows/update.yml"], undefined);
+    assert.equal(manifest.files[".github/workflows/update-from-template.yml"], undefined);
+
+    await mkdir(join(repo, ".github", "workflows"), { recursive: true });
+    await writeFile(join(repo, ".github", "workflows", "update-from-template.yml"), "name: update\n");
+    const sameWorkflow = await update({ repo, template: tpl, tag: "v1.1.1" });
+    assert.equal(sameWorkflow.workflowChanged, false, "the template's CI workflow never asks owners to copy files");
 
     await writeFile(join(repo, "src", "worker.mjs"), "export default { edited: true };\n");
     const second = await update({ repo, template: tpl, tag: "v1.2.0" });

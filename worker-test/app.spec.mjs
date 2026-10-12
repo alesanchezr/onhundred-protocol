@@ -444,7 +444,11 @@ describe("protocol versions", () => {
     const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
     expect(view.protocolVersion).toBe("1.1");
     expect(view.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
-    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
+    expect(view.attribution).toMatchObject({ text: "Onhundred Protocol by Ale Sánchez", url: "https://onhundred.com" });
+    const publicPage = await (await app().fetch(new Request(`${BASE}/`))).text();
+    expect(publicPage).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
+    expect(publicPage).toContain('Follows the <a href="https://onhundred.com" rel="noopener">Onhundred Protocol by Ale Sánchez</a>.');
+    expect(publicPage).toContain(`<meta property="og:image" content="${BASE}/og.png">`);
   });
 
   it("saves a scheduled upgrade once its cycle starts, as a system event", async () => {

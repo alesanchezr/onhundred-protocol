@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/onhundred/protocol-log/discussions
+    about: Setup, connecting an AI app, or how the protocol works.
+  - name: Report a vulnerability
+    url: https://github.com/onhundred/protocol-log/security/advisories/new
+    about: Privately. Never in a public issue.

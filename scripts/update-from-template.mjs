@@ -14,6 +14,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const MANIFEST = ".template/manifest.json";
+const UPDATE_WORKFLOW = ".github/workflows/update-from-template.yml";
 const SKIP_TOP = new Set([".git", "node_modules", ".wrangler", ".template", ".github"]);
 const isSkipped = (path) => {
   const top = path.split("/")[0];
@@ -136,7 +137,7 @@ export async function update({ repo, template, tag }) {
     removed.push(path);
   }
 
-  const workflowChanged = await differs(join(template, ".github"), join(repo, ".github"));
+  const workflowChanged = await differs(join(template, UPDATE_WORKFLOW), join(repo, UPDATE_WORKFLOW));
   const manifest = { tag, updatedAt: new Date().toISOString(), files: written };
   await mkdir(join(repo, ".template"), { recursive: true });
   await writeFile(join(repo, MANIFEST), JSON.stringify(manifest, null, 2) + "\n");
@@ -145,14 +146,10 @@ export async function update({ repo, template, tag }) {
   return { from: old?.tag ?? null, to: tag, protocol: { from: protocolFrom, to: protocolTo }, edited, removed, workflowChanged, firstManifest: !old };
 }
 
-// Paths inside .github start below it ("workflows/..."), so listFiles doesn't skip them.
+// Only the update workflow matters to an install; the template's CI and issue templates don't run there.
 async function differs(a, b) {
   if (!existsSync(a)) return false;
-  for (const path of await listFiles(a)) {
-    const other = join(b, path);
-    if (!existsSync(other) || sha256(await readFile(join(a, path))) !== sha256(await readFile(other))) return true;
-  }
-  return false;
+  return !existsSync(b) || sha256(await readFile(a)) !== sha256(await readFile(b));
 }
 
 export function prBody(summary, { templateRepo = "onhundred/protocol-log" } = {}) {
@@ -175,7 +172,7 @@ export function prBody(summary, { templateRepo = "onhundred/protocol-log" } = {}
       "",
       "### The update workflow changed",
       "",
-      `GitHub doesn't let this workflow change its own files. Copy \`.github/workflows/\` from [${to}](https://github.com/${templateRepo}/tree/${to}/.github/workflows) into \`.github/workflows/\` by hand.`
+      `GitHub doesn't let this workflow change its own files. Copy \`${UPDATE_WORKFLOW}\` from [${to}](https://github.com/${templateRepo}/blob/${to}/${UPDATE_WORKFLOW}) into the same path by hand.`
     );
   lines.push("", "`wrangler.jsonc` keeps your name, vars, routes, account_id and resource ids.");
   return lines.join("\n") + "\n";

@@ -132,3 +132,7 @@ Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the
 ## Company-facing register
 
 Formal, plain and results first. "We" for Onhundred, the company's name for the company. No humor, no first-person stories, no casual phrasing. Results and rules carry the weight.
+
+---
+
+Part of the Onhundred Protocol by Ale Sánchez, [onhundred.com](https://onhundred.com). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
