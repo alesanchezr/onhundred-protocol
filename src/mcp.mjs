@@ -1,13 +1,13 @@
 // MCP over Streamable HTTP, stateless, JSON responses. One endpoint: POST /mcp.
 // Claude, ChatGPT, Cursor, Claude Code and the xAI, OpenAI and Anthropic APIs all speak this.
-import { derive, isHardEligible, protocol as P, triageGroup, validate } from "../lib/protocol.mjs";
+import { compareVersions, derive, formatPoints, isHardEligible, pendingRuleBreaks, protocol as P, triageGroup, validate } from "../lib/protocol.mjs";
 import { createApiKey, listAgents, revokeAgent } from "./auth.mjs";
 import * as docs from "./docs.mjs";
 import { pendingItems } from "./ops.mjs";
 import { getEvents, logEvent, readState } from "./store.mjs";
 import { writer } from "./writer.mjs";
 
-export const SERVER_VERSION = "1.0.0";
+export const SERVER_VERSION = "1.1.0";
 const PROTOCOL_VERSIONS = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
 // ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ const estimateSchema = obj({ howOften: str("daily, weekly, monthly, quarterly or
 const loopSpec = obj(
   {
     area: str("BRANCH-AREA, like R-PAR or C-SAL (protocol section 2.4)."),
-    name: textObj("A verb and an object, 8 words or fewer, no names of people."),
+    name: textObj("A verb and an object, 8 words or fewer, no names of people. Name what the loop produces, not the decision behind it."),
     doneWhen: textObj("The result outside your head, in 1 line."),
     estimate: estimateSchema,
     triage: triageSchema,
@@ -83,9 +83,20 @@ const TOOLS = [
       return {
         owner: state.meta.ownerName || null,
         settings: state.meta,
-        protocolVersion: { log: state.meta.protocolVersion, template: P.version, upgradeAvailable: P.version !== state.meta.protocolVersion },
+        protocolVersion: {
+          log: state.meta.protocolVersion,
+          template: P.version,
+          upgradeAvailable: compareVersions(state.meta.protocolVersion, P.version) < 0 && !state.meta.protocolUpgrade,
+          scheduled: state.meta.protocolUpgrade || null,
+          lastChange: state.meta.protocolChange || null,
+        },
         loops: { active: d.loops.length, proposed: state.loops.filter((l) => l.proposed && !l.retired).length, levels: d.metrics.counts },
-        metrics: { delegatedPct: d.metrics.delegatedPct, stillPct: d.metrics.stillPct, branches: d.metrics.branches },
+        metrics: {
+          delegated: formatPoints(d.metrics.delegatedPoints),
+          delegatedPoints: d.metrics.delegatedPoints,
+          stillPct: d.metrics.stillPct,
+          branches: d.metrics.branches,
+        },
         openExperiments: d.experiments.filter((e) => !e.conclusion).map((e) => ({ code: e.code, slot: e.slot, status: e.status, stage: e.stage, level: e.level })),
         pending: pendingItems(state).length + state.loops.filter((l) => (l.proposed || l.pendingBaseline || l.retireProposed) && !l.retired).length,
         violations: violations.map((v) => v.message),
@@ -211,12 +222,14 @@ const TOOLS = [
   {
     name: "list_pending",
     title: "List what waits for approval",
-    description: "Everything waiting for the owner: proposed loops, retirements, baselines, and text agents wrote (names, doneWhen, questions, bets, lessons) next to the live version.",
+    description: "Everything waiting for the owner: proposed loops, retirements, baselines, and text agents wrote (names, doneWhen, questions, bets, lessons) next to the live version. breaksNewRules lists what a new protocol version flags: rename those first.",
     inputSchema: obj({}),
     annotations: { title: "List what waits for approval", ...READ },
     run: async (_a, call) => {
       const state = await call.state();
+      const breaks = pendingRuleBreaks(state);
       return {
+        breaksNewRules: { version: breaks.version, adopted: breaks.adopted, items: breaks.items.map((v) => v.message) },
         text: pendingItems(state).map((i) => ({ target: i.target, kind: i.kind, live: Object.fromEntries(Object.keys(i.pending).map((k) => [k, i.ref[k] ?? null])), pending: i.pending })),
         proposedLoops: state.loops.filter((l) => l.proposed && !l.retired).map((l) => ({ code: l.code, name: l.name, doneWhen: l.doneWhen, replaces: l.replaces, proposedBy: l.proposedBy })),
         retirements: state.loops.filter((l) => l.retireProposed && !l.retired).map((l) => ({ code: l.code, ...l.retireProposed })),
@@ -266,6 +279,7 @@ const TOOLS = [
   writeTool("register_experiment", "Register an experiment", "Owner only. Registers the card before the first stage: slot, question, bet (If, then, because), loops and goal. The question and bet wait for approve_text.", obj({ slot: { type: "string", enum: P.limits.experimentSlots }, funReason: str("Required for the fun slot."), question: textObj("1 sentence anyone understands."), hypothesis: textObj("The bet: If ..., then ..., because ...."), loops: { type: "array", items: { type: "string" } }, goal: levels, peopleInvolved: str("Who, and proof of consent. Never published.") }, ["slot", "question", "hypothesis", "loops", "goal"]), { owner: true }),
   writeTool("conclude_experiment", "Conclude an experiment", "Owner only. Records the bet as confirmed, refuted or unclear, and the final level. A refuted bet is a result, not a failure.", obj({ experiment: str("EXP-NN."), hypothesis: { type: "string", enum: P.conclusions }, level: levels }, ["experiment", "hypothesis"]), { owner: true }),
   writeTool("set_meta", "Change settings", "Owner only. ownerName, languages, stillMetric, publish, companyFigures, cycleOneStart (cycle and day follow from it), cycle, day, stage (map, delegate, review), grid.", { type: "object", additionalProperties: true }, { owner: true }),
+  writeTool("adopt_protocol", "Adopt the new protocol version", "Owner only. Moves the log to the protocol version in this code (get_state shows both). With no cycle running it applies now; otherwise at the start of the next cycle. Returns what breaks the new rules: rename those after. Confirm with the person first.", obj({}), { owner: true, annotations: DESTRUCTIVE }),
   {
     name: "undo_event",
     title: "Undo an event",
@@ -328,7 +342,7 @@ const TOOLS = [
 // Resources and prompts
 
 const RESOURCES = [
-  { uri: "onhundred://docs/protocol", name: "protocol", title: "Onhundred Protocol v1.0", description: "The rules this log runs.", mimeType: "text/markdown", text: () => docs.protocol },
+  { uri: "onhundred://docs/protocol", name: "protocol", title: `Onhundred Protocol v${P.version}`, description: "The newest rules. get_state says which version this log runs.", mimeType: "text/markdown", text: () => docs.protocol },
   { uri: "onhundred://docs/loops", name: "loops", title: "Loops: how to write them and which to pick", description: "Read before proposing or renaming a loop.", mimeType: "text/markdown", text: () => docs.loops },
   { uri: "onhundred://docs/voice", name: "voice", title: "Voice: how Onhundred writes", description: "Read before writing any public text.", mimeType: "text/markdown", text: () => docs.voice },
   { uri: "onhundred://protocol.json", name: "protocol.json", title: "Protocol parameters", description: "Areas, ceilings, triage thresholds and limits, as the code enforces them.", mimeType: "application/json", text: () => JSON.stringify(P, null, 2) },
@@ -358,7 +372,7 @@ const PROMPTS = [
 function instructions(meta) {
   const langs = (meta.languages || ["en"]).join(", ");
   return [
-    `Onhundred Protocol log${meta.ownerName ? ` for ${meta.ownerName}` : ""}. Mode: ${meta.mode}.`,
+    `Onhundred Protocol log${meta.ownerName ? ` for ${meta.ownerName}` : ""}. Mode: ${meta.mode}. It runs protocol v${meta.protocolVersion}.`,
     "Read onhundred://docs/loops before you propose or rename a loop, and onhundred://docs/voice before you write any public text.",
     `Write names, doneWhen, questions, bets and lessons in every language of the log: ${langs}.`,
     "Text you write waits as pending until the owner approves it with approve_text. Show the person the exact text before that call.",

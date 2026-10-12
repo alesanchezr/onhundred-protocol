@@ -1,6 +1,19 @@
 // Every write the log accepts, as pure functions over a cloned state.
 // The WRITER Durable Object runs them one at a time, validates the result and saves the diff.
-import { LEVELS, areaExists, isActive, isOpen, parseCode, protocol as P } from "../lib/protocol.mjs";
+import {
+  LEVELS,
+  areaExists,
+  compareVersions,
+  isActive,
+  isOpen,
+  logVersion,
+  nameIssues,
+  newRuleBreaks,
+  parseCode,
+  protocol as P,
+  versionChange,
+  voiceIssues,
+} from "../lib/protocol.mjs";
 
 export class ToolError extends Error {}
 const fail = (message) => {
@@ -116,6 +129,21 @@ function newLoop(state, spec, ctx, extra = {}) {
 const owner = (ctx) => {
   if (ctx.access !== "owner") fail("only the owner can do this. Connect with owner access or ask the owner.");
 };
+
+// Approving swaps a broken pending text for a broken live one, which the violation count can't see.
+function refuseBrokenText(state, target, fields) {
+  const version = logVersion(state.meta);
+  const issues = [];
+  for (const [field, value] of Object.entries(fields)) {
+    if (!value || typeof value !== "object") continue;
+    for (const [lang, s] of Object.entries(value)) {
+      if (typeof s !== "string") continue;
+      const found = [...(field === "name" ? nameIssues(s, lang, version) : []), ...voiceIssues(s, lang)];
+      for (const i of found) issues.push(`${field} (${lang}) ${i}`);
+    }
+  }
+  if (issues.length) fail(`${target} can't be approved: ${issues.join(" ")} Rename it through your AI app first.`);
+}
 
 // ---------------------------------------------------------------------------
 
@@ -320,6 +348,7 @@ export const ops = {
     for (const code of codes) {
       const loop = findLoop(state, code);
       if (!loop.proposed || loop.retired) fail(`${code} is not a proposed loop.`);
+      refuseBrokenText(state, code, { name: loop.name, doneWhen: loop.doneWhen });
       delete loop.proposed;
       loop.approvedAt = ctx.now;
       approved.push(code);
@@ -345,6 +374,7 @@ export const ops = {
     const items = pendingItems(state);
     const chosen = all ? items : items.filter((i) => (targets || []).includes(i.target));
     if (!chosen.length) fail("nothing pending matches. Call list_pending to see what waits.");
+    for (const i of chosen) refuseBrokenText(state, i.target, i.pending);
     for (const i of chosen) {
       Object.assign(i.ref, i.ref.pending);
       delete i.ref.pending;
@@ -459,7 +489,35 @@ export const ops = {
     if (!changed.length) fail("send at least 1 setting.");
     return { target: "meta", result: { changed } };
   },
+
+  // Owner: protocol version (section 15.2). Never blocked by what the new rules flag;
+  // the result lists it so the owner renames it one item at a time.
+  adopt_protocol(state, _args, ctx) {
+    owner(ctx);
+    const from = logVersion(state.meta);
+    const to = P.version;
+    if (compareVersions(from, to) >= 0) fail(`the log already runs v${from}, the newest version in this code.`);
+    const scheduled = state.meta.protocolUpgrade;
+    if (scheduled?.version === to) fail(`v${to} is already adopted. It takes effect at the start of cycle ${scheduled.fromCycle}.`);
+    const breaksNewRules = newRuleBreaks(state, from, to).map((v) => v.message);
+    const cycle = Number(state.meta.cycle) || 0;
+    if (state.meta.mode === "frozen" && cycle >= 1) {
+      state.meta.protocolUpgrade = { version: to, fromCycle: cycle + 1, adoptedAt: ctx.now };
+      return {
+        target: "meta",
+        result: { from, to, takesEffect: `the start of cycle ${cycle + 1}`, fromCycle: cycle + 1, breaksNewRules },
+      };
+    }
+    const change = versionChange(state, to, { at: ctx.now, cycle });
+    state.meta.protocolVersion = to;
+    state.meta.protocolChange = change;
+    delete state.meta.protocolUpgrade;
+    return { target: "meta", result: { from, to, takesEffect: "now", protocolChange: change, breaksNewRules } };
+  },
 };
+
+// Ops that change the rules themselves: what the new rules flag is listed, not refused.
+export const RULE_CHANGE_OPS = new Set(["adopt_protocol"]);
 
 export const OWNER_OPS = new Set([
   "approve_loops",
@@ -471,6 +529,7 @@ export const OWNER_OPS = new Set([
   "register_experiment",
   "conclude_experiment",
   "set_meta",
+  "adopt_protocol",
 ]);
 
 export function pendingItems(state) {

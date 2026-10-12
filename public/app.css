@@ -56,6 +56,10 @@ small { display: block; color: var(--field-note-grey); font-size: 13px; }
 .notice { margin: 20px 0 0; padding: 12px 14px; border: 1px solid var(--graphite-rule); border-radius: 6px; background: var(--hairline-ink); color: var(--faded-bone); font-size: 14px; max-width: none; }
 .notice.good { border-color: rgba(198, 244, 50, 0.4); }
 .notice.bad { border-color: var(--termination-orange); color: var(--bone-paper); }
+.notice.upgrade { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.notice.upgrade span { flex: 1 1 320px; }
+.change-note { flex-basis: 100%; margin: 4px 0 0; font-size: 14px; color: var(--faded-bone); }
+.plain { list-style: none; margin: 12px 0 0; padding: 0; }
 
 .readout { padding: 36px 0 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 40px; }
 .readout .meta-line { flex-basis: 100%; margin: 0; font-size: 11px; color: var(--field-note-grey); }

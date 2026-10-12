@@ -47,6 +47,8 @@ describe("fresh install", () => {
     expect(res.headers.get("Content-Security-Policy")).toContain("frame-ancestors 'none'");
     const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'mode'").first();
     expect(JSON.parse(row.value)).toBe("building");
+    const version = await env.DB.prepare("SELECT value FROM meta WHERE key = 'protocolVersion'").first();
+    expect(JSON.parse(version.value)).toBe("1.1");
   });
 
   it("keeps /public.json private until publishing", async () => {
@@ -212,7 +214,7 @@ describe("owner pages", () => {
     const cookie = await ownerCookie();
     const res = await app().fetch(new Request(`${BASE}/export`, { headers: { Cookie: cookie } }));
     const snap = await res.json();
-    expect(snap.protocolVersion).toBe("1.0");
+    expect(snap.protocolVersion).toBe("1.1");
     expect(Array.isArray(snap.events)).toBe(true);
   });
 
@@ -312,5 +314,92 @@ describe("backups", () => {
     const key = await backup(env);
     const obj = await env.BACKUPS.get(key);
     expect(JSON.parse(await obj.text()).meta.mode).toBe("building");
+  });
+});
+
+describe("protocol versions", () => {
+  // An install created before v1.1: same database, older version in meta.
+  async function onV10() {
+    await env.DB.batch([
+      env.DB.prepare("UPDATE meta SET value = '\"1.0\"' WHERE key = 'protocolVersion'"),
+      env.DB.prepare("DELETE FROM meta WHERE key IN ('protocolChange', 'protocolUpgrade')"),
+    ]);
+  }
+  const ownerPage = async (cookie) => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+
+  it("offers ADOPT v1.1 on the owner page, and the button adopts it", async () => {
+    await onV10();
+    const cookie = await ownerCookie();
+    const before = await ownerPage(cookie);
+    expect(before).toContain('name="op" value="adopt_protocol"');
+    expect(before).toContain("ADOPT v1.1");
+    expect(before).toContain("takes effect now, since no cycle is running");
+
+    const res = await app().fetch(
+      new Request(`${BASE}/owner/action`, {
+        method: "POST",
+        headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "op=adopt_protocol",
+        redirect: "manual",
+      })
+    );
+    expect(res.status).toBe(303);
+    expect(decodeURIComponent(res.headers.get("Location"))).toContain("Protocol v1.1 is adopted.");
+    const after = await ownerPage(cookie);
+    expect(after).not.toContain("ADOPT v1.1");
+    expect(after).toContain("Protocol v1.1: assisted counts half. Delegated went from");
+  });
+
+  it("adopts through MCP, lists what breaks the new rules, and shows the change note publicly", async () => {
+    await onV10();
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const proposed = await call(key, "propose_loops", { loops: [loop("Decide what the kids eat", "P-HOM")] });
+    expect(proposed.error).toBeNull();
+    const code = proposed.data.result.proposed[0];
+    expect((await call(key, "approve_loops", { codes: [code] })).error).toBeNull();
+
+    const state = (await call(key, "get_state")).data;
+    expect(state.protocolVersion).toMatchObject({ log: "1.0", template: "1.1", upgradeAvailable: true });
+    expect(state.metrics.delegated).toMatch(/ of 100$/);
+    const ahead = (await call(key, "list_pending")).data.breaksNewRules;
+    expect(ahead).toMatchObject({ version: "1.1", adopted: false });
+    expect(ahead.items.some((m) => m.startsWith(`${code}: name`))).toBe(true);
+
+    const tools = (await mcp(key, "tools/list")).body.result.tools;
+    expect(tools.find((t) => t.name === "adopt_protocol").annotations.destructiveHint).toBe(true);
+    const adopted = await call(key, "adopt_protocol");
+    expect(adopted.error).toBeNull();
+    expect(adopted.data.result).toMatchObject({ from: "1.0", to: "1.1", takesEffect: "now" });
+    expect(adopted.data.result.breaksNewRules.some((m) => m.startsWith(code))).toBe(true);
+    expect(adopted.data.result.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
+    expect((await call(key, "adopt_protocol")).error).toMatch(/already runs v1.1/);
+
+    const now = (await call(key, "list_pending")).data.breaksNewRules;
+    expect(now).toMatchObject({ version: "1.1", adopted: true });
+    expect((await call(key, "propose_loops", { loops: [loop("Choose the summer camp", "R-KID")] })).error).toMatch(/failing verb \(choose\)/);
+
+    const cookie = await ownerCookie();
+    expect(await ownerPage(cookie)).toContain("Breaks v1.1 rules");
+
+    expect((await call(key, "set_meta", { publish: true })).error).toBeNull();
+    const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
+    expect(view.protocolVersion).toBe("1.1");
+    expect(view.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
+    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).toContain("Protocol v1.1: assisted counts half.");
+  });
+
+  it("saves a scheduled upgrade once its cycle starts, as a system event", async () => {
+    await onV10();
+    const set = (k, v) => env.DB.prepare("INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(k, JSON.stringify(v));
+    await env.DB.batch([set("cycleOneStart", "2026-01-05"), set("protocolUpgrade", { version: "1.1", fromCycle: 2, adoptedAt: "2026-01-06T00:00:00.000Z" })]);
+    const { writer } = await import("../src/writer.mjs");
+    expect(await writer(env).write({ actor: "system", access: "owner" })).toEqual({ ok: true, changed: true });
+    const row = (k) => env.DB.prepare("SELECT value FROM meta WHERE key = ?").bind(k).first();
+    expect(JSON.parse((await row("protocolVersion")).value)).toBe("1.1");
+    expect(await row("protocolUpgrade")).toBeNull();
+    expect(JSON.parse((await row("protocolChange")).value)).toMatchObject({ from: "1.0", to: "1.1", cycle: 2, at: "2026-01-19" });
+    const ev = await env.DB.prepare("SELECT actor, tool FROM events ORDER BY id DESC LIMIT 1").first();
+    expect(ev).toEqual({ actor: "system", tool: "adopt_protocol" });
+    expect(await writer(env).write({ actor: "system", access: "owner" })).toEqual({ ok: true, changed: false });
   });
 });

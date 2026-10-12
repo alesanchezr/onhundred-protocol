@@ -1,8 +1,8 @@
-# Onhundred Protocol v1.0
+# Onhundred Protocol v1.1
 
 A method for delegating your life and work to AI agents.
 
-Oct 9, 2026 · Reference application: Ale Sánchez · Pending external review
+Oct 12, 2026 · Reference application: Ale Sánchez · Pending external review
 
 ## Warning
 
@@ -111,7 +111,7 @@ Exactly 100 loops, five levels, three flags. The number is fixed on purpose: wit
 
 ### 3.1 The 100 loops
 
-A **loop** is a recurring responsibility of the owner, specific enough to be delegated: following up after sales calls (C-SAL-04), deciding what's for dinner (P-HOM-03), answering the school group chat (R-KID-02). The list of all 100 is the **inventory**. It's called a loop because it keeps coming back until someone closes it, and an open one keeps taking up space in your head.
+A **loop** is a recurring responsibility of the owner, specific enough to be delegated: following up after sales calls (C-SAL-04), getting dinner on the table (P-HOM-03), answering the school group chat (R-KID-02). The list of all 100 is the **inventory**. It's called a loop because it keeps coming back until someone closes it, and an open one keeps taking up space in your head.
 
 - There are always exactly 100 loops. A new loop forces merging two existing ones or retiring a less important one.
 - The split across branches and areas comes out of the inventory and can change every cycle.
@@ -234,7 +234,7 @@ There are three experiment **slots**, each with a type:
 | --- | --- | --- |
 | Easy | The idle loop with the highest score in the Automate now group | An early, likely win that keeps the pace |
 | Hard | The idle loop with the highest Time score among those with Clear rules or Digital data of 2 or less, outside the Not yet group | A valuable loop that needs research, longer measurement or solving blockers |
-| Fun | Any idle loop outside the Not yet group that the owner enjoys: something silly they would love to automate (deciding dinner counts), or something they are passionate about | Keeps the owner engaged |
+| Fun | Any idle loop outside the Not yet group that the owner enjoys: something silly they would love to automate (getting dinner on the table counts), or something they are passionate about | Keeps the owner engaged |
 
 Only loops at mapped or above can fill a slot.
 
@@ -371,9 +371,11 @@ Three numbers, all calculated in code, none typed by hand: how much is delegated
 
 | Metric | Formula |
 | --- | --- |
-| Delegated (main metric) | Loops at delegated or autonomous level / 100 |
+| Delegated (main metric) | Points out of 100: each loop at delegated or autonomous counts 1, at assisted 0.5, below that 0. Always written with its half points (23.5 of 100), never rounded |
 | Time freed | Hours per week no longer spent by the owner, against each loop's baseline |
 | Net savings | Money saved and earned by delegated loops, minus AI and tool costs |
+
+Assisted counts half: it is real progress, and loops whose area caps them at assisted would otherwise never count.
 
 By branch or area, each metric is calculated the same way over that branch's or area's loops. All of them are also reported by slot type. In organizational applications they are reported by area in the **aggregate grid** (the sum of all participants' loops, grouped by area), never by individual employee.
 
@@ -512,6 +514,7 @@ Every number in the protocol lives here. The metrics code reads its values from 
 | Occurrences to measure | 3 | Observations needed for a baseline | 6 | Higher only |
 | Measuring time cap | 90 days | Longest a loop can be measured | 6 | Yes |
 | Holding period | 3 consecutive weeks | Sustained success before moving up | 9.1 | Longer only |
+| Assisted weight | 0.5 | What a loop at assisted counts toward Delegated | 11 | No, for comparability |
 | Failure days | 5 consecutive days | Failures before dropping a level | 9.2 | Fewer only |
 | Financial ceiling | $500 | Decisions above it can't be autonomous | 9.3 | Lower only; individuals only |
 | Raw audio deletion | 7 days | Longest raw audio can exist | 10 | Shorter only |
@@ -565,12 +568,18 @@ These items are not decided by one person alone. Until each is resolved, the rul
 
 ## Changelog
 
+**v1.1 · Oct 12, 2026.** Two rule changes and one editorial change:
+
+- Delegated is now points out of 100: each loop at delegated or autonomous counts 1, at assisted 0.5. It's written with its half points (23.5 of 100) and never rounded, and the weight is a new parameter, Assisted weight. The v1.0 code counted only delegated and autonomous loops, so a log that adopts v1.1 sees Delegated go up with no change in loops.
+- Loop names that start with "decide" or "choose" now fail the naming test, like "remember" or "track". A loop names what it produces, not the decision behind it (LOOPS.md).
+- Renamed the example loop P-HOM-03 from "deciding what's for dinner" to "getting dinner on the table" in sections 3.1 and 7. A decision is a step, not a result, so examples now name what the loop produces, following LOOPS.md.
+
 **v1.0 · Oct 9, 2026.** First published version. Changes from the Oct 5 draft:
 
 - Rewrote every section opener to say why the section exists, added a one-line reason next to the key numbers (100 loops, 3 occurrences, 3-week hold), and renamed sections 10 and 14 in plain words, following VOICE.md.
 - Reframed the protocol as a method for delegating life and work to AI agents. Ale Sánchez's public project at onhundred.com is now its reference application.
 - Renamed the subject to the owner and parts to loops, and replaced public publication with a log: public for the reference application, private or internal for any other.
-- Made delegated loops, time freed and net savings the metrics.
+- Made delegated loops (assisted counts half), time freed and net savings the metrics.
 - Added "How it works", a one-page summary of the five steps and the three rules that never bend.
 - Reorganized the rulebook around the five steps: inventory, measure, choose, experiment, hold.
 - Replaced the upfront Phase 0 with a fast inventory built from existing history plus one sample week, and a baseline measured per loop, by occurrences (3) with a 90-day cap.

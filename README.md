@@ -87,6 +87,26 @@ The setup page asks only for `PUBLISH` and `LANGUAGES`. Add the others later und
 
 Your agents can change the rest with `set_meta`: the cycle start date, the "still you" figure, the grid layout.
 
+## Updates
+
+New versions of this template are published as releases named `app-vX.Y.Z`. Once a week, the **Update from template** workflow in your repository checks for a newer one. You can also run it from the Actions tab.
+
+1. **A pull request arrives** with the release notes, the protocol version change, and the files you edited since the last update. Template files overwrite your copies; `wrangler.jsonc` keeps your name, vars, routes, account id and resource ids.
+2. **Merge it to deploy.** Cloudflare rebuilds your Worker from the merged code.
+3. **Adopt the new protocol version** from the notice on your log page, or ask your AI app to call `adopt_protocol`. Your log keeps the old rules until you do. With no cycle running, the new rules apply at once; otherwise at the start of the next cycle. Anything that breaks the new rules shows under "Waiting for you": rename it through your AI app.
+4. **Reconnect your AI app** so it loads the new tools and descriptions.
+
+If the workflow isn't allowed to open pull requests, it pushes the branch and opens an issue with the link and the setting to change (Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests").
+
+Changes to the workflow file itself can't be applied by the workflow. When one ships, the pull request says so, with the file to copy by hand.
+
+**If an update breaks something:**
+
+1. In the Cloudflare dashboard, open your Worker, then Deployments, and roll back to the previous version. Your log is back at once.
+2. In GitHub, revert the update's pull request, so the next deploy doesn't bring it back.
+
+Rolling back is always safe for your data: database changes only ever add tables and columns, never drop or rename them.
+
 ## Develop locally
 
 ```bash

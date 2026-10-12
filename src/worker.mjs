@@ -1,6 +1,6 @@
 // Entry point: OAuth for chat apps, API keys for API agents, MCP at /mcp, the log page, backups.
 import { AuthorizationError, CimdFetchError, OAuthProvider } from "@cloudflare/workers-oauth-provider";
-import { publicView, protocol as P } from "../lib/protocol.mjs";
+import { compareVersions, publicView, protocol as P } from "../lib/protocol.mjs";
 import {
   checkPassword,
   clearCookie,
@@ -99,7 +99,7 @@ export default {
   },
 
   async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(backup(env));
+    ctx.waitUntil(writer(env).write({ actor: "system", access: "owner" }).then(() => backup(env)));
   },
 };
 
@@ -142,7 +142,7 @@ async function route(request, env) {
     const connected = await hasConnections(env.DB);
     if (owner) {
       const events = await getEvents(env.DB, { limit: 30 });
-      return html(logPage({ state, owner, events, url, upgrade: meta.protocolVersion !== P.version, configured: configured(env), hasConnections: connected }));
+      return html(logPage({ state, owner, events, url, upgrade: compareVersions(meta.protocolVersion, P.version) < 0, configured: configured(env), hasConnections: connected }));
     }
     if (published) return html(logPage({ state, owner: false, url, configured: true }), { cache: "public, max-age=30" });
     return html(privatePage({ meta, origin, configured: configured(env), hasConnections: connected }));
@@ -174,6 +174,7 @@ async function route(request, env) {
 }
 
 const OWNER_PAGE_OPS = {
+  adopt_protocol: () => ({}),
   approve_loops: (f) => ({ codes: f.getAll("codes").map(String), retire: f.getAll("retire").map(String) }),
   approve_text: (f) => ({ targets: f.getAll("targets").map(String) }),
   reject_text: (f) => ({ targets: f.getAll("targets").map(String) }),
@@ -206,7 +207,14 @@ async function ownerAction(request, env, meta) {
 
   if (!Object.hasOwn(OWNER_PAGE_OPS, op)) return redirect(withQuery("/", "error", "Unknown action."));
   const r = await writer(env).write({ op, args: OWNER_PAGE_OPS[op](form), actor: OWNER_USER, access: "owner", directText: true });
-  return redirect(r.ok ? withQuery("/", "done", "Saved.") : withQuery("/", "error", r.error));
+  if (!r.ok) return redirect(withQuery("/", "error", r.error));
+  return redirect(withQuery("/", "done", op === "adopt_protocol" ? adoptedMessage(r.result) : "Saved."));
+}
+
+function adoptedMessage({ to, takesEffect, breaksNewRules }) {
+  const when = takesEffect === "now" ? `Protocol v${to} is adopted.` : `Protocol v${to} takes effect at ${takesEffect}.`;
+  const n = breaksNewRules.length;
+  return n ? `${when} ${n} ${n === 1 ? "item breaks" : "items break"} the new rules. They're listed under Waiting for you.` : when;
 }
 
 // ---------------------------------------------------------------------------

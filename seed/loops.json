@@ -1241,8 +1241,8 @@
     "code": "P-HOM-03",
     "level": "autonomous",
     "name": {
-      "en": "Decide and order dinner on weeknights",
-      "es": "Decidir y pedir la cena entre semana"
+      "en": "Get weeknight dinner on the table",
+      "es": "Poner la cena en la mesa entre semana"
     },
     "doneWhen": {
       "en": "Dinner is chosen and ordered by 6 pm.",

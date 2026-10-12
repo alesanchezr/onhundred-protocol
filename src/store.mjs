@@ -1,5 +1,5 @@
 // D1 access: load the whole log (it's small) and save a diff plus its event in one batch.
-import { protocol as P } from "../lib/protocol.mjs";
+import { protocol as P, versionChange } from "../lib/protocol.mjs";
 import { SCHEMA_VERSION, STATEMENTS } from "./schema.mjs";
 
 const DAY = 86400000;
@@ -47,7 +47,8 @@ export async function loadState(db) {
 }
 
 // Settings the owner hasn't stored fall back to the Worker's vars, then to protocol defaults.
-export function effectiveMeta(meta, env, today) {
+// loops: needed to apply a scheduled protocol upgrade once its cycle starts.
+export function effectiveMeta(meta, env, today, loops = []) {
   const languages = String(env.LANGUAGES || "en")
     .split(",")
     .map((s) => s.trim())
@@ -74,7 +75,24 @@ export function effectiveMeta(meta, env, today) {
       m.day = (days % len) + 1;
     }
   }
+  const u = m.protocolUpgrade;
+  if (u && m.cycle >= u.fromCycle) {
+    const start = new Date(Date.parse(m.cycleOneStart) + (u.fromCycle - 1) * P.limits.cycleWeeks * 7 * DAY).toISOString();
+    m.protocolChange = versionChange({ meta: m, loops }, u.version, { at: start, cycle: u.fromCycle });
+    m.protocolVersion = u.version;
+    delete m.protocolUpgrade;
+  }
   return m;
+}
+
+// The meta keys effectiveMeta changed when a scheduled upgrade came due, as a diff the writer saves.
+export function upgradeDiff(rawMeta, meta) {
+  if (!rawMeta.protocolUpgrade || meta.protocolUpgrade) return null;
+  const keys = ["protocolVersion", "protocolChange", "protocolUpgrade"];
+  return {
+    before: Object.fromEntries(keys.map((k) => [`meta:${k}`, rawMeta[k] ?? null])),
+    after: Object.fromEntries(keys.map((k) => [`meta:${k}`, meta[k] ?? null])),
+  };
 }
 
 export const isPublished = (meta, env) => env.PUBLISH === "true" || meta.publish === true;
@@ -82,7 +100,7 @@ export const isPublished = (meta, env) => env.PUBLISH === "true" || meta.publish
 export async function readState(env) {
   await ensureSchema(env.DB);
   const raw = await loadState(env.DB);
-  return { ...raw, meta: effectiveMeta(raw.meta, env, new Date().toISOString().slice(0, 10)) };
+  return { ...raw, meta: effectiveMeta(raw.meta, env, new Date().toISOString().slice(0, 10), raw.loops) };
 }
 
 function loopRow(loop) {

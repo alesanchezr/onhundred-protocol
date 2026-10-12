@@ -2,8 +2,8 @@
 // can never break a rule together. Reads go straight to D1.
 import { DurableObject } from "cloudflare:workers";
 import { compareViolations, publicView, validate } from "../lib/protocol.mjs";
-import { OWNER_OPS, ToolError, clone, diffState, ops, restore } from "./ops.mjs";
-import { effectiveMeta, ensureSchema, getEvents, isPublished, loadState, saveDiff } from "./store.mjs";
+import { OWNER_OPS, RULE_CHANGE_OPS, ToolError, clone, diffState, ops, restore } from "./ops.mjs";
+import { effectiveMeta, ensureSchema, getEvents, isPublished, loadState, saveDiff, upgradeDiff } from "./store.mjs";
 
 const HOOK_DELAY_MS = 60_000;
 // Setup forms can't leave a field empty, so anything that isn't an https URL means "no hook".
@@ -16,6 +16,7 @@ export class Writer extends DurableObject {
   }
 
   // input: { op, args, actor, access: "owner" | "agent", override?: boolean, reason?: string, directText?: boolean }
+  // Without an op, it only saves what came due (a scheduled protocol upgrade).
   write(input) {
     const run = this.queue.then(() => this.apply(input));
     this.queue = run.catch(() => {});
@@ -27,7 +28,13 @@ export class Writer extends DurableObject {
     await ensureSchema(env.DB);
     const now = new Date().toISOString();
     const raw = await loadState(env.DB);
-    const state = { ...raw, meta: effectiveMeta(raw.meta, env, now.slice(0, 10)) };
+    const state = { ...raw, meta: effectiveMeta(raw.meta, env, now.slice(0, 10), raw.loops) };
+    const due = upgradeDiff(raw.meta, state.meta);
+    if (due) {
+      const change = state.meta.protocolChange;
+      await saveDiff(env.DB, due, { at: now, actor: "system", tool: "adopt_protocol", target: "meta", args: JSON.stringify(change) });
+    }
+    if (!op) return { ok: true, changed: Boolean(due) };
     const ctx = { actor, access, now, cycle: state.meta.cycle, directText };
     const next = clone(state);
     let out;
@@ -49,7 +56,8 @@ export class Writer extends DurableObject {
       throw err;
     }
 
-    const before = validate(state);
+    // A rule change is measured against the new rules on both sides, so it adds nothing else.
+    const before = validate(RULE_CHANGE_OPS.has(op) ? { ...state, meta: next.meta } : state);
     const after = validate(next);
     const cmp = compareViolations(before, after);
     if (!cmp.ok && !override) {

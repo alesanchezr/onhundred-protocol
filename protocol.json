@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "levels": ["unmapped", "mapped", "assisted", "delegated", "autonomous"],
   "branchOrder": ["R", "P", "C"],
   "branches": {
@@ -88,8 +88,17 @@
       "prepare",
       "review",
       "manage",
-      "handle"
-    ]
+      "handle",
+      "decide",
+      "choose"
+    ],
+    "since": { "decide": "1.1", "choose": "1.1" }
+  },
+  "metrics": {
+    "assistedWeight": { "1.0": 0, "1.1": 0.5 }
+  },
+  "changes": {
+    "1.1": { "en": "assisted counts half", "es": "asistido cuenta la mitad" }
   },
   "voice": {
     "neverUse": [

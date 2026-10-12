@@ -1,0 +1,98 @@
+# Keeps this install up to date with the Onhundred template.
+# Once a week (or from the Actions tab) it looks for a newer app-v* release of TEMPLATE_REPO and
+# opens a pull request with it. Merging the pull request deploys it.
+# Set the repository variable TEMPLATE_REPO to follow a fork. Default: onhundred/web.
+name: Update from template
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 7 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: update-from-template
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      TEMPLATE_REPO: ${{ vars.TEMPLATE_REPO || 'onhundred/web' }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Find the latest release
+        id: release
+        run: |
+          latest=$(git ls-remote --tags --refs "https://github.com/$TEMPLATE_REPO.git" 'app-v*' | sed 's#.*refs/tags/##' | sort -V | tail -n 1)
+          current=$(node -p "try { require('./.template/manifest.json').tag || '' } catch { '' }")
+          echo "Latest release: ${latest:-none}. This install: ${current:-no manifest yet}."
+          echo "tag=$latest" >> "$GITHUB_OUTPUT"
+          if [ -z "$latest" ] || [ "$latest" = "$current" ]; then
+            echo "Nothing to update."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "template-update/$latest" > /dev/null; then
+            echo "Branch template-update/$latest already exists. Merge or close its pull request first."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download the release
+        if: steps.release.outputs.skip != 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git clone --depth 1 --branch "$TAG" --filter=blob:none --sparse "https://github.com/$TEMPLATE_REPO.git" /tmp/template
+          git -C /tmp/template sparse-checkout set app
+
+      # The release's own copy of the script runs, so fixes to it apply from this update on.
+      - name: Apply it
+        if: steps.release.outputs.skip != 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: node /tmp/template/app/scripts/update-from-template.mjs /tmp/template/app --repo . --tag "$TAG" --summary /tmp/summary.json --body /tmp/body.md
+
+      - name: Open a pull request
+        if: steps.release.outputs.skip != 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          branch="template-update/$TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The release changes nothing here."
+            exit 0
+          fi
+          git commit -m "Update from template $TAG"
+          git push origin "$branch"
+          if gh pr create --base "$DEFAULT_BRANCH" --head "$branch" --title "Update to $TAG" --body-file /tmp/body.md; then
+            exit 0
+          fi
+          {
+            echo "The update to $TAG is ready on the branch \`$branch\`, but this workflow isn't allowed to open pull requests."
+            echo
+            echo "**Open it by hand:** https://github.com/$GITHUB_REPOSITORY/compare/$DEFAULT_BRANCH...$branch?expand=1"
+            echo
+            echo "**So the next updates arrive as pull requests:**"
+            echo
+            echo "1. Go to Settings, Actions, General."
+            echo "2. Under Workflow permissions, check \"Allow GitHub Actions to create and approve pull requests\" and save."
+            echo
+            echo "---"
+            echo
+            cat /tmp/body.md
+          } > /tmp/issue.md
+          gh issue create --title "Update ready: open a pull request from $branch" --body-file /tmp/issue.md

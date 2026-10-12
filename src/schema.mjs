@@ -1,5 +1,9 @@
 // D1 schema. migrations/0001_init.sql holds the same statements (a test checks it), and the
 // Worker also applies them on first use, so a one-click install works with no manual step.
+// Changes are additive only: new tables, columns or indexes, never DROP or RENAME, so an install
+// can roll back to older code at any time (a test checks it).
+import P from "../protocol.json" with { type: "json" };
+
 export const SCHEMA_VERSION = 1;
 
 export const STATEMENTS = [
@@ -56,7 +60,7 @@ BEGIN SELECT RAISE(ABORT, 'events are append-only'); END`,
 BEGIN SELECT RAISE(ABORT, 'events are append-only'); END`,
   `INSERT OR IGNORE INTO meta (key, value) VALUES ('schemaVersion', '1')`,
   `INSERT OR IGNORE INTO meta (key, value) VALUES ('mode', '"building"')`,
-  `INSERT OR IGNORE INTO meta (key, value) VALUES ('protocolVersion', '"1.0"')`,
+  `INSERT OR IGNORE INTO meta (key, value) VALUES ('protocolVersion', '${JSON.stringify(P.version)}')`,
 ];
 
 export const migrationSql = () => STATEMENTS.join(";\n\n") + ";\n";

@@ -2,7 +2,7 @@
 
 How an agent (or a person) proposes, names and picks loops. It sits next to VOICE.md (how Onhundred writes) and the protocol (section 3.1 defines a loop).
 
-Last updated: Oct 10, 2026.
+Last updated: Oct 12, 2026.
 
 ## Why this matters
 
@@ -23,14 +23,15 @@ A proposed loop has to pass all six. If it fails one, rewrite it, split it or dr
 **Rule:** someone who has never met you understands the loop from its name alone.
 **Why:** loops are published. Internal tools, team names and company jargon mean nothing to the people reading them.
 - Fails: "Review the content agents' proposals." (What agents? What proposals?)
-- Passes: "Decide which articles get published on the company blog."
+- Passes: "Publish the company blog's articles."
 
 ### 2. The done test
 
 **Rule:** the loop ends in a result that exists outside your head, and an agent can produce that result: a booking, a sent message, a payment, a purchase, a filed document, a published page.
 **Why:** if the result is your own readiness, knowledge or mood, the agent can only ever help. The loop can never be handed over, so its experiment has nowhere to go.
 - Fails: "Prepare for tomorrow's meetings." (The result is you being prepared. Only you can be prepared.)
-- Passes: "Send the agenda before each meeting." / "Send the notes and next steps after each meeting."
+- Fails: "Decide which articles get published." (A decision is a step. The result is the published article.)
+- Passes: "Send the agenda before each meeting." / "Send the notes and next steps after each meeting." / "Publish the company blog's articles."
 
 ### 3. The action test
 
@@ -55,7 +56,7 @@ A proposed loop has to pass all six. If it fails one, rewrite it, split it or dr
 
 ### 6. The ceiling test
 
-**Rule:** the level where the agent does the real thing fits within the area's ceiling (protocol section 9.3).
+**Rule:** the level where the agent does the real thing fits within the area's ceiling (protocol section 7).
 **Why:** a loop that has to be booked, sent or paid needs at least "do it, I approve". If its area caps at "help me", the experiment stops before the interesting part.
 - Children (R-KID) cap at "help me". "Plan the family weekend" books things, so it belongs in Family (R-FAM), not Children.
 - If the ceiling really applies, keep the loop in your 100, but don't pick it to start.
@@ -67,16 +68,17 @@ A proposed loop has to pass all six. If it fails one, rewrite it, split it or dr
 - **8 words or fewer.**
 - **No names of people and no identifying details** (protocol section 10). "My partner," never her name.
 - **Start with a verb that ends in a result.**
+- **Name the output, not the decision behind it.** A decision is a step inside the loop. Ask "what ships because of this decision?" and name that. The success tests then measure the output.
 
-**Verbs that pass:** book, buy, order, pay, send, reply, schedule, file, submit, renew, cancel, publish, plan and book, decide and publish, collect and send.
+**Verbs that pass:** book, buy, order, pay, send, reply, schedule, file, submit, renew, cancel, publish, plan and book, collect and send.
 
-**Verbs that usually fail:** remember, remind, track, monitor, keep an eye on, stay on top of, think about, prepare, review, manage, handle. Ask "and then what happens?" and write that instead.
+**Verbs that usually fail:** decide, choose, remember, remind, track, monitor, keep an eye on, stay on top of, think about, prepare, review, manage, handle. Ask "and then what happens?" and write that instead.
 
 ## Picking the loops to start with
 
 The inventory needs all 100. The first 3 need to be good stories. On top of the six tests:
 
-- **Fill the slots:** one easy, one hard, one fun (protocol section 7).
+- **Fill the slots:** one easy, one hard, one fun (protocol section 6).
   - **Easy:** passes every test with room to spare. It happens often, the rules are clear and the data is digital.
   - **Hard:** passes every test, but the rules are fuzzy or a mistake costs something. It still has to be one loop, not a family of them.
   - **Fun:** passes every test, and you actually want to see an agent try it.
@@ -88,7 +90,9 @@ The inventory needs all 100. The first 3 need to be good stories. On top of the 
 
 | Proposed | Failed | Rewritten |
 | --- | --- | --- |
-| Review the content agents' proposals | Stranger | Decide which articles get published on the company blog |
+| Review the content agents' proposals | Stranger | Publish the company blog's articles |
+| Decide which articles get published on the company blog | Done | Publish the company blog's articles |
+| Decide what's for dinner | Done | Get tonight's dinner on the table |
 | Prepare for tomorrow's meetings | Done | Send the agenda before each meeting |
 | Follow up after sales conversations | One-rule | Follow up after a product demo (one of three loops) |
 | Plan the weekend with the kids | Ceiling (area) | Plan the family weekend, in R-FAM |
@@ -113,7 +117,7 @@ One row per loop, with these columns:
 ## Checklist
 
 - [ ] A stranger understands it from the name.
-- [ ] It ends in a result outside your head.
+- [ ] It ends in a result outside your head, not a decision.
 - [ ] At its highest level, the agent acts. It doesn't just remind.
 - [ ] One set of success tests fits every occurrence.
 - [ ] Most readers do a version of it (needed for loops you start with).

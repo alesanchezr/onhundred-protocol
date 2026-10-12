@@ -1,5 +1,16 @@
 // Server-rendered pages. Dark first. Every value that came from a client or an agent is escaped.
-import { LEVELS, derive, esc, pickText, protocol as P, publicView, renderGrid } from "../lib/protocol.mjs";
+import {
+  LEVELS,
+  changeIsCurrent,
+  compareVersions,
+  derive,
+  esc,
+  pendingRuleBreaks,
+  pickText,
+  protocol as P,
+  publicView,
+  renderGrid,
+} from "../lib/protocol.mjs";
 import { pendingItems } from "./ops.mjs";
 import { PROMPTS } from "./mcp.mjs";
 
@@ -84,11 +95,37 @@ function flash(url) {
 // ---------------------------------------------------------------------------
 // Log page
 
+// What each version between the log's and the code's changes, in one line: "assisted counts half".
+const changesSince = (from, to = P.version) =>
+  Object.entries(P.changes || {})
+    .filter(([v]) => compareVersions(v, from) > 0 && compareVersions(v, to) <= 0)
+    .map(([v, t]) => `v${v}: ${t.en}`)
+    .join("; ");
+
+function protocolNotice(meta, upgrade) {
+  const u = meta.protocolUpgrade;
+  if (u)
+    return notice(
+      `You adopted protocol v${esc(u.version)}. It takes effect at the start of cycle ${esc(u.fromCycle)}. Until then the log runs v${esc(meta.protocolVersion)}.`
+    );
+  if (!upgrade) return "";
+  const running = meta.mode === "frozen" && meta.cycle >= 1;
+  const when = running ? `takes effect at the start of cycle ${meta.cycle + 1}` : "takes effect now, since no cycle is running";
+  const what = changesSince(meta.protocolVersion);
+  return `<form method="post" action="/owner/action" class="notice upgrade"><input type="hidden" name="op" value="adopt_protocol"><span>Protocol v${esc(P.version)} is in this code and your log runs v${esc(meta.protocolVersion)}${what ? ` (${esc(what)})` : ""}. Adopting it ${when}.</span><button class="btn signal small" type="submit">ADOPT v${esc(P.version)}</button></form>`;
+}
+
+// One line for 1 cycle after an adoption. Same loops, measured under both versions.
+export function changeNote(change) {
+  const what = P.changes?.[change.to]?.en;
+  return `Protocol v${change.to}${what ? `: ${what}` : ""}. Delegated went from ${change.delegatedBefore} to ${change.delegatedAfter} with no change in loops.`;
+}
+
 function readout(view, meta) {
   const m = view.metrics;
   const approved = view.loops.length;
   const lines = [
-    `<div class="figure"><span class="pct">${m.delegatedPct}%</span><span class="cap">DELEGATED</span></div>`,
+    `<div class="figure"><span class="pct">${m.delegatedPoints}</span><span class="cap">OF 100 · DELEGATED</span></div>`,
   ];
   if (meta.stillMetric) lines.push(`<div class="figure"><span class="pct">${m.stillPct}%</span><span class="cap">STILL ${meta.ownerName ? "THEM" : "YOU"}</span></div>`);
   const cycle = meta.cycle ? `CYCLE ${meta.cycle} · DAY ${meta.day} · ${String(meta.stage || "").toUpperCase()}` : "CYCLE 1 STARTS WHEN THE INVENTORY IS FROZEN";
@@ -96,7 +133,9 @@ function readout(view, meta) {
     meta.mode === "frozen"
       ? `INVENTORY v${esc(meta.inventoryVersion || 1)} · ${approved} LOOPS`
       : `Inventory in progress: ${approved} of ${P.limits.loops} loops approved.`;
-  return `<section class="readout">${lines.join("")}<p class="meta-line">${cycle}</p><p class="meta-line">${mode}</p></section>`;
+  const change = meta.protocolChange;
+  const note = changeIsCurrent(change, new Date().toISOString().slice(0, 10)) ? `<p class="change-note">${esc(changeNote(change))}</p>` : "";
+  return `<section class="readout">${lines.join("")}<p class="meta-line">${cycle}</p><p class="meta-line">${mode}</p>${note}</section>`;
 }
 
 function gridSection(view, meta) {
@@ -139,8 +178,18 @@ function pendingSection(state) {
   const proposed = state.loops.filter((l) => l.proposed && !l.retired);
   const retirements = state.loops.filter((l) => l.retireProposed && !l.retired);
   const baselines = state.loops.filter((l) => l.pendingBaseline);
-  if (!text.length && !proposed.length && !retirements.length && !baselines.length) return "";
+  const breaks = pendingRuleBreaks(state);
+  if (!text.length && !proposed.length && !retirements.length && !baselines.length && !breaks.items.length) return "";
   const parts = [];
+  if (breaks.items.length) {
+    const rows = breaks.items
+      .map((v) => `<li class="row"><span class="code">${esc(v.target)}</span><span>${esc(v.message.slice(v.target.length + 2))}</span></li>`)
+      .join("");
+    const how = breaks.adopted
+      ? "Ask your AI app to rename these. Approving stays refused while a text breaks a rule."
+      : "Adopting isn't blocked by these. Ask your AI app to rename them, before or after you adopt.";
+    parts.push(`<div class="card"><h3>Breaks v${esc(breaks.version)} rules (${breaks.items.length})</h3><p>${how}</p><ul class="plain">${rows}</ul></div>`);
+  }
   if (proposed.length) {
     const rows = proposed
       .map(
@@ -197,7 +246,7 @@ export function logPage({ state, owner, events = [], url, upgrade, configured: i
   const body = [
     flash(url),
     !isConfigured ? setupNotice() : "",
-    owner && upgrade ? notice(`Protocol v${esc(P.version)} is in this code and your log runs v${esc(meta.protocolVersion)}. The new rules take effect at the start of the next cycle (protocol section 15.2).`) : "",
+    owner ? protocolNotice(meta, upgrade) : "",
     owner && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
     readout(view, meta),
     gridSection(view, meta),

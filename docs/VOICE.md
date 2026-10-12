@@ -2,7 +2,7 @@
 
 How Onhundred writes: who speaks, how it sounds, and the rules every page follows. It sits next to DESIGN.md (how it looks) and PRODUCT.md (what it is).
 
-Last updated: Oct 10, 2026.
+Last updated: Oct 12, 2026.
 
 ## North star: the deadpan field log
 
@@ -54,8 +54,8 @@ Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the
 - **One per page at most.** If every line is a bit, nothing is.
 
 **Examples of the register (illustrations, not real data)**
-- "P-HOM-03 · Decide what's for dinner. Frequency: 5. Error risk: 4, according to my family."
-- "EXP-03 asks whether an agent can choose a restaurant. The bet: it will choose better than I do, because I always choose the same one."
+- "P-HOM-03 · Get tonight's dinner on the table. Frequency: 5. Error risk: 4, according to my family."
+- "EXP-03 asks whether an agent can book our date night restaurant. The bet: it will choose better than I do, because I always choose the same one."
 - "The holding period is 3 weeks. Not because 3 is scientific. Because 2 felt like luck and 4 felt like bureaucracy."
 
 ## Storytelling rules
@@ -87,7 +87,7 @@ Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the
 
 | Word | Meaning |
 | --- | --- |
-| Loop | One recurring responsibility. It keeps coming back until someone closes it (never "part," "task" or "job") |
+| Loop | One recurring responsibility. It keeps coming back until someone closes it (never "part," "task" or "job"). Named by its output, never by a decision (see LOOPS.md) |
 | Cycle | The two-week rhythm of Map, Delegate, Review. Never call a cycle a loop, or a loop a cycle |
 | Experiment | The story of handing a loop to an agent (never "test") |
 | Question | What an experiment answers, in one sentence |
