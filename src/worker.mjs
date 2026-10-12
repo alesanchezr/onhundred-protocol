@@ -179,6 +179,12 @@ const OWNER_PAGE_OPS = {
   approve_text: (f) => ({ targets: f.getAll("targets").map(String) }),
   reject_text: (f) => ({ targets: f.getAll("targets").map(String) }),
   approve_baseline: (f) => ({ code: String(f.get("code") || "") }),
+  // The page only publishes; other settings change through set_meta in an AI app.
+  set_meta: () => ({ publish: true }),
+};
+
+const DONE_MESSAGES = {
+  set_meta: "Your log is public.",
 };
 
 async function ownerAction(request, env, meta) {
@@ -208,7 +214,7 @@ async function ownerAction(request, env, meta) {
   if (!Object.hasOwn(OWNER_PAGE_OPS, op)) return redirect(withQuery("/", "error", "Unknown action."));
   const r = await writer(env).write({ op, args: OWNER_PAGE_OPS[op](form), actor: OWNER_USER, access: "owner", directText: true });
   if (!r.ok) return redirect(withQuery("/", "error", r.error));
-  return redirect(withQuery("/", "done", op === "adopt_protocol" ? adoptedMessage(r.result) : "Saved."));
+  return redirect(withQuery("/", "done", op === "adopt_protocol" ? adoptedMessage(r.result) : DONE_MESSAGES[op] || "Saved."));
 }
 
 function adoptedMessage({ to, takesEffect, breaksNewRules }) {

@@ -92,7 +92,7 @@ ${nav}
 ${body}
 </main>
 ${owner ? exportDialog() : ""}
-<footer class="foot">Follows the <a href="${esc(CREDIT.url)}" rel="noopener">${esc(CREDIT.text)}</a>. v${esc(P.version)}. Your data lives in your Cloudflare account.</footer>
+<footer class="foot"><a class="foot-mark" href="${esc(CREDIT.url)}" rel="noopener" aria-label="Onhundred"><img src="/on100.svg" alt="" width="32" height="32"></a><span>Follows the <a href="${esc(CREDIT.url)}" rel="noopener">${esc(CREDIT.text)}</a>. v${esc(P.version)}. Your data lives in your Cloudflare account.</span></footer>
 </body>
 </html>`;
 }
@@ -455,6 +455,12 @@ function eventsSection(events) {
   return `<section class="block"><h2 class="title">HISTORY</h2><ul class="events">${rows}</ul></section>`;
 }
 
+const PUBLISH_CONFIRM =
+  "Publish your log? Anyone with the link sees your grid and experiments. Evidence, notes and partner loops stay private.";
+
+const privateNotice = () =>
+  `<form method="post" action="/owner/action" class="notice upgrade" data-confirm="${esc(PUBLISH_CONFIRM)}"><input type="hidden" name="op" value="set_meta"><span>Your progress is private. You can publish it here.</span><button class="btn signal small" type="submit">PUBLISH</button></form>`;
+
 export function logPage({ state, owner, events = [], url, upgrade, configured: isConfigured, hasConnections, published = false }) {
   const meta = state.meta;
   const lang = meta.languages[0];
@@ -465,6 +471,7 @@ export function logPage({ state, owner, events = [], url, upgrade, configured: i
     !isConfigured ? setupNotice() : "",
     owner ? protocolNotice(meta, upgrade) : "",
     owner && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
+    owner && !published ? privateNotice() : "",
     readout(view, meta),
     gridSection(view, meta, owner, hasConnections, owner && state.loops.some((l) => l.proposed && !l.retired)),
     owner ? pendingSection(state, published, hasConnections) : "",

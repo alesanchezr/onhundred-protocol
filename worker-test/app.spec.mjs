@@ -477,3 +477,27 @@ describe("protocol versions", () => {
     expect(await writer(env).write({ actor: "system", access: "owner" })).toEqual({ ok: true, changed: false });
   });
 });
+
+describe("publishing from the owner page", () => {
+  it("warns while the log is private, and PUBLISH makes it public", async () => {
+    await env.DB.prepare("INSERT INTO meta (key, value) VALUES ('publish', 'false') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
+    const cookie = await ownerCookie();
+    const ownerPage = async () => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    expect(await ownerPage()).toContain("Your progress is private. You can publish it here.");
+
+    const res = await app().fetch(
+      new Request(`${BASE}/owner/action`, {
+        method: "POST",
+        headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "op=set_meta&publish=false&ownerName=Someone",
+        redirect: "manual",
+      })
+    );
+    expect(res.status).toBe(303);
+    expect(decodeURIComponent(res.headers.get("Location"))).toContain("Your log is public.");
+    expect((await app().fetch(new Request(`${BASE}/public.json`))).status).toBe(200);
+    const after = await ownerPage();
+    expect(after).not.toContain("Your progress is private.");
+    expect(after).not.toContain("SOMEONE");
+  });
+});

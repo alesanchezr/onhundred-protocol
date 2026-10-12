@@ -18,6 +18,12 @@
     }
   });
 
+  // Forms that change who can see the log ask first.
+  document.addEventListener("submit", (e) => {
+    const msg = e.target.dataset?.confirm;
+    if (msg && !confirm(msg)) e.preventDefault();
+  });
+
   // Prompt menus close on a click outside, once an app opens, and on Escape.
   const closeMenus = (except) =>
     document.querySelectorAll("details[data-menu][open]").forEach((m) => m !== except && m.removeAttribute("open"));
