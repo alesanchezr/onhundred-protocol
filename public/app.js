@@ -15,6 +15,68 @@
     }
   });
 
+  // Export confirmation: explains the file before the download starts.
+  const exportDialog = document.querySelector("[data-export-dialog]");
+  if (exportDialog && typeof exportDialog.showModal === "function") {
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-export-open]")) return;
+      e.preventDefault();
+      exportDialog.showModal();
+    });
+    exportDialog.querySelector("[data-export-cancel]").addEventListener("click", () => exportDialog.close());
+    exportDialog.querySelector("form").addEventListener("submit", () => setTimeout(() => exportDialog.close()));
+    exportDialog.addEventListener("click", (e) => {
+      if (e.target === exportDialog) exportDialog.close();
+    });
+  }
+
+  // Approve confirmation: each loop's button opens it; the checkbox widens it to every eligible loop.
+  const dialog = document.querySelector("[data-approve-dialog]");
+  if (dialog && typeof dialog.showModal === "function") {
+    const all = JSON.parse(dialog.dataset.codes || "[]");
+    const q = (sel) => dialog.querySelector(sel);
+    const inputs = q("[data-codes-inputs]");
+    const allBox = q("[data-approve-all]");
+    let one = null;
+
+    const render = () => {
+      const codes = allBox.checked ? all : [one.code];
+      inputs.replaceChildren(
+        ...codes.map((c) => {
+          const i = document.createElement("input");
+          i.type = "hidden";
+          i.name = "codes";
+          i.value = c;
+          return i;
+        })
+      );
+      q("[data-approve-title]").textContent = allBox.checked ? `Approve all ${all.length} loops?` : `Approve ${one.code}?`;
+      q("[data-approve-loop]").textContent = allBox.checked ? "" : one.name;
+      q("[data-approve-loop]").hidden = allBox.checked;
+      const rep = q("[data-approve-replaces]");
+      rep.textContent = one.replaces ? `It replaces ${one.replaces}, which ${one.replaces.includes(",") ? "are" : "is"} retired at the same time.` : "";
+      rep.hidden = allBox.checked || !one.replaces;
+      q("[data-approve-submit]").textContent = allBox.checked ? `APPROVE ALL ${all.length}` : "APPROVE";
+    };
+
+    document.addEventListener("submit", (e) => {
+      const form = e.target.closest("[data-approve-one]");
+      if (!form) return;
+      e.preventDefault();
+      const b = form.querySelector("[data-code]");
+      one = { code: b.dataset.code, name: b.dataset.name, replaces: b.dataset.replaces };
+      allBox.checked = false;
+      allBox.parentElement.hidden = all.length < 2;
+      render();
+      dialog.showModal();
+    });
+    allBox.addEventListener("change", render);
+    q("[data-approve-cancel]").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+  }
+
   const grid = document.querySelector("[data-grid]");
   if (!grid) return;
 

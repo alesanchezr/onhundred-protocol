@@ -55,6 +55,24 @@ describe("fresh install", () => {
     const res = await app().fetch(new Request(`${BASE}/public.json`));
     expect(res.status).toBe(404);
   });
+
+  it("starts the empty log with the first prompt: connect first, then open it in an app", async () => {
+    const cookie = await ownerCookie();
+    const ownerPage = async () => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    const before = await ownerPage();
+    expect(before).toContain("No loops yet");
+    expect(before).toContain('data-copy="#first-prompt"');
+    expect(before).toContain('href="/connect">CONNECT YOUR AI');
+    expect(before).not.toContain("claude.ai/new");
+
+    await createApiKey(env.DB, { name: "claude", access: "owner" });
+    const after = await ownerPage();
+    const q = encodeURIComponent("Use Onhundred to help me build my 100 loops.");
+    expect(after).toContain(`https://claude.ai/new?q=${q}`);
+    expect(after).toContain(`https://chatgpt.com/?q=${q}`);
+    expect(after).toContain(`https://cursor.com/link/prompt?text=${q}`);
+    expect(after).not.toContain("CONNECT YOUR AI");
+  });
 });
 
 describe("OAuth discovery", () => {
@@ -190,10 +208,14 @@ describe("owner pages", () => {
     const res = await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }));
     const page = await res.text();
     expect(page).toContain("DELEGATED");
-    expect(page).toContain("Inventory in progress");
+    expect(page).toMatch(/\d+ of 100 approved/);
     expect(page).toContain("HISTORY");
     const connect = await (await app().fetch(new Request(`${BASE}/connect`, { headers: { Cookie: cookie } }))).text();
-    expect(connect).toContain("claude mcp add --transport http onhundred");
+    expect(connect).toContain("https://grok.com/connectors");
+    expect(connect).toContain(
+      `https://claude.ai/customize/connectors?modal=add-custom-connector&amp;connectorName=Onhundred&amp;connectorUrl=${encodeURIComponent(`${BASE}/mcp`)}`
+    );
+    expect(connect).toContain('href="https://chatgpt.com/plugins" target="_blank" rel="noopener" data-copy="#mcp-url"');
   });
 
   it("creates an API key from the Connections page and shows it once", async () => {
@@ -210,12 +232,48 @@ describe("owner pages", () => {
     expect((await mcp(key, "ping")).status).toBe(200);
   });
 
+  it("approves proposed loops one at a time, with a confirmation that explains approving", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "agent" })).key;
+    const { data } = await call(key, "propose_loops", { loops: [loop("Renew the car insurance"), loop("Book the boiler service")] });
+    const [first, second] = data.result.proposed;
+    const cookie = await ownerCookie();
+    const page = await (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    expect(page).not.toContain("APPROVE SELECTED");
+    expect(page).toContain(`aria-label="Approve ${first}: Renew the car insurance"`);
+    expect(page).toContain("data-approve-dialog");
+    expect(page).toContain("Approving adds a loop to your inventory for good");
+    expect(page).toContain("proposed loops that pass the rules");
+
+    const res = await app().fetch(
+      new Request(`${BASE}/owner/action`, {
+        method: "POST",
+        headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ op: "approve_loops", codes: first }),
+        redirect: "manual",
+      })
+    );
+    expect(res.status).toBe(303);
+    const pending = (await call(key, "list_pending")).data.proposedLoops.map((l) => l.code);
+    expect(pending).not.toContain(first);
+    expect(pending).toContain(second);
+  });
+
   it("exports the whole log as JSON", async () => {
     const cookie = await ownerCookie();
     const res = await app().fetch(new Request(`${BASE}/export`, { headers: { Cookie: cookie } }));
     const snap = await res.json();
     expect(snap.protocolVersion).toBe("1.1");
     expect(Array.isArray(snap.events)).toBe(true);
+  });
+
+  it("explains the export in a dialog that still downloads from /export", async () => {
+    const cookie = await ownerCookie();
+    const page = await (await app().fetch(new Request(`${BASE}/connect`, { headers: { Cookie: cookie } }))).text();
+    expect(page).toContain('<a href="/export" data-export-open>EXPORT</a>');
+    expect(page).toContain('<form method="get" action="/export">');
+    expect(page).toContain("It leaves out your password, API keys and connections.");
+    const signedOut = await (await app().fetch(new Request(`${BASE}/login`))).text();
+    expect(signedOut).not.toContain("data-export-dialog");
   });
 
   it("sends /export to sign-in without a session", async () => {
@@ -347,7 +405,8 @@ describe("protocol versions", () => {
     expect(decodeURIComponent(res.headers.get("Location"))).toContain("Protocol v1.1 is adopted.");
     const after = await ownerPage(cookie);
     expect(after).not.toContain("ADOPT v1.1");
-    expect(after).toContain("Protocol v1.1: assisted counts half. Delegated went from");
+    expect(after).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
+    expect(after).not.toContain("Delegated went from 0 to 0");
   });
 
   it("adopts through MCP, lists what breaks the new rules, and shows the change note publicly", async () => {
@@ -385,7 +444,7 @@ describe("protocol versions", () => {
     const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
     expect(view.protocolVersion).toBe("1.1");
     expect(view.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
-    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).toContain("Protocol v1.1: assisted counts half.");
+    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
   });
 
   it("saves a scheduled upgrade once its cycle starts, as a system event", async () => {

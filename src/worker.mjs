@@ -142,7 +142,7 @@ async function route(request, env) {
     const connected = await hasConnections(env.DB);
     if (owner) {
       const events = await getEvents(env.DB, { limit: 30 });
-      return html(logPage({ state, owner, events, url, upgrade: compareVersions(meta.protocolVersion, P.version) < 0, configured: configured(env), hasConnections: connected }));
+      return html(logPage({ state, owner, events, url, upgrade: compareVersions(meta.protocolVersion, P.version) < 0, configured: configured(env), hasConnections: connected, published }));
     }
     if (published) return html(logPage({ state, owner: false, url, configured: true }), { cache: "public, max-age=30" });
     return html(privatePage({ meta, origin, configured: configured(env), hasConnections: connected }));
