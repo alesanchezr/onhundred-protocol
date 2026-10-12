@@ -1,11 +1,14 @@
 {
   "name": "onhundred-protocol-log",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "license": "Apache-2.0",
   "author": "Ale Sánchez (https://onhundred.com)",
   "homepage": "https://onhundred.com",
-  "repository": { "type": "git", "url": "git+https://github.com/onhundred/protocol-log.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onhundred/protocol-log.git"
+  },
   "type": "module",
   "description": "Your own Onhundred Protocol log: an MCP server for your agents, a private grid page and a D1 database, on your Cloudflare account.",
   "scripts": {
