@@ -11,6 +11,7 @@ import {
   newRuleBreaks,
   parseCode,
   protocol as P,
+  scopeIssues,
   versionChange,
   voiceIssues,
 } from "../lib/protocol.mjs";
@@ -107,12 +108,14 @@ function newLoop(state, spec, ctx, extra = {}) {
   if (!/^[CPR]-[A-Z]{3}$/.test(areaCode)) fail(`area is written BRANCH-AREA, like R-PAR or C-SAL.`);
   if (!areaExists(areaCode, state.meta)) fail(`${areaCode} is not an area in protocol section 2.4.`);
   const code = nextLoopCode(state, areaCode);
+  const scope = text(spec.scope, "scope", { required: false });
   const loop = {
     code,
     level: "unmapped",
     proposed: true,
     name: text(spec.name, "name"),
     doneWhen: text(spec.doneWhen, "doneWhen"),
+    ...(scope ? { scope } : {}),
     ...(spec.estimate ? { estimate: estimate(spec.estimate) } : {}),
     ...(spec.triage ? { triage: triage(spec.triage, "unmapped") } : {}),
     ...(spec.evidence ? { evidence: String(spec.evidence) } : {}),
@@ -138,7 +141,11 @@ function refuseBrokenText(state, target, fields) {
     if (!value || typeof value !== "object") continue;
     for (const [lang, s] of Object.entries(value)) {
       if (typeof s !== "string") continue;
-      const found = [...(field === "name" ? nameIssues(s, lang, version) : []), ...voiceIssues(s, lang)];
+      const found = [
+        ...(field === "name" ? nameIssues(s, lang, version) : []),
+        ...(field === "scope" ? scopeIssues(s) : []),
+        ...voiceIssues(s, lang),
+      ];
       for (const i of found) issues.push(`${field} (${lang}) ${i}`);
     }
   }
@@ -156,11 +163,19 @@ export const ops = {
     return { target: codes.join(","), result: { proposed: codes, note: "Proposed loops wait for the owner's approve_loops." } };
   },
 
-  rename_loop(state, { code, name, doneWhen }, ctx) {
+  rename_loop(state, { code, name, doneWhen, scope }, ctx) {
     const loop = findLoop(state, code);
     if (loop.retired) fail(`${code} is retired. Retired loops keep their history and can't change.`);
-    if (name == null && doneWhen == null) fail("send name, doneWhen or both.");
-    setText(loop, { name: text(name, "name", { required: false }), doneWhen: text(doneWhen, "doneWhen", { required: false }) }, ctx);
+    if (name == null && doneWhen == null && scope == null) fail("send name, doneWhen, scope or a mix.");
+    setText(
+      loop,
+      {
+        name: text(name, "name", { required: false }),
+        doneWhen: text(doneWhen, "doneWhen", { required: false }),
+        scope: text(scope, "scope", { required: false }),
+      },
+      ctx
+    );
     return { target: code, result: { code, pending: !loop.proposed && !ctx.directText } };
   },
 
@@ -348,7 +363,7 @@ export const ops = {
     for (const code of codes) {
       const loop = findLoop(state, code);
       if (!loop.proposed || loop.retired) fail(`${code} is not a proposed loop.`);
-      refuseBrokenText(state, code, { name: loop.name, doneWhen: loop.doneWhen });
+      refuseBrokenText(state, code, { name: loop.name, doneWhen: loop.doneWhen, scope: loop.scope });
       delete loop.proposed;
       loop.approvedAt = ctx.now;
       approved.push(code);

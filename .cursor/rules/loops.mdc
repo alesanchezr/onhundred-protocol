@@ -27,6 +27,7 @@ Stranger, done, action, one-rule, everyone-has-one and ceiling. If it fails one,
   "level": "mapped",
   "name": { "en": "Plan and book our date night", "es": "Planear y reservar nuestra cita" },
   "doneWhen": { "en": "The table is booked and on both calendars.", "es": "..." },
+  "scope": { "en": "Covers our regular night out and anniversary plans. Birthday gifts and kid weekends are other loops.", "es": "..." },
   "estimate": { "howOften": "weekly", "hoursPerWeek": 1.5 },
   "triage": { "time": 2, "frequency": 3, "rules": 3, "digital": 4, "risk": 3, "source": "baseline" },
   "baseline": { "occurrences": 3, "confidence": "normal", "hoursPerWeek": 1.5, "approvedAt": "2026-03-30" },
@@ -34,7 +35,7 @@ Stranger, done, action, one-rule, everyone-has-one and ceiling. If it fails one,
 }
 ```
 
-Optional: `measuring`, `over500`, `published` (R-PAR only), `visibility`, `changedCycle`, `retired`, `drops`.
+Optional: `scope` (public boundary: what counts and what doesn't), `measuring`, `over500`, `published` (R-PAR only), `visibility`, `changedCycle`, `retired`, `drops`.
 
 ## Rules enforced by `validate()` in [lib/protocol.mjs](mdc:lib/protocol.mjs)
 

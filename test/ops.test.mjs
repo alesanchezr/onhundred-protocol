@@ -114,6 +114,22 @@ test("agent text on an approved loop waits for approve_text", () => {
   assert.equal(pendingItems(s).length, 0);
 });
 
+test("propose_loops keeps an optional scope, and rename_loop parks a new one as pending", () => {
+  const withScope = {
+    ...spec("Plan and book our date night", "R-PAR"),
+    scope: { en: "Covers Friday nights out. Birthday gifts are another loop." },
+  };
+  let s = write(empty(), "propose_loops", { loops: [withScope] });
+  assert.equal(s.loops[0].scope.en, "Covers Friday nights out. Birthday gifts are another loop.");
+  s = write(s, "approve_loops", { codes: ["R-PAR-01"] }, page);
+  s = write(s, "rename_loop", { code: "R-PAR-01", scope: { en: "Nights out and anniversary plans. Kid weekends stay elsewhere." } });
+  assert.equal(s.loops[0].scope.en, "Covers Friday nights out. Birthday gifts are another loop.");
+  assert.equal(s.loops[0].pending.scope.en, "Nights out and anniversary plans. Kid weekends stay elsewhere.");
+  s = write(s, "approve_text", { targets: ["R-PAR-01"] }, page);
+  assert.equal(s.loops[0].scope.en, "Nights out and anniversary plans. Kid weekends stay elsewhere.");
+  assert.equal(s.loops[0].pending, undefined);
+});
+
 test("owner-only writes refuse agent access", () => {
   const s = write(empty(), "propose_loops", { loops: [spec("Pay the rent")] });
   assert.throws(() => write(s, "approve_loops", { codes: ["P-HOM-01"] }, { ...agent, access: "agent" }), /only the owner/);
