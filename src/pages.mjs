@@ -18,6 +18,7 @@ import {
   triageScore,
   validate,
 } from "../lib/protocol.mjs";
+import { VIEW_HOURS } from "./auth.mjs";
 import { pendingItems } from "./ops.mjs";
 import { PROMPTS } from "./mcp.mjs";
 
@@ -302,15 +303,19 @@ const COPY_ICON = phosphor(
 );
 
 // One button for every way to use a prompt: each app, then COPY for any other chat.
-// With no prompt, each link carries a {q} template that app.js fills when its dialog opens.
+// Each link carries a {q} template that app.js fills from the prompt box on click, so edits go along.
+// The plain href is the fallback without JavaScript.
 const promptMenu = (source, prompt, { up = false } = {}) => {
-  const link = (a) =>
-    prompt == null ? `href="#" data-app-href="${esc(a.href("{q}"))}"` : `href="${esc(a.href(encodeURIComponent(prompt)))}"`;
   const apps = OPEN_IN.map(
-    (a) => `<a class="menu-item" ${link(a)} target="_blank" rel="noopener" aria-label="Open the prompt in ${a.name}">${APP_ICONS[a.id]}${a.name.toUpperCase()}</a>`
+    (a) =>
+      `<a class="menu-item" href="${esc(prompt == null ? "#" : a.href(encodeURIComponent(prompt)))}" data-app-href="${esc(a.href("{q}"))}" target="_blank" rel="noopener" aria-label="Open the prompt in ${a.name}">${APP_ICONS[a.id]}${a.name.toUpperCase()}</a>`
   ).join("");
-  return `<details class="menu${up ? " up" : ""}" data-menu><summary class="btn signal">USE PROMPT${CARET_ICON}</summary><div class="menu-list">${apps}<button class="menu-item" type="button" data-copy="${source}" aria-label="Copy the prompt">${COPY_ICON}COPY</button></div></details>`;
+  return `<details class="menu${up ? " up" : ""}" data-menu data-prompt-source="${source}"><summary class="btn signal">USE PROMPT${CARET_ICON}</summary><div class="menu-list">${apps}<button class="menu-item" type="button" data-copy="${source}" aria-label="Copy the prompt">${COPY_ICON}COPY</button></div></details>`;
 };
+
+// Every prompt is editable before it goes to the agent.
+const promptBox = (id, text = "", rows = 6) =>
+  `<textarea class="prompt-box" id="${id}" rows="${rows}" spellcheck="false" aria-label="Prompt. Edit it before you send it.">${esc(text)}</textarea>`;
 
 function emptyState(owner, connected) {
   if (!owner) return `<section class="block empty-state"><h2>No loops yet</h2><p>The inventory is still being built.</p></section>`;
@@ -323,8 +328,8 @@ function emptyState(owner, connected) {
   }
   return `<section class="block empty-state">
 <h2>No loops yet</h2>
-<p>Your AI app proposes them and you approve each one here. Start with this prompt:</p>
-<div class="copy"><code id="first-prompt">${esc(FIRST_PROMPT)}</code>${promptMenu("#first-prompt", FIRST_PROMPT)}</div>
+<p>Your AI app proposes them and you approve each one here. Start with this prompt, and edit it first if you like:</p>
+<div class="copy">${promptBox("first-prompt", FIRST_PROMPT, 2)}${promptMenu("#first-prompt", FIRST_PROMPT)}</div>
 </section>`;
 }
 
@@ -378,7 +383,7 @@ const ARROW_RIGHT_ICON = phosphor(
 // button opens the confirmation dialog, which can also approve every loop that passes the rules.
 // Approved from the dialog, a row stays until the next load, with a link to its loop page.
 // fixable(code, rules) returns the FIX prompt for a loop that breaks a rule; null without a connected AI app.
-function proposedCard(proposed, broken, lang, published, fixable) {
+function proposedCard(proposed, broken, lang, published, fixable, connected) {
   const eligible = proposed.filter((l) => !broken.has(l.code));
   const rows = proposed
     .map((l) => {
@@ -428,8 +433,23 @@ function proposedCard(proposed, broken, lang, published, fixable) {
   const tabs = P.branchOrder
     .map((b) => `<button type="button" aria-pressed="false" data-branch-tab="${b}"${counts[b] ? "" : " disabled"}>${esc(P.branches[b].name.toUpperCase())}<span class="n">${counts[b] || 0}</span></button>`)
     .join("");
-  return `<div class="card" data-branch-filter><div class="card-head"><h3>Proposed loops (${proposed.length})</h3><div class="tabs" role="group" aria-label="Filter by branch" hidden>${tabs}</div></div><p class="hint">Approve each loop with its button.${hint}</p><ul class="plain">${rows}</ul>${dialog}<template data-open-icon>${ARROW_RIGHT_ICON}</template></div>`;
+  const add = connected ? `<button class="btn small signal fix-btn" type="button" data-add-loop>${PLUS_ICON}ADD NEW LOOP</button>` : "";
+  return `<div class="card" data-branch-filter><div class="card-head"><h3>Proposed loops (${proposed.length})</h3><div class="card-tools"><div class="tabs" role="group" aria-label="Filter by branch" hidden>${tabs}</div>${add}</div></div><p class="hint">Approve each loop with its button.${hint}</p><ul class="plain">${rows}</ul>${dialog}${connected ? addLoopDialog() : ""}<template data-open-icon>${ARROW_RIGHT_ICON}</template></div>`;
 }
+
+const PLUS_ICON = phosphor(
+  "M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"
+);
+
+const ADD_LOOP_PROMPT =
+  "Use Onhundred to help me add new loops to my log. Read onhundred://docs/loops and onhundred://docs/voice, then call list_loops so you don't propose a loop I already have. Ask me which activities I want to add, or what you can read (calendar, email, documents) to find them. Check each loop against the six tests and decide whether it needs a scope. Show me the batch before you call propose_loops, in every language of the log.";
+
+const addLoopDialog = () => `<dialog class="modal" data-dialog data-add-loop-dialog aria-labelledby="add-loop-title">
+<h3 id="add-loop-title">Add a new loop with AI</h3>
+<p class="modal-loop">This is the prompt your agent gets. Edit it first: name the activities you have in mind, or leave it and your agent will ask.</p>
+<div class="copy block-code">${promptBox("add-loop-prompt", ADD_LOOP_PROMPT, 8)}</div>
+<div class="actions"><button class="btn" type="button" data-dialog-close>CANCEL</button>${promptMenu("#add-loop-prompt", ADD_LOOP_PROMPT, { up: true })}</div>
+</dialog>`;
 
 const fixPrompt = (target, rules, version) =>
   `Use Onhundred to fix ${target} in my log. It breaks the protocol v${version} rules: ${rules} Rewrite it in every language of the log, then tell me what changed.`;
@@ -441,8 +461,8 @@ const ROBOT_ICON = phosphor(
 // One dialog for every FIX button; each button carries its own prompt.
 const fixDialog = () => `<dialog class="modal" data-dialog data-fix-dialog aria-labelledby="fix-title">
 <h3 id="fix-title">Fix <span data-fix-target></span> with AI</h3>
-<p class="modal-loop">Open the prompt in your AI app, or copy it into any chat connected to your log.</p>
-<div class="copy block-code"><pre id="fix-prompt"></pre></div>
+<p class="modal-loop">Edit the prompt if you like, then open it in your AI app, or copy it into any chat connected to your log.</p>
+<div class="copy block-code">${promptBox("fix-prompt")}</div>
 <div class="actions"><button class="btn" type="button" data-dialog-close>CANCEL</button>${promptMenu("#fix-prompt", null, { up: true })}</div>
 </dialog>`;
 
@@ -480,7 +500,7 @@ function pendingSection(state, published, connected) {
   const parts = [];
   if (breaks.items.length) parts.push(breaksCard(breaks, connected));
   const fixable = connected ? (code, rules) => fixPrompt(code, rules.join(" "), state.meta.protocolVersion) : null;
-  if (proposed.length) parts.push(proposedCard(proposed, broken, lang, published, fixable));
+  if (proposed.length) parts.push(proposedCard(proposed, broken, lang, published, fixable, connected));
   if (connected && (breaks.items.length || proposed.some((l) => broken.has(l.code)))) parts.push(fixDialog());
   if (text.length) {
     const rows = text
@@ -574,25 +594,36 @@ const privateNotice = () =>
 
 const previewNotice = () => notice(`This is what visitors see. <a href="/">Back to your log</a>.`, "good");
 
-export function logPage({ state, owner, events = [], url, upgrade, configured: isConfigured, hasConnections, published = false, preview = false }) {
+// Opened from an AI app's link: the owner view without a sign-in, so nothing on it changes the log.
+const viewOnlyNotice = () =>
+  `<div class="notice upgrade view-only"><span><b>VIEW ONLY.</b> Your AI app's link shows your log for ${VIEW_HOURS} hours. Sign in to approve or change anything.</span><a class="btn signal small" href="/login?next=/">SIGN IN</a></div>`;
+
+function waitingLine(state) {
+  const n = pendingItems(state).length + state.loops.filter((l) => (l.proposed || l.pendingBaseline || l.retireProposed) && !l.retired).length;
+  return n ? notice(`${n} ${n === 1 ? "item waits" : "items wait"} for you. <a href="/login?next=/">Sign in</a> to approve ${n === 1 ? "it" : "them"}.`) : "";
+}
+
+export function logPage({ state, owner, viewOnly = false, events = [], url, upgrade, configured: isConfigured, hasConnections, published = false, preview = false }) {
   const meta = state.meta;
   const lang = meta.languages[0];
   const view = owner ? derive(state) : publicView(state);
+  const acts = owner && !viewOnly;
   const title = meta.ownerName ? `${meta.ownerName}: Onhundred Protocol log` : "Onhundred Protocol log";
   const body = [
     flash(url),
     preview ? previewNotice() : "",
+    viewOnly ? viewOnlyNotice() : "",
     !isConfigured ? setupNotice() : "",
-    owner ? protocolNotice(meta, upgrade) : "",
-    owner && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
-    owner && !published ? privateNotice() : "",
-    readout(view, meta, owner),
-    gridSection(view, meta, owner, hasConnections, owner && state.loops.some((l) => l.proposed && !l.retired)),
-    owner ? pendingSection(state, published, hasConnections) : "",
+    acts ? protocolNotice(meta, upgrade) : "",
+    acts && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
+    acts && !published ? privateNotice() : "",
+    readout(view, meta, acts),
+    gridSection(view, meta, acts, hasConnections, acts && state.loops.some((l) => l.proposed && !l.retired)),
+    acts ? pendingSection(state, published, hasConnections) : viewOnly ? waitingLine(state) : "",
     experimentsSection(view.experiments, lang),
     owner ? eventsSection(events, state.loops) : "",
   ].join("\n");
-  return layout({ title, ownerName: meta.ownerName, owner, body, current: "/", origin: url?.origin });
+  return layout({ title, ownerName: meta.ownerName, owner: acts, body, current: "/", origin: url?.origin });
 }
 
 // ---------------------------------------------------------------------------
@@ -908,13 +939,13 @@ function askMenu(loop, exps, name, areaName, connected) {
 
 const loopPromptDialog = (code, name) => `<dialog class="modal" data-dialog data-loop-prompt-dialog aria-labelledby="loop-prompt-title">
 <h3 id="loop-prompt-title">Ask your agent to <span data-prompt-title></span></h3>
-<p class="modal-loop">${esc(code)} · ${esc(name)}. Open the prompt in your AI app, or copy it into any chat connected to your log.</p>
-<div class="copy block-code"><pre id="loop-prompt"></pre></div>
+<p class="modal-loop">${esc(code)} · ${esc(name)}. Edit the prompt if you like, then open it in your AI app, or copy it into any chat connected to your log.</p>
+<div class="copy block-code">${promptBox("loop-prompt")}</div>
 <div class="actions"><button class="btn" type="button" data-dialog-close>CANCEL</button>${promptMenu("#loop-prompt", null, { up: true })}</div>
 </dialog>`;
 
 // Null when nobody may see a loop with this code: the route answers 404.
-export function loopPage({ state, owner, code, events = [], connected = false, url }) {
+export function loopPage({ state, owner, viewOnly = false, code, events = [], connected = false, url }) {
   const p = parseCode(code);
   if (!p) return null;
   const meta = state.meta;
@@ -942,7 +973,7 @@ export function loopPage({ state, owner, code, events = [], connected = false, u
   const step = (l, word) => (l ? `<a href="/loop/${esc(l.code)}" rel="${word.toLowerCase()}">${word} · ${esc(l.code)}</a>` : `<span aria-disabled="true">${word}</span>`);
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">LOG</a></li><li>${esc((branch?.name || p.branch).toUpperCase())}</li><li>${esc(areaName.toUpperCase())}</li><li aria-current="page">${esc(code)}</li></ol><span class="stepper">${step(prev, "PREV")}${step(next, "NEXT")}</span></nav>`;
 
-  const actionable = owner && !loop.retired && !loop.proposed;
+  const actionable = owner && !viewOnly && !loop.retired && !loop.proposed;
   const head = `<section class="loop-head"><div><h1>${esc(name)}</h1>${done ? `<p class="done"><span class="label">DONE WHEN</span>${esc(done)}</p>` : ""}${scope ? `<p class="scope"><span class="label">SCOPE</span>${esc(scope)}</p>` : ""}${loop.private ? `<p class="done">This loop stays private until the person in it agrees to publish it.</p>` : ""}</div>${actionable ? `<div class="head-side">${askMenu(loop, exps, name, areaName, connected)}</div>` : ""}</section>`;
 
   const notices = [];
@@ -955,7 +986,7 @@ export function loopPage({ state, owner, code, events = [], connected = false, u
   const status = `<section class="status-block"><div class="status-row">${levelStack(loop, exps)}${experimentsBox(exps)}</div>${next_ ? `<p class="next-line"><span class="label">NEXT</span>${esc(next_)}</p>` : ""}</section>`;
 
   const body = `<div class="loop-page">
-${flash(url)}${notices.join("")}
+${flash(url)}${viewOnly ? viewOnlyNotice() : ""}${notices.join("")}
 ${crumbs}
 ${head}
 ${status}
@@ -965,7 +996,7 @@ ${costSection(loop, owner)}
 ${experimentsDrawer(code, exps, lang, today)}
 ${actionable && connected ? loopPromptDialog(code, name) : ""}`;
   const title = `${code} ${name} · ${meta.ownerName ? `${meta.ownerName}: ` : ""}Onhundred Protocol log`;
-  return layout({ title, ownerName: meta.ownerName, owner, body, origin: url?.origin });
+  return layout({ title, ownerName: meta.ownerName, owner: owner && !viewOnly, body, origin: url?.origin });
 }
 
 export function privatePage({ meta, origin, configured: isConfigured, hasConnections, preview = false }) {

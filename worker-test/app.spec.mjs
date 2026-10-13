@@ -1,6 +1,6 @@
 import { env, exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
-import { createApiKey } from "../src/auth.mjs";
+import { createApiKey, viewPass } from "../src/auth.mjs";
 
 const BASE = "https://log.example.com";
 const app = () => exports.default;
@@ -480,6 +480,18 @@ describe("protocol versions", () => {
     expect(page).toContain(`data-fix-prompt="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.1 rules: name (en) starts with a failing verb (decide).`);
     expect(page).toMatch(/data-dialog-close data-rule-fix><svg[^]*?<\/svg>FIX<\/button>/);
     expect(page.match(/data-fix-dialog/g)).toHaveLength(1);
+    expect(page).toContain('<textarea class="prompt-box" id="fix-prompt"');
+  });
+
+  it("offers ADD NEW LOOP next to the branch tabs, with an editable prompt, once an AI app is connected", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "agent" })).key;
+    await call(key, "propose_loops", { loops: [loop("Renew the car insurance")] });
+    const page = await ownerPage(await ownerCookie());
+    expect(page).toMatch(/<div class="card-tools"><div class="tabs"[^]*?<\/div><button[^>]*data-add-loop><svg[^]*?<\/svg>ADD NEW LOOP<\/button>/);
+    expect(page.match(/data-add-loop-dialog/g)).toHaveLength(1);
+    expect(page).toMatch(/<textarea class="prompt-box" id="add-loop-prompt"[^>]*>Use Onhundred to help me add new loops to my log\./);
+    expect(page).toContain('data-prompt-source="#add-loop-prompt"');
+    expect(page).toContain('data-app-href="https://claude.ai/new?q={q}"');
   });
 
   it("saves a scheduled upgrade once its cycle starts, as a system event", async () => {
@@ -615,5 +627,102 @@ describe("publishing from the owner page", () => {
     const hidden = await get("/?view=public", { Cookie: cookie });
     expect(hidden).toContain("This is what visitors see.");
     expect(hidden).toContain("This log is private.");
+  });
+});
+
+describe("links after writes", () => {
+  const get = (path, cookie) => app().fetch(new Request(`${BASE}${path}`, { headers: cookie ? { Cookie: cookie } : {}, redirect: "manual" }));
+
+  it("tells the agent to end its reply with links.open", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const init = await mcp(key, "initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } });
+    expect(init.body.result.instructions).toContain("links.open");
+  });
+
+  it("sends a proposal to the approve link, with a graph link that skips sign-in", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const { data } = await call(key, "propose_loops", { loops: [loop("Water the ferns")] });
+    expect(data.grid.delta).toBeNull();
+    expect(data.links.approve).toBe(`${BASE}/login?next=/`);
+    expect(data.links.open).toBe(data.links.approve);
+    expect(data.links.graph.startsWith(`${BASE}/v/view.`)).toBe(true);
+    expect(Date.parse(data.links.expiresAt) - Date.now()).toBeGreaterThan(23 * 3600000);
+  });
+
+  it("reports what moved, and the link opens a view-only log with the moved squares named", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const code = (await call(key, "propose_loops", { loops: [loop("Clean the gutters")] })).data.result.proposed[0];
+    const approved = await call(key, "approve_loops", { codes: [code] });
+    expect(approved.data.grid.delta.moved).toEqual([{ code, from: null, to: "unmapped" }]);
+    expect((await call(key, "record_baseline", { code, occurrences: 4, hoursPerWeek: 2 })).error).toBeNull();
+    const r = await call(key, "approve_baseline", { code });
+    expect(r.error).toBeNull();
+    expect(r.data.grid.delta.levels).toEqual({ mapped: 1, unmapped: -1 });
+    expect(r.data.grid.now.levels.mapped).toBeGreaterThan(0);
+    expect(r.data.links.open).toBe(r.data.links.graph);
+    expect(r.data.links.open).toContain(`?moved=${code}`);
+    expect(r.data.links.loop).toContain(`?to=/loop/${code}`);
+
+    const res = await get(r.data.links.open.slice(BASE.length));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe(`/?moved=${code}#activity`);
+    expect(res.headers.get("Referrer-Policy")).toBe("no-referrer");
+    const cookie = res.headers.get("Set-Cookie").split(";")[0];
+    expect(cookie.startsWith("__Host-onhundred-view=")).toBe(true);
+
+    const page = await (await get(`/?moved=${code}`, cookie)).text();
+    expect(page).toContain("VIEW ONLY.");
+    expect(page).toContain(`data-loop="${code}"`);
+    expect(page).toContain("HISTORY");
+    expect(page).not.toContain('action="/owner/action"');
+    expect(page).not.toContain('href="/connections"');
+
+    const loopRes = await get(r.data.links.loop.slice(BASE.length));
+    expect(loopRes.headers.get("Location")).toBe(`/loop/${code}`);
+    const loopPage = await (await get(`/loop/${code}`, cookie)).text();
+    expect(loopPage).toContain("VIEW ONLY.");
+    expect(loopPage).toContain("Clean the gutters");
+    expect(loopPage).not.toContain("NEXT ACTIONS");
+
+    const post = await app().fetch(
+      new Request(`${BASE}/owner/action`, {
+        method: "POST",
+        headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "op=set_meta",
+        redirect: "manual",
+      })
+    );
+    expect(post.status).toBe(401);
+  });
+
+  it("refuses forged and expired passes, and stops every link once the connection is revoked", async () => {
+    const k = await createApiKey(env.DB, { name: "claude", access: "owner" });
+    const { data } = await call(k.key, "get_state");
+    expect(data.links.open).toBe(data.links.graph);
+    expect(data.grid.now.levels).toBeDefined();
+    const path = data.links.graph.slice(BASE.length);
+
+    const parts = path.split(".");
+    parts[2] = String(Number(parts[2]) + 1000);
+    expect((await get(parts.join("."))).status).toBe(410);
+    const expired = await viewPass(env, k.id, Date.now() - 25 * 3600000);
+    expect((await get(`/v/${expired.pass}`)).status).toBe(410);
+
+    const res = await get(path);
+    expect(res.status).toBe(302);
+    const cookie = res.headers.get("Set-Cookie").split(";")[0];
+    await env.DB.prepare("UPDATE agents SET revoked_at = ? WHERE id = ?").bind(new Date().toISOString(), k.id).run();
+    const gone = await get(path);
+    expect(gone.status).toBe(410);
+    expect(await gone.text()).toContain("This link expired");
+    expect(await (await get("/", cookie)).text()).not.toContain("VIEW ONLY.");
+  });
+
+  it("gives agent-access connections plain links", async () => {
+    const key = (await createApiKey(env.DB, { name: "grok-bot", access: "agent" })).key;
+    const { data } = await call(key, "propose_loops", { loops: [loop("Sweep the porch")] });
+    expect(data.links.graph).toBe(`${BASE}/#activity`);
+    expect(data.links.expiresAt).toBeUndefined();
+    expect(JSON.stringify(data.links)).not.toContain("/v/");
   });
 });

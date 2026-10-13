@@ -8,6 +8,7 @@ import {
   compareViolations,
   derive,
   formatPoints,
+  gridChange,
   metrics,
   nameIssues,
   publicView,
@@ -162,6 +163,25 @@ test("a write may not add violations, and may repair one at a time", () => {
 test("migrations/0001_init.sql matches the schema the Worker applies", async () => {
   const file = await readFile(new URL("../migrations/0001_init.sql", import.meta.url), "utf8");
   assert.ok(file.endsWith(migrationSql()), "run the schema generator again: the migration and schema.mjs differ");
+});
+
+test("gridChange always says where the grid stands, and a delta only when a level moved", async () => {
+  const before = await seed();
+  const renamed = structuredClone(before);
+  renamed.loops[0].name = { ...renamed.loops[0].name, en: "Another name" };
+  const same = gridChange(before, renamed);
+  assert.equal(same.delta, null);
+  assert.deepEqual(same.now, { delegated: 8.5, stillPct: 92, levels: derive(before).metrics.counts });
+
+  const after = structuredClone(before);
+  const target = after.loops.find((l) => l.level === "mapped" && !l.retired && !l.proposed);
+  target.level = "delegated";
+  const { now, delta } = gridChange(before, after);
+  assert.equal(now.delegated, 9.5);
+  assert.deepEqual(delta.levels, { mapped: -1, delegated: 1 });
+  assert.deepEqual(delta.moved, [{ code: target.code, from: "mapped", to: "delegated" }]);
+  assert.deepEqual(delta.delegated, { before: 8.5, after: 9.5 });
+  assert.equal(delta.summary, `Delegated went from 8.5 to 9.5 of 100. ${target.code} moved from mapped to delegated.`);
 });
 
 test("grid renders every active loop once", async () => {

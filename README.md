@@ -251,6 +251,8 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 
 **Starter prompts:** "Help me build my 100 loops", "Which loops should fill my 3 slots?" and "Run my cycle review". Apps that support MCP prompts show them as shortcuts.
 
+**A link after every change.** Each write returns where the grid stands, what moved and a link. Your agent ends its reply with that link, so you watch your grid change as you go. The squares that moved light up. For connections with owner access, the link opens your log without a sign-in for 24 hours. That view can't change anything, and it stops working when you revoke the connection. Approving still needs your sign-in.
+
 ## How changes work
 
 - **Every change is checked.** A change that would break a protocol rule is rejected with the rule it broke. A log that's already broken can be repaired 1 step at a time.
@@ -282,6 +284,7 @@ The public page and `/public.json` render from an allowlist, so any new field st
 - **Failed sign-ins:** 10 failures from 1 address lock sign-in from there for 15 minutes.
 - **AI apps** sign in through OAuth with your owner password. Each one gets a grant you can revoke under **Connections**.
 - **API keys** start with `ohk_`, are shown once and are stored only as a SHA-256 hash.
+- **View links** from your agent are signed with `COOKIE_ENCRYPTION_KEY`, last 24 hours and die when you revoke the connection. On arrival the pass becomes an `HttpOnly` cookie, leaves the address bar and is never sent as a referrer.
 - **Owner forms** only accept requests from your log's own address.
 
 Found a vulnerability? Report it privately, as [SECURITY.md](./SECURITY.md) explains. Please don't open a public issue.

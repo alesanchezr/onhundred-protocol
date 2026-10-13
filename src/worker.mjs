@@ -1,8 +1,9 @@
 // Entry point: OAuth for chat apps, API keys for API agents, MCP at /mcp, the log page, backups.
 import { AuthorizationError, CimdFetchError, OAuthProvider } from "@cloudflare/workers-oauth-provider";
-import { compareVersions, publicView, protocol as P } from "../lib/protocol.mjs";
+import { compareVersions, parseCode, publicView, protocol as P } from "../lib/protocol.mjs";
 import {
   checkPassword,
+  checkViewPass,
   clearCookie,
   configured,
   createApiKey,
@@ -16,6 +17,8 @@ import {
   revokeAgent,
   sameOrigin,
   sessionCookie,
+  viewCookie,
+  viewerFrom,
 } from "./auth.mjs";
 import { handleMcp } from "./mcp.mjs";
 import { connectPage, connectionsPage, consentPage, html, logPage, loginPage, loopPage, messagePage, privatePage } from "./pages.mjs";
@@ -49,7 +52,12 @@ const apiHandler = {
           headers: { "Content-Type": "application/json", "WWW-Authenticate": 'Bearer error="invalid_token"' },
         });
     }
-    return handleMcp(request, env, { agentId: props.agentId, name: props.name || "agent", access: props.access === "owner" ? "owner" : "agent" });
+    return handleMcp(request, env, {
+      agentId: props.agentId,
+      name: props.name || "agent",
+      access: props.access === "owner" ? "owner" : "agent",
+      origin: originOf(request, env),
+    });
   },
 };
 
@@ -116,6 +124,15 @@ const redirect = (to, headers = {}) => new Response(null, { status: 303, headers
 const withQuery = (path, key, value) => `${path}?${key}=${encodeURIComponent(value)}`;
 const safeNext = (next) => (typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/");
 
+// Where a view link lands: the log page with the grid open, or one loop's page. Only valid codes pass through.
+function viewTarget(url) {
+  const to = url.searchParams.get("to") || "/";
+  const loop = /^\/loop\/(.+)$/.exec(to)?.[1];
+  if (loop && parseCode(loop)) return `/loop/${loop}`;
+  const moved = (url.searchParams.get("moved") || "").split(",").filter((c) => parseCode(c));
+  return `/${moved.length ? `?moved=${moved.join(",")}` : ""}#activity`;
+}
+
 async function route(request, env) {
   const url = new URL(request.url);
   const origin = originOf(request, env);
@@ -130,6 +147,22 @@ async function route(request, env) {
   const meta = state.meta;
   const owner = await isOwner(request, env);
   const published = isPublished(meta, env);
+
+  // A view pass from an agent's link: trade it for a view cookie and land on the page without it.
+  if (path.startsWith("/v/") && method === "GET") {
+    const pass = decodeURIComponent(path.slice("/v/".length));
+    const ok = await checkViewPass(env, pass);
+    if (!ok) {
+      const page = messagePage({ meta, title: "This link expired", text: "Ask your agent for a fresh link, or sign in to see your log.", status: 410 });
+      page.headers.set("Referrer-Policy", "no-referrer");
+      return page;
+    }
+    return new Response(null, {
+      status: 302,
+      headers: { Location: viewTarget(url), "Set-Cookie": viewCookie(pass, ok.exp), "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },
+    });
+  }
+  const viewer = owner ? null : await viewerFrom(request, env);
 
   if (path === "/public.json") {
     if (!published) return Response.json({ error: "This log is private." }, { status: 404 });
@@ -151,21 +184,26 @@ async function route(request, env) {
       const events = await getEvents(env.DB, { limit: 30 });
       return html(logPage({ state, owner, events, url, upgrade: compareVersions(meta.protocolVersion, P.version) < 0, configured: configured(env), hasConnections: connected, published }));
     }
+    if (viewer) {
+      const events = await getEvents(env.DB, { limit: 30 });
+      return html(logPage({ state, owner: true, viewOnly: true, events, url, configured: true, hasConnections: connected, published }));
+    }
     if (published) return html(logPage({ state, owner: false, url, configured: true }), { cache: "public, max-age=30" });
     return html(privatePage({ meta, origin, configured: configured(env), hasConnections: connected }));
   }
 
   // A loop's page: public once the log is published, with private fields and actions for the owner.
-  if (path.startsWith("/loop/") && method === "GET" && (owner || published)) {
+  if (path.startsWith("/loop/") && method === "GET" && (owner || viewer || published)) {
     const raw = path.slice("/loop/".length);
     const code = raw.toUpperCase();
     if (raw !== code) return redirect(`/loop/${code}`);
-    const events = owner
+    const sees = owner || Boolean(viewer);
+    const events = sees
       ? (await getEvents(env.DB, { target: code, limit: 200 })).filter((e) => String(e.target || "").split(",").includes(code))
       : [];
-    const page = loopPage({ state, owner, code, events, connected: owner && (await hasConnections(env.DB)), url });
+    const page = loopPage({ state, owner: sees, viewOnly: !owner && sees, code, events, connected: owner && (await hasConnections(env.DB)), url });
     if (!page) return messagePage({ meta, title: "Not found", text: `No loop has the code ${code}.`, status: 404 });
-    return html(page, owner ? {} : { cache: "public, max-age=30" });
+    return html(page, sees ? {} : { cache: "public, max-age=30" });
   }
 
   // Owner only from here.
