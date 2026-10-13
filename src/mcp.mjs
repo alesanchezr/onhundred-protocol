@@ -1,7 +1,7 @@
 // MCP over Streamable HTTP, stateless, JSON responses. One endpoint: POST /mcp.
 // Claude, ChatGPT, Cursor, Claude Code and the xAI, OpenAI and Anthropic APIs all speak this.
-import { compareVersions, derive, formatPoints, isHardEligible, pendingRuleBreaks, protocol as P, triageGroup, validate } from "../lib/protocol.mjs";
-import { createApiKey, listAgents, revokeAgent } from "./auth.mjs";
+import { compareVersions, derive, formatPoints, gridChange, isHardEligible, parseCode, pendingRuleBreaks, protocol as P, triageGroup, validate } from "../lib/protocol.mjs";
+import { createApiKey, listAgents, revokeAgent, viewPass } from "./auth.mjs";
 import * as docs from "./docs.mjs";
 import { pendingItems } from "./ops.mjs";
 import { getEvents, logEvent, readState } from "./store.mjs";
@@ -66,6 +66,30 @@ const DESTRUCTIVE = { readOnlyHint: false, destructiveHint: true, idempotentHint
 // ---------------------------------------------------------------------------
 // Tools. kind: "read" runs here; "write" goes through the WRITER; "owner" needs owner access.
 
+// Writes whose result waits for the owner on the log page.
+const WAITS_FOR_OWNER = new Set(["propose_loops", "split_loop", "merge_loops", "retire_loop", "record_baseline"]);
+
+// The links an agent ends its reply with. Owner connections get a view pass: the owner view, no sign-in,
+// nothing on it changes the log. Agent-access connections get plain links.
+async function linksFor(call, op, r) {
+  const { origin, agentId, access } = call.props;
+  if (!origin) return null;
+  const issued = access === "owner" && agentId ? await viewPass(call.env, agentId) : null;
+  const moved = (r?.grid?.delta?.moved || []).map((m) => m.code);
+  const q = moved.length ? `moved=${moved.join(",")}` : "";
+  const graph = issued ? `${origin}/v/${issued.pass}${q ? `?${q}` : ""}` : `${origin}/${q ? `?${q}` : ""}#activity`;
+  const code = typeof r?.target === "string" && parseCode(r.target) ? r.target : null;
+  const loop = code ? (issued ? `${origin}/v/${issued.pass}?to=/loop/${code}` : `${origin}/loop/${code}`) : null;
+  const approve = WAITS_FOR_OWNER.has(op) || r?.result?.pending === true ? `${origin}/login?next=/` : null;
+  const open = approve || (moved.length ? graph : loop || graph);
+  return { open, graph, ...(loop ? { loop } : {}), ...(approve ? { approve } : {}), ...(issued ? { expiresAt: new Date(issued.exp).toISOString() } : {}) };
+}
+
+const writeWithLinks = async (call, op, args, opts) => {
+  const r = await call.write(op, args, opts);
+  return { ...r, links: await linksFor(call, op, r) };
+};
+
 const writeTool = (name, title, description, inputSchema, { owner = false, annotations = WRITE } = {}) => ({
   name,
   title,
@@ -73,7 +97,7 @@ const writeTool = (name, title, description, inputSchema, { owner = false, annot
   inputSchema,
   annotations: { title, ...annotations },
   owner,
-  run: (args, call) => call.write(name, args),
+  run: (args, call) => writeWithLinks(call, name, args),
 });
 
 const TOOLS = [
@@ -109,6 +133,8 @@ const TOOLS = [
         pending: pendingItems(state).length + state.loops.filter((l) => (l.proposed || l.pendingBaseline || l.retireProposed) && !l.retired).length,
         violations: violations.map((v) => v.message),
         connection: { name: call.props.name, access: call.props.access },
+        grid: { now: gridChange(state, state).now },
+        links: await linksFor(call, "get_state", null),
       };
     },
   },
@@ -302,7 +328,7 @@ const TOOLS = [
     inputSchema: obj({ id: int("Event id from get_events.") }, ["id"]),
     annotations: { title: "Undo an event", ...DESTRUCTIVE },
     owner: true,
-    run: (args, call) => call.write("undo_event", args),
+    run: (args, call) => writeWithLinks(call, "undo_event", args),
   },
   {
     name: "override",
@@ -313,7 +339,7 @@ const TOOLS = [
     owner: true,
     run: ({ op, args, reason }, call) => {
       if (!reason) throw new Error("reason is required.");
-      return call.write(op, args, { override: true, reason });
+      return writeWithLinks(call, op, args, { override: true, reason });
     },
   },
   {
@@ -393,6 +419,7 @@ function instructions(meta) {
     "Text you write waits as pending until the owner approves it with approve_text. Show the person the exact text before that call.",
     "Levels never change by hand: only record_hold and record_drop move them.",
     "Every write is checked against the protocol. A rejected write returns the rule it broke: fix it and try again.",
+    "After writes succeed, end your reply with 1 link: links.open from the last write. If grid.delta is present, say what moved in 1 sentence, using grid.now for the totals. Once per reply, not once per call. Links with a pass expire after 24 hours, so share a fresh one instead of reusing an old one.",
   ].join(" ");
 }
 

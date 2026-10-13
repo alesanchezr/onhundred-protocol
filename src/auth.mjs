@@ -56,6 +56,35 @@ export async function sessionCookie(env) {
 
 export const clearCookie = () => `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 
+// View passes: links an owner connection hands out. They show the owner view, never change anything,
+// and stop working after VIEW_HOURS or as soon as the connection that made them is removed.
+export const VIEW_COOKIE = "__Host-onhundred-view";
+export const VIEW_HOURS = 24;
+
+export async function viewPass(env, agentId, now = Date.now()) {
+  const exp = now + VIEW_HOURS * 3600000;
+  const payload = `view.${agentId}.${exp}`;
+  return { pass: `${payload}.${await hmac(env.COOKIE_ENCRYPTION_KEY, payload)}`, exp };
+}
+
+export async function checkViewPass(env, pass) {
+  if (!configured(env) || typeof pass !== "string") return null;
+  const [kind, agentId, exp, sig, ...rest] = pass.split(".");
+  if (kind !== "view" || !agentId || !sig || rest.length || !(Number(exp) > Date.now())) return null;
+  if (!(await safeEqual(sig, await hmac(env.COOKIE_ENCRYPTION_KEY, `${kind}.${agentId}.${exp}`)))) return null;
+  const row = await env.DB.prepare("SELECT 1 AS one FROM agents WHERE id = ? AND access = 'owner' AND revoked_at IS NULL").bind(agentId).first();
+  return row ? { agentId, exp: Number(exp) } : null;
+}
+
+export const viewCookie = (pass, exp) =>
+  `${VIEW_COOKIE}=${pass}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${Math.max(0, Math.floor((exp - Date.now()) / 1000))}`;
+
+export async function viewerFrom(request, env) {
+  const cookie = request.headers.get("Cookie") || "";
+  const m = cookie.split(/;\s*/).find((c) => c.startsWith(VIEW_COOKIE + "="));
+  return m ? checkViewPass(env, m.slice(VIEW_COOKIE.length + 1)) : null;
+}
+
 export async function isOwner(request, env) {
   if (!configured(env)) return false;
   const cookie = request.headers.get("Cookie") || "";

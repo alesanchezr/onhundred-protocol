@@ -1,4 +1,7 @@
 (() => {
+  // A prompt box is a textarea the person can edit; other copy sources are plain text.
+  const sourceText = (source) => ("value" in source ? source.value : source.textContent);
+
   // Copy buttons
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-copy]");
@@ -6,7 +9,7 @@
     const source = document.querySelector(btn.dataset.copy);
     if (!source) return;
     try {
-      await navigator.clipboard.writeText(source.textContent);
+      await navigator.clipboard.writeText(sourceText(source));
       const label = btn.innerHTML;
       btn.textContent = "COPIED";
       setTimeout(() => {
@@ -14,8 +17,17 @@
         btn.closest("details[data-menu]")?.removeAttribute("open");
       }, 1500);
     } catch {
-      getSelection().selectAllChildren(source);
+      if ("select" in source) source.select();
+      else getSelection().selectAllChildren(source);
     }
+  });
+
+  // App links read the prompt box when clicked, so the agent gets the edited text.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[data-app-href]");
+    if (!a) return;
+    const source = document.querySelector(a.closest("[data-prompt-source]")?.dataset.promptSource || null);
+    if (source) a.href = a.dataset.appHref.replace("{q}", encodeURIComponent(sourceText(source)));
   });
 
   // Forms that change who can see the log ask first.
@@ -104,10 +116,8 @@
     document.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-fix]");
       if (!btn) return;
-      const q = encodeURIComponent(btn.dataset.fix);
       fixDialog.querySelector("[data-fix-target]").textContent = btn.dataset.target;
-      fixDialog.querySelector("#fix-prompt").textContent = btn.dataset.fix;
-      fixDialog.querySelectorAll("[data-app-href]").forEach((a) => (a.href = a.dataset.appHref.replace("{q}", q)));
+      fixDialog.querySelector("#fix-prompt").value = btn.dataset.fix;
       openDialog(fixDialog);
     });
   }
@@ -334,17 +344,41 @@
     document.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-loop-prompt]");
       if (!btn) return;
-      const q = encodeURIComponent(btn.dataset.loopPrompt);
       btn.closest("details[data-menu]")?.removeAttribute("open");
       askDialog.querySelector("[data-prompt-title]").textContent = btn.dataset.title;
-      askDialog.querySelector("#loop-prompt").textContent = btn.dataset.loopPrompt;
-      askDialog.querySelectorAll("[data-app-href]").forEach((a) => (a.href = a.dataset.appHref.replace("{q}", q)));
+      askDialog.querySelector("#loop-prompt").value = btn.dataset.loopPrompt;
       openDialog(askDialog);
+    });
+  }
+
+  // ADD NEW LOOP: the prompt keeps the person's edits between openings.
+  const addDialog = document.querySelector("[data-add-loop-dialog]");
+  if (addDialog && typeof addDialog.showModal === "function") {
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-add-loop]")) return;
+      openDialog(addDialog);
+      addDialog.querySelector("#add-loop-prompt").focus();
     });
   }
 
   const grid = document.querySelector("[data-grid]");
   if (!grid) return;
+
+  // ?moved= comes from an agent's link: the loops its last write moved. Marked once, then dropped from the
+  // address so a reload or a shared copy doesn't keep pointing at them.
+  const params = new URLSearchParams(location.search);
+  const moved = new Set((params.get("moved") || "").split(",").filter(Boolean));
+  if (params.has("moved")) {
+    params.delete("moved");
+    const q = params.toString();
+    history.replaceState(null, "", location.pathname + (q ? `?${q}` : "") + location.hash);
+  }
+  let marked = 0;
+  grid.querySelectorAll(".cell[data-loop]").forEach((el) => {
+    if (!moved.has(el.dataset.loop)) return;
+    el.dataset.justMoved = "";
+    marked++;
+  });
 
   // Each cell's row and column across the whole grid. The build drains from the top left; isolation flips in a
   // wave that starts at the legend's side.
@@ -442,7 +476,8 @@
     unmount(cell);
   };
   let building = false;
-  if (motion && "IntersectionObserver" in window) {
+  // The build would cover the marked squares with flaps for its first seconds, so it sits this visit out.
+  if (motion && !marked && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;

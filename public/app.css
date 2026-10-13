@@ -153,6 +153,10 @@ small { display: block; color: var(--field-note-grey); font-size: 13px; }
 .help-icon { display: flex; flex: none; padding-top: 1px; color: var(--live-wire-green); }
 .help-box p { margin: 0 0 14px; color: var(--faded-bone); font-size: 14px; }
 .modal .copy pre { max-height: min(40vh, 16em); overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+.prompt-box { flex: 1; min-width: 0; min-height: 44px; max-height: min(40vh, 16em); margin: 0; padding: 12px; border: 1px solid var(--graphite-rule); border-radius: 4px; background: var(--hairline-ink); color: var(--bone-paper); font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; resize: vertical; field-sizing: content; transition: border-color 0.2s var(--ease-out); }
+.prompt-box:hover { border-color: var(--field-note-grey); }
+.prompt-box:focus-visible { outline: none; border-color: var(--live-wire-green); box-shadow: 0 0 0 1px var(--live-wire-green); }
+.modal .prompt-box { width: 100%; }
 
 .menu { position: relative; flex: none; }
 .menu > summary { gap: 8px; list-style: none; }
@@ -184,6 +188,7 @@ small { display: block; color: var(--field-note-grey); font-size: 13px; }
 .card h3 { margin-top: 0; }
 .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 8px; }
 .card-head h3 { margin: 0; }
+.card-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .tabs { display: inline-flex; border: 1px solid var(--graphite-rule); border-radius: 4px; overflow: hidden; }
 .tabs[hidden] { display: none; }
 .tabs button { min-height: 32px; padding: 0 12px; border: 0; border-left: 1px solid var(--graphite-rule); background: transparent; color: var(--field-note-grey); font: 11px var(--mono); letter-spacing: 0.1em; cursor: pointer; transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out); }
@@ -260,6 +265,10 @@ small { display: block; color: var(--field-note-grey); font-size: 13px; }
 .cell[data-flag="experimenting"] { outline: 1px solid var(--live-wire-green); outline-offset: 1px; }
 .cell[data-flag="holding"] { outline: 1px dashed var(--live-wire-green); outline-offset: 1px; }
 .grid[data-grid] .cell:not([data-s="empty"]):hover { outline: 1px solid var(--bone-paper); outline-offset: 1px; }
+/* Loops an agent's last write moved (?moved= in its link). The outline stays; the pulse runs 3 times. */
+.grid[data-grid] .cell[data-just-moved] { outline: 2px solid var(--live-wire-green); outline-offset: 2px; animation: just-moved 1.2s var(--ease-out) 3; }
+@keyframes just-moved { 50% { outline-offset: 5px; box-shadow: 0 0 12px rgba(198, 244, 50, 0.55); } }
+@media (prefers-reduced-motion: reduce) { .grid[data-grid] .cell[data-just-moved] { animation: none; } }
 /* Level isolation (app.js): squares at other levels dim; a level with no loops dims softly so the board never
    goes black. A dimmed square turning over shows at 40%. */
 .grid .cell[data-off] { opacity: 0.08; }

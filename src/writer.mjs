@@ -1,7 +1,7 @@
 // The single writer. Every change to the log goes through here, one at a time, so two agents
 // can never break a rule together. Reads go straight to D1.
 import { DurableObject } from "cloudflare:workers";
-import { compareViolations, publicView, validate } from "../lib/protocol.mjs";
+import { compareViolations, gridChange, publicView, validate } from "../lib/protocol.mjs";
 import { OWNER_OPS, RULE_CHANGE_OPS, ToolError, clone, diffState, ops, restore } from "./ops.mjs";
 import { effectiveMeta, ensureSchema, getEvents, isPublished, loadState, saveDiff, upgradeDiff } from "./store.mjs";
 
@@ -66,7 +66,7 @@ export class Writer extends DurableObject {
     }
 
     const diff = diffState(state, next);
-    if (!Object.keys(diff.after).length) return { ok: true, result: out.result, changed: false };
+    if (!Object.keys(diff.after).length) return { ok: true, result: out.result, target: out.target, grid: gridChange(state, state), changed: false };
     const eventId = await saveDiff(env.DB, diff, {
       at: now,
       actor,
@@ -79,7 +79,7 @@ export class Writer extends DurableObject {
       const changed = JSON.stringify(publicView(state)) !== JSON.stringify(publicView(next));
       if (changed && !(await this.ctx.storage.getAlarm())) await this.ctx.storage.setAlarm(Date.now() + HOOK_DELAY_MS);
     }
-    return { ok: true, result: out.result, event: eventId, violations: after.length };
+    return { ok: true, result: out.result, target: out.target, grid: gridChange(state, next), event: eventId, violations: after.length };
   }
 
   async alarm() {
