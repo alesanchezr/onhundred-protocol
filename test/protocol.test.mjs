@@ -12,6 +12,7 @@ import {
   nameIssues,
   publicView,
   renderGrid,
+  scopeIssues,
   validate,
   voiceIssues,
 } from "../lib/protocol.mjs";
@@ -130,6 +131,25 @@ test("voice: em-dashes, exclamation marks and retired words", () => {
   assert.ok(voiceIssues("Done!", "en").length > 0);
   assert.ok(voiceIssues("Run the weekly task", "en").length > 0);
   assert.deepEqual(voiceIssues("Pay the rent on time", "en"), []);
+});
+
+test("scope: optional, capped at 60 words, every language, public when published", async () => {
+  assert.ok(scopeIssues(Array(61).fill("word").join(" ")).length > 0);
+  assert.deepEqual(scopeIssues("Covers Friday nights. Birthday gifts are another loop."), []);
+  const state = await seed();
+  const published = state.loops.find((l) => l.code === "R-PAR-01");
+  assert.ok(published.scope?.en && published.scope?.es);
+  const view = publicView(state);
+  assert.equal(view.loops.find((l) => l.code === "R-PAR-01").scope.en, published.scope.en);
+  const privateLoop = view.loops.find((l) => l.code === "R-PAR-02");
+  assert.equal(privateLoop.private, true);
+  assert.equal(privateLoop.scope, undefined);
+  published.scope = { en: "Only English." };
+  assert.ok(validate(state).some((v) => v.rule === "text" && /scope.*es/.test(v.message)));
+  published.scope = { en: Array(61).fill("word").join(" "), es: "Cubre las noches de viernes." };
+  assert.ok(validate(state).some((v) => v.rule === "scope" && /60 or fewer/.test(v.message)));
+  published.scope = { en: "Covers Friday nights — and then some.", es: "Cubre las noches de viernes." };
+  assert.ok(validate(state).some((v) => v.rule === "voice" && /scope/.test(v.message)));
 });
 
 test("a write may not add violations, and may repair one at a time", () => {

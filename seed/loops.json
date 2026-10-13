@@ -10,6 +10,10 @@
       "en": "The table or tickets are booked and on both calendars.",
       "es": "La reserva está hecha y en los dos calendarios."
     },
+    "scope": {
+      "en": "Covers our regular night out and anniversary plans. Birthday gifts and kid weekends are other loops. Both of us have to be free; no booking that needs a last-minute sitter.",
+      "es": "Cubre nuestra noche habitual y los planes de aniversario. Los regalos de cumpleaños y los fines de semana con los niños son otros loops. Los dos tenemos que estar libres; sin reserva que necesite niñera de último momento."
+    },
     "estimate": {
       "howOften": "weekly",
       "hoursPerWeek": 1.5
@@ -44,6 +48,10 @@
       "en": "The gift is bought and arrives before the date.",
       "es": "El regalo está comprado y llega antes de la fecha."
     },
+    "scope": {
+      "en": "Only the anniversary gift for my partner. Birthday gifts and date-night bookings are other loops. Choosing the gift is in scope; wrapping and a card go with the same purchase.",
+      "es": "Solo el regalo de aniversario para mi pareja. Los regalos de cumpleaños y las reservas de cita son otros loops. Elegir el regalo cuenta; el envoltorio y una tarjeta van con la misma compra."
+    },
     "estimate": {
       "howOften": "yearly",
       "hoursPerWeek": 0.1
@@ -69,6 +77,10 @@
     "doneWhen": {
       "en": "Flights and lodging are booked and shared.",
       "es": "Los vuelos y el alojamiento están reservados y compartidos."
+    },
+    "scope": {
+      "en": "Overnight trips we take together. Date nights and family weekends stay in their loops. Flights and lodging only; activities on the trip are out of scope.",
+      "es": "Viajes con noche fuera que hacemos juntos. Las citas y los fines de semana en familia se quedan en sus loops. Solo vuelos y alojamiento; las actividades del viaje quedan fuera."
     },
     "estimate": {
       "howOften": "quarterly",

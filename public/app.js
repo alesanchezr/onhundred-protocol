@@ -69,6 +69,27 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !e.defaultPrevented) document.querySelectorAll("dialog.modal[open], dialog.drawer[open]").forEach((d) => d.close());
     });
+    // The box-shadow backdrop takes no clicks, so a press outside closes the dialog and its click never reaches the page.
+    let swallowClick = false;
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        const outside = [...document.querySelectorAll("dialog.modal[open], dialog.drawer[open]")].filter((d) => !d.contains(e.target));
+        outside.forEach((d) => d.close());
+        swallowClick = outside.length > 0;
+      },
+      true
+    );
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!swallowClick) return;
+        swallowClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      },
+      true
+    );
   }
 
   // Plain dialogs close on CANCEL, on the backdrop, and once an app opens.
@@ -135,11 +156,60 @@
   // Approve confirmation: each loop's button opens it; the checkbox widens it to every eligible loop.
   const dialog = document.querySelector("[data-approve-dialog]");
   if (dialog && typeof dialog.showModal === "function") {
-    const all = JSON.parse(dialog.dataset.codes || "[]");
+    let all = JSON.parse(dialog.dataset.codes || "[]");
     const q = (sel) => dialog.querySelector(sel);
     const inputs = q("[data-codes-inputs]");
     const allBox = q("[data-approve-all]");
+    const card = dialog.closest(".card");
+    const icon = card.querySelector("[data-open-icon]");
     let one = null;
+
+    // An approved row keeps its place, with a link to its loop page instead of the approve button.
+    const markApproved = (code, i) => {
+      const form = [...card.querySelectorAll("[data-approve-one]")].find((f) => f.elements.codes.value === code);
+      if (!form) return;
+      const row = form.closest("li");
+      row.style.setProperty("--k", i);
+      row.dataset.approved = "";
+      const a = document.createElement("a");
+      a.className = "icon-btn";
+      a.href = `/loop/${encodeURIComponent(code)}`;
+      a.title = `Open ${code}`;
+      a.setAttribute("aria-label", `Open ${code}`);
+      a.append(icon.content.cloneNode(true));
+      const flag = document.createElement("span");
+      flag.className = "flag-ok";
+      flag.textContent = "APPROVED";
+      form.previousElementSibling.querySelector("b").after(" ", flag);
+      form.replaceWith(a);
+    };
+
+    q("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const codes = [...inputs.querySelectorAll("input")].map((i) => i.value);
+      const submit = q("[data-approve-submit]");
+      submit.disabled = true;
+      try {
+        const res = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+        const r = await res.json();
+        if (!r.ok) {
+          location.href = `/?error=${encodeURIComponent(r.error || "The loop wasn't approved.")}`;
+          return;
+        }
+        let k = 0;
+        codes.forEach((c) => {
+          const row = card.querySelector(`[data-approve-one] input[value="${CSS.escape(c)}"]`)?.closest("li");
+          markApproved(c, row && !row.hidden ? k++ : 0);
+        });
+        all = all.filter((c) => !codes.includes(c));
+        dialog.close();
+      } catch {
+        form.submit();
+      } finally {
+        submit.disabled = false;
+      }
+    });
 
     const render = () => {
       const codes = allBox.checked ? all : [one.code];
@@ -152,13 +222,15 @@
           return i;
         })
       );
-      q("[data-approve-title]").textContent = allBox.checked ? `Approve all ${all.length} loops?` : `Approve ${one.code}?`;
-      q("[data-approve-loop]").textContent = allBox.checked ? "" : one.name;
+      q("[data-approve-title]").textContent = allBox.checked ? `Approve all ${all.length} loops?` : "Approve this loop?";
+      q("[data-approve-code]").textContent = one.code;
+      q("[data-approve-name]").textContent = one.name;
       q("[data-approve-loop]").hidden = allBox.checked;
       const rep = q("[data-approve-replaces]");
       rep.textContent = one.replaces ? `It replaces ${one.replaces}, which ${one.replaces.includes(",") ? "are" : "is"} retired at the same time.` : "";
       rep.hidden = allBox.checked || !one.replaces;
       q("[data-approve-submit]").textContent = allBox.checked ? `APPROVE ALL ${all.length}` : "APPROVE";
+      q("[data-approve-all-label]").textContent = `Approve all ${all.length} proposed loops that pass the rules`;
     };
 
     document.addEventListener("submit", (e) => {
@@ -178,6 +250,23 @@
       if (e.target === dialog) dialog.close();
     });
   }
+
+  // Branch tabs: one branch is always shown. Company first, or the first branch with rows.
+  document.querySelectorAll("[data-branch-filter]").forEach((card) => {
+    const bar = card.querySelector(".tabs");
+    if (!bar) return;
+    const tabs = [...bar.querySelectorAll("[data-branch-tab]")];
+    const rows = [...card.querySelectorAll("[data-branch]")];
+    const select = (branch) => {
+      tabs.forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.branchTab === branch)));
+      rows.forEach((r) => (r.hidden = r.dataset.branch !== branch));
+    };
+    tabs.forEach((t) => t.addEventListener("click", () => select(t.dataset.branchTab)));
+    const enabled = tabs.filter((t) => !t.disabled);
+    const first = enabled.find((t) => t.dataset.branchTab === "C") || enabled[0];
+    if (first) select(first.dataset.branchTab);
+    bar.hidden = false;
+  });
 
   // The small grid in the readout opens and closes the full one.
   const gridToggle = document.querySelector("[data-grid-toggle]");
@@ -257,6 +346,128 @@
   const grid = document.querySelector("[data-grid]");
   if (!grid) return;
 
+  // Each cell's row and column across the whole grid. The build drains from the top left; isolation flips in a
+  // wave that starts at the legend's side.
+  const boxes = [...grid.querySelectorAll(".cells")];
+  const colsOf = (box) => Number(box.style.getPropertyValue("--cols")) || 1;
+  const totalCols = boxes.reduce((t, box) => t + colsOf(box), 0);
+  const maxRows = Math.max(0, ...boxes.map((box) => Math.ceil(box.children.length / colsOf(box))));
+  const cellPos = new Map();
+  let colOffset = 0;
+  boxes.forEach((box) => {
+    const cols = colsOf(box);
+    [...box.children].forEach((c, i) => cellPos.set(c, { r: Math.floor(i / cols), c: colOffset + (i % cols) }));
+    colOffset += cols;
+  });
+  const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches && !!Element.prototype.animate;
+  const legendList = document.querySelector(".legend");
+  const legendBelow = () => legendList && legendList.getBoundingClientRect().top >= grid.getBoundingClientRect().bottom - 1;
+
+  // Build: the first time the grid is on screen it runs like a split-flap board. Blank flaps climb to solid green,
+  // the board holds on 100 of 100, then drains in a wave from the top left, each square flipping down the ladder
+  // to its real state and slowing as it falls. The flaps exist only while they turn.
+  // The figure counts along: it shows the points of the cards facing up, then lands on the server's value.
+  const UP = ["unmapped", "mapped", "assisted", "delegated", "autonomous"];
+  const DOWN = ["autonomous", "delegated", "assisted", "mapped", "unmapped", "empty"];
+  const CLIMB_FLIP = 70;
+  const DRAIN_FLIPS = [100, 125, 150, 175, 200];
+  const HOLD_UNTIL = 1000;
+  const figure = document.querySelector(".readout .pct");
+  const finalFigure = figure?.textContent;
+  const POINTS = { autonomous: 1, delegated: 1, assisted: Number(figure?.dataset.assistedWeight) || 0 };
+  let live = 0;
+  let shown = 0;
+  let raf = 0;
+  const tick = () => {
+    const gap = live - shown;
+    shown = Math.abs(gap) < 0.05 ? live : shown + gap * 0.14;
+    figure.textContent = String(Math.round(shown * 10) / 10);
+    raf = shown === live ? 0 : requestAnimationFrame(tick);
+  };
+  const countTo = (n) => {
+    live = n;
+    if (figure && !raf) raf = requestAnimationFrame(tick);
+  };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
+  const half = (cls, face) => {
+    const b = document.createElement("b");
+    b.className = cls;
+    b.dataset.s = face;
+    return b;
+  };
+  const mount = (el, face) => {
+    const sf = document.createElement("span");
+    sf.className = "sf";
+    const parts = { top: half("top", face), bot: half("bot", face), ft: half("top flap", face), fb: half("bot flap", face) };
+    sf.append(parts.top, parts.bot, parts.ft, parts.fb);
+    el.dataset.flipping = "";
+    el.append(sf);
+    return { el, sf, parts, face };
+  };
+  const unmount = (cell) => {
+    cell.sf.remove();
+    delete cell.el.dataset.flipping;
+  };
+  const flip = async (cell, to, duration, count = false) => {
+    const p = cell.parts;
+    p.top.dataset.s = to;
+    p.bot.dataset.s = cell.face;
+    p.ft.dataset.s = cell.face;
+    p.fb.dataset.s = to;
+    p.ft.style.visibility = "visible";
+    const fall = p.ft.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-90deg)" }], { duration: duration * 0.5, easing: "cubic-bezier(0.55, 0, 1, 0.45)", fill: "forwards" });
+    await fall.finished;
+    p.ft.style.visibility = "hidden";
+    fall.cancel();
+    if (count) countTo(live + (POINTS[to] || 0) - (POINTS[cell.face] || 0));
+    cell.face = to;
+    p.fb.style.visibility = "visible";
+    const land = p.fb.animate(
+      [{ transform: "rotateX(90deg)" }, { transform: "rotateX(-8deg)", offset: 0.75 }, { transform: "rotateX(0deg)" }],
+      { duration: duration * 0.62, easing: "cubic-bezier(0.2, 0, 0.4, 1)", fill: "forwards" }
+    );
+    await land.finished;
+    p.bot.dataset.s = to;
+    p.fb.style.visibility = "hidden";
+    land.cancel();
+  };
+  const buildCell = async (el, start) => {
+    const cell = mount(el, "blank");
+    const { r = 0, c = 0 } = cellPos.get(el) || {};
+    await sleep(Math.random() * 150);
+    for (const s of UP) await flip(cell, s, CLIMB_FLIP, true);
+    await sleep(start + HOLD_UNTIL - performance.now() + (r + c) * 22 + Math.random() * 160);
+    const end = DOWN.indexOf(el.dataset.s);
+    for (let i = 1; i <= end; i++) await flip(cell, DOWN[i], DRAIN_FLIPS[i - 1], true);
+    unmount(cell);
+  };
+  let building = false;
+  if (motion && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        const start = performance.now();
+        if (figure) figure.textContent = "0";
+        building = true;
+        Promise.all([...grid.querySelectorAll(".cell")].map((el) => buildCell(el, start))).then(() => {
+          building = false;
+          if (!figure) return;
+          countTo(Number(finalFigure) || 0);
+          // Slow frames can leave the roll short of the end; the server's value always gets the last word.
+          setTimeout(() => {
+            cancelAnimationFrame(raf);
+            raf = 0;
+            shown = live;
+            figure.textContent = finalFigure;
+          }, 1000);
+        });
+      },
+      { threshold: 0.2 }
+    );
+    io.observe(grid);
+  }
+
   // Area focus
   const areaButtons = [...grid.querySelectorAll("[data-area-btn]")];
   areaButtons.forEach((b) =>
@@ -268,12 +479,84 @@
     })
   );
 
-  // Legend hover: dims every cell at another level. Click locks it until clicked again.
+  // Legend hover: dims every cell at another level, and each area label shows how many it has at that level.
+  // Every square flips to the middle of the ladder and back to its real face, in a wave from the legend's side.
+  // A newer level takes over mid-wave: a flip already turning finishes, then the square heads for the new target.
+  // Click locks a level until clicked again.
+  const LEGEND_MID = "assisted";
+  const LEGEND_FLIP = 80;
+  const gridCells = [...grid.querySelectorAll(".cell")];
+  const levelCounts = {};
+  gridCells.forEach((el) => (levelCounts[el.dataset.s] = (levelCounts[el.dataset.s] || 0) + 1));
+  const areaCounts = [...grid.querySelectorAll(".area")].map((area) => {
+    const n = document.createElement("span");
+    n.className = "n";
+    n.hidden = true;
+    area.querySelector(".area-label")?.append(n);
+    return { n, cells: [...area.querySelectorAll(".cell")] };
+  });
+  const jobs = new Map();
+  const turning = new Set();
+  const setOff = (el, off) => {
+    if (off) el.dataset.off = off;
+    else delete el.dataset.off;
+  };
+  const turn = async (el) => {
+    if (turning.has(el)) return;
+    turning.add(el);
+    let cell = null;
+    while (jobs.has(el)) {
+      const job = jobs.get(el);
+      await sleep(job.at - performance.now());
+      if (jobs.get(el) !== job) continue;
+      setOff(el, job.off);
+      if (building) {
+        jobs.delete(el);
+        break;
+      }
+      cell ||= mount(el, el.dataset.s);
+      el.dataset.turning = "";
+      for (const s of [LEGEND_MID, el.dataset.s]) {
+        if (jobs.get(el) !== job) break;
+        if (cell.face !== s) await flip(cell, s, LEGEND_FLIP);
+      }
+      if (jobs.get(el) === job) {
+        jobs.delete(el);
+        delete el.dataset.turning;
+      }
+    }
+    if (cell) unmount(cell);
+    turning.delete(el);
+  };
+
   const levelItems = [...document.querySelectorAll(".legend [data-level]")];
   let lockedLevel = null;
+  let shownLevel = null;
+  let dwell = 0;
   const focusLevel = (level) => {
-    if (level) grid.dataset.levelFocus = level;
-    else delete grid.dataset.levelFocus;
+    clearTimeout(dwell);
+    if (level === shownLevel) return;
+    shownLevel = level;
+    areaCounts.forEach(({ n, cells }) => {
+      n.hidden = !level;
+      n.textContent = level ? cells.filter((el) => el.dataset.s === level).length : "";
+    });
+    const dim = levelCounts[level] ? "dim" : "soft";
+    const below = legendBelow();
+    const now = performance.now();
+    gridCells.forEach((el) => {
+      const off = level && el.dataset.s !== level ? dim : "";
+      if (!motion) return setOff(el, off);
+      const { r = 0, c = 0 } = cellPos.get(el) || {};
+      const wave = below ? (maxRows - 1 - r) * 10 : (totalCols - 1 - c) * 14;
+      jobs.set(el, { off, at: now + wave + Math.random() * 40 });
+      turn(el);
+    });
+  };
+  // Sweeping the pointer down the legend shouldn't start a wave for every item it crosses.
+  const previewLevel = (level) => {
+    clearTimeout(dwell);
+    dwell = setTimeout(() => focusLevel(level), 60);
   };
   const toggleLock = (li) => {
     lockedLevel = lockedLevel === li.dataset.level ? null : li.dataset.level;
@@ -284,8 +567,8 @@
     li.setAttribute("role", "button");
     li.setAttribute("tabindex", "0");
     li.setAttribute("aria-pressed", "false");
-    li.addEventListener("mouseenter", () => focusLevel(li.dataset.level));
-    li.addEventListener("mouseleave", () => focusLevel(lockedLevel));
+    li.addEventListener("mouseenter", () => previewLevel(li.dataset.level));
+    li.addEventListener("mouseleave", () => previewLevel(lockedLevel));
     li.addEventListener("click", () => toggleLock(li));
     li.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;

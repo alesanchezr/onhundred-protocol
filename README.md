@@ -91,7 +91,7 @@ Each loop climbs 3 levels: **Help me**, **Do it, I approve** and **Do it alone**
     </td>
     <td width="33%" valign="top">
       <h4>You approve what goes public</h4>
-      Names, questions, bets and lessons an agent writes wait for you, in your AI app or on your log page.
+      Names, done-when, scope, questions, bets and lessons an agent writes wait for you, in your AI app or on your log page.
     </td>
   </tr>
   <tr>
@@ -209,7 +209,7 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 | Tool | What it does |
 | --- | --- |
 | `propose_loops` | Proposes new loops. They stay hidden until the owner approves them. |
-| `rename_loop` | Changes a name or "done when". On an approved loop it waits for approval. |
+| `rename_loop` | Changes a name, "done when" or scope. On an approved loop it waits for approval. |
 | `update_loop` | Updates the estimate, triage scores, evidence or grid order. |
 | `split_loop` | Proposes 2 or more loops to replace 1. |
 | `merge_loops` | Proposes 1 loop to replace 2 or more. |
@@ -254,7 +254,7 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 ## How changes work
 
 - **Every change is checked.** A change that would break a protocol rule is rejected with the rule it broke. A log that's already broken can be repaired 1 step at a time.
-- **Public text waits for you.** Names, questions, bets and lessons an agent writes stay pending until you approve them, in your AI app or on your log page.
+- **Public text waits for you.** Names, done-when, scope, questions, bets and lessons an agent writes stay pending until you approve them, in your AI app or on your log page.
 - **Levels never change by hand.** Only held stages raise them and drops lower them.
 - **Nothing is erased.** The history is append-only. An undo is a new event that restores the old value.
 

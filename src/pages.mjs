@@ -1,6 +1,7 @@
 // Server-rendered pages. Dark first. Every value that came from a client or an agent is escaped.
 import {
   LEVELS,
+  assistedWeight,
   ceilingOf,
   changeIsCurrent,
   compareVersions,
@@ -217,7 +218,7 @@ function readout(view, meta, owner) {
   rows.push(row("PROTOCOL", `v${esc(meta.protocolVersion)}`, current ? esc(changeNote(change)) : ""));
   const mini = drawGrid(view, meta, { compact: true });
   return `<section class="readout">
-<div class="readout-main"><h1 class="figure"><span class="pct">${m.delegatedPoints}</span><span class="cap">OF ${P.limits.loops}<br>DELEGATED</span></h1>${owner ? `<a class="btn small" href="/?view=public" target="_blank" rel="noopener" aria-label="Check your public dashboard (opens in a new tab)">CHECK YOUR PUBLIC DASHBOARD${NEW_TAB_ICON}</a>` : ""}</div>
+<div class="readout-main"><h1 class="figure"><span class="pct" data-assisted-weight="${assistedWeight(m.version || P.version)}">${m.delegatedPoints}</span><span class="cap">OF ${P.limits.loops}<br>DELEGATED</span></h1>${owner ? `<a class="btn small" href="/?view=public" target="_blank" rel="noopener" aria-label="Check your public dashboard (opens in a new tab)">CHECK YOUR PUBLIC DASHBOARD${NEW_TAB_ICON}</a>` : ""}</div>
 <dl class="status">${rows.join("")}</dl>
 <a class="grid mini" href="#activity" role="button" aria-expanded="false" aria-controls="activity" data-grid-toggle style="grid-template-columns:${mini.columns}" aria-label="Show the full delegation grid">${mini.html}</a>
 </section>`;
@@ -369,8 +370,13 @@ const WARNING_ICON = phosphor(
   "M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM216,199.85a.42.42,0,0,1-.53.15H40.55a.42.42,0,0,1-.53-.15.31.31,0,0,1,0-.31L127.45,47.67a.58.58,0,0,1,1.1,0L216,199.54A.31.31,0,0,1,216,199.85ZM116,136V104a12,12,0,0,1,24,0v32a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,176Z"
 );
 
+const ARROW_RIGHT_ICON = phosphor(
+  "M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"
+);
+
 // One approve button per loop. Without JavaScript each button posts on its own; with it, the
 // button opens the confirmation dialog, which can also approve every loop that passes the rules.
+// Approved from the dialog, a row stays until the next load, with a link to its loop page.
 // fixable(code, rules) returns the FIX prompt for a loop that breaks a rule; null without a connected AI app.
 function proposedCard(proposed, broken, lang, published, fixable) {
   const eligible = proposed.filter((l) => !broken.has(l.code));
@@ -382,17 +388,18 @@ function proposedCard(proposed, broken, lang, published, fixable) {
       const button = bad
         ? `<button class="icon-btn warn" type="button" title="Why ${esc(l.code)} can't be approved yet" aria-label="Why ${esc(l.code)} can't be approved yet" data-rule-break="${esc(JSON.stringify(broken.get(l.code)))}"${fixable ? ` data-fix-prompt="${esc(fixable(l.code, broken.get(l.code)))}"` : ""} data-code="${esc(l.code)}" data-name="${esc(name)}">${WARNING_ICON}</button>`
         : `<form method="post" action="/owner/action" data-approve-one><input type="hidden" name="op" value="approve_loops"><input type="hidden" name="codes" value="${esc(l.code)}"><button class="icon-btn" type="submit" title="Approve ${esc(l.code)}" aria-label="Approve ${esc(l.code)}: ${esc(name)}" data-code="${esc(l.code)}" data-name="${esc(name)}" data-replaces="${esc(replaces)}">${CHECK_ICON}</button></form>`;
-      return `<li class="row approve-row"><span class="code">${esc(l.code)}</span><span><b>${esc(name)}</b>${bad ? ` <span class="flag-bad">BREAKS A RULE · RENAME FIRST</span>` : ""}<small>Done when: ${esc(pickText(l.doneWhen, lang))}${replaces ? ` · replaces ${esc(replaces)}` : ""} · by ${esc(l.proposedBy || "")}</small></span>${button}</li>`;
+      const scope = pickText(l.scope, lang);
+      return `<li class="row approve-row" data-branch="${esc(parseCode(l.code)?.branch || "")}"><span class="code">${esc(l.code)}</span><span><b>${esc(name)}</b>${bad ? ` <span class="flag-bad">BREAKS A RULE · RENAME FIRST</span>` : ""}<small>Done when: ${esc(pickText(l.doneWhen, lang))}${scope ? ` · Scope: ${esc(scope)}` : ""}${replaces ? ` · replaces ${esc(replaces)}` : ""} · by ${esc(l.proposedBy || "")}</small></span>${button}</li>`;
     })
     .join("");
   const visibility = published
-    ? "Its name and \u201cdone when\u201d become public: anyone can read them on your log page and in /public.json."
-    : "Its name and \u201cdone when\u201d become part of your log. Your log is private now; if you publish it, anyone can read them.";
+    ? "Its name, \u201cdone when\u201d and scope become public: anyone can read them on your log page and in /public.json."
+    : "Its name, \u201cdone when\u201d and scope become part of your log. Your log is private now; if you publish it, anyone can read them.";
   const dialog = `<dialog class="modal" data-approve-dialog data-codes="${esc(JSON.stringify(eligible.map((l) => l.code)))}" aria-labelledby="approve-title">
 <form method="post" action="/owner/action">
 <input type="hidden" name="op" value="approve_loops"><div data-codes-inputs></div>
 <h3 id="approve-title" data-approve-title>Approve this loop?</h3>
-<p class="modal-loop" data-approve-loop></p>
+<p class="modal-target" data-approve-loop><span class="code" data-approve-code></span><span data-approve-name></span></p>
 <p>Approving adds a loop to your inventory for good:</p>
 <ul class="modal-list">
 <li>It counts toward your ${P.limits.loops} loops.</li>
@@ -401,19 +408,27 @@ function proposedCard(proposed, broken, lang, published, fixable) {
 <li>Its code is never reused. To take it out later you retire it, and the history keeps both steps.</li>
 <li data-approve-replaces hidden></li>
 </ul>
-<label class="modal-all"><input type="checkbox" data-approve-all> Approve all ${eligible.length} proposed loops that pass the rules</label>
+<label class="modal-all"><input type="checkbox" data-approve-all> <span data-approve-all-label>Approve all ${eligible.length} proposed loops that pass the rules</span></label>
 <div class="actions"><button class="btn signal" type="submit" data-approve-submit>APPROVE</button><button class="btn" type="button" data-approve-cancel>CANCEL</button></div>
 </form>
 </dialog>
 <dialog class="modal" data-dialog data-rule-dialog aria-labelledby="rule-title">
 <h3 id="rule-title"><span data-rule-code></span> breaks a rule</h3>
-<p class="modal-loop" data-rule-name></p>
+<p class="modal-target" data-rule-name></p>
 <ul class="modal-list" data-rule-list></ul>
 <p>It can't be approved with this text. Rename it with your AI app, then approve the new name here.</p>
 <div class="actions"><button class="btn" type="button" data-dialog-close>CLOSE</button>${fixable ? `<button class="btn signal fix-btn" type="button" data-dialog-close data-rule-fix>${ROBOT_ICON}FIX</button>` : ""}</div>
 </dialog>`;
   const hint = broken.size && eligible.length < proposed.length ? " Loops that break a rule need a new name first." : "";
-  return `<div class="card"><h3>Proposed loops (${proposed.length})</h3><p class="hint">Approve each loop with its button.${hint}</p><ul class="plain">${rows}</ul>${dialog}</div>`;
+  const counts = {};
+  for (const l of proposed) {
+    const b = parseCode(l.code)?.branch;
+    counts[b] = (counts[b] || 0) + 1;
+  }
+  const tabs = P.branchOrder
+    .map((b) => `<button type="button" aria-pressed="false" data-branch-tab="${b}"${counts[b] ? "" : " disabled"}>${esc(P.branches[b].name.toUpperCase())}<span class="n">${counts[b] || 0}</span></button>`)
+    .join("");
+  return `<div class="card" data-branch-filter><div class="card-head"><h3>Proposed loops (${proposed.length})</h3><div class="tabs" role="group" aria-label="Filter by branch" hidden>${tabs}</div></div><p class="hint">Approve each loop with its button.${hint}</p><ul class="plain">${rows}</ul>${dialog}<template data-open-icon>${ARROW_RIGHT_ICON}</template></div>`;
 }
 
 const fixPrompt = (target, rules, version) =>
@@ -495,12 +510,12 @@ function pendingSection(state, published, connected) {
       `<form method="post" action="/owner/action" class="card"><input type="hidden" name="op" value="approve_baseline"><input type="hidden" name="code" value="${esc(l.code)}"><h3>Baseline for ${esc(l.code)}</h3><p>${esc(pickText(l.name, lang))}: ${esc(b.hoursPerWeek)} h a week, $${esc(b.moneyUsd)}, ${esc(b.occurrences)} occurrences (${esc(b.confidence)} confidence)${b.quality ? `, ${esc(b.quality)}` : ""}.</p><button class="btn" type="submit">APPROVE BASELINE</button></form>`
     );
   }
-  return `<section class="block">${sectionTitle(WAITING_ICON, "WAITING FOR YOU")}${parts.join("")}</section>`;
+  return `<section class="block">${sectionTitle(WAITING_ICON, "<mark>WAITING</mark> FOR YOU")}${parts.join("")}</section>`;
 }
 
 const HISTORY_LABELS = {
   propose_loops: "Loops proposed",
-  rename_loop: "New name or done-when proposed",
+  rename_loop: "New name, done-when or scope proposed",
   update_loop: "Estimate or triage updated",
   split_loop: "Split proposed",
   merge_loops: "Merge proposed",
@@ -607,7 +622,7 @@ const UPDOWN_ICON = phosphor(
 const EVENT_LABELS = {
   propose_loops: "Proposed",
   approve_loops: "Approved by the owner",
-  rename_loop: "New name or done-when proposed",
+  rename_loop: "New name, done-when or scope proposed",
   approve_text: "New text published",
   reject_text: "Proposed text discarded",
   update_loop: "Estimate or triage updated",
@@ -868,6 +883,10 @@ function loopActions(loop, exps, name, areaName) {
   }
   if (items.length) items.push(null);
   add("Rename", `rename ${who}. Read onhundred://docs/loops and onhundred://docs/voice, propose 3 names in every language of the log, and wait for my pick before rename_loop.`);
+  add(
+    "Write the scope",
+    `write the scope for ${who}. Read onhundred://docs/loops and onhundred://docs/voice. Ask whether a neighbor loop could be confused with it. If yes, propose a scope in every language of the log (what counts, what doesn't, fixed constraints). If not, explain why none is needed. Wait for my pick before rename_loop.`
+  );
   add("Update the estimate", `update the estimate and triage of ${who}. Ask me what changed, then call update_loop.`);
   add("Split", `split ${who}, into smaller loops. Read onhundred://docs/loops, propose the new loops, and ask me whether the baseline still applies before split_loop.`);
   add("Merge", `merge ${who}, with another ${areaName} loop. Show me the candidates and the merged name before merge_loops.`);
@@ -912,6 +931,7 @@ export function loopPage({ state, owner, code, events = [], connected = false, u
   const areaName = branch?.areas[p.area] || p.area;
   const name = loop.private ? "Private loop" : pickText(loop.name, lang);
   const done = loop.private ? "" : pickText(loop.doneWhen, lang);
+  const scope = loop.private ? "" : pickText(loop.scope, lang);
   const exps = view.experiments
     .filter((e) => e.loops.includes(code))
     .sort((a, z) => (a.registeredAt === z.registeredAt ? (a.code < z.code ? 1 : -1) : a.registeredAt < z.registeredAt ? 1 : -1));
@@ -923,7 +943,7 @@ export function loopPage({ state, owner, code, events = [], connected = false, u
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">LOG</a></li><li>${esc((branch?.name || p.branch).toUpperCase())}</li><li>${esc(areaName.toUpperCase())}</li><li aria-current="page">${esc(code)}</li></ol><span class="stepper">${step(prev, "PREV")}${step(next, "NEXT")}</span></nav>`;
 
   const actionable = owner && !loop.retired && !loop.proposed;
-  const head = `<section class="loop-head"><div><h1>${esc(name)}</h1>${done ? `<p class="done"><span class="label">DONE WHEN</span>${esc(done)}</p>` : ""}${loop.private ? `<p class="done">This loop stays private until the person in it agrees to publish it.</p>` : ""}</div>${actionable ? `<div class="head-side">${askMenu(loop, exps, name, areaName, connected)}</div>` : ""}</section>`;
+  const head = `<section class="loop-head"><div><h1>${esc(name)}</h1>${done ? `<p class="done"><span class="label">DONE WHEN</span>${esc(done)}</p>` : ""}${scope ? `<p class="scope"><span class="label">SCOPE</span>${esc(scope)}</p>` : ""}${loop.private ? `<p class="done">This loop stays private until the person in it agrees to publish it.</p>` : ""}</div>${actionable ? `<div class="head-side">${askMenu(loop, exps, name, areaName, connected)}</div>` : ""}</section>`;
 
   const notices = [];
   if (loop.retired) notices.push(notice(`Retired ${esc(upDate(loop.retiredAt))}${loop.retiredReason ? `: ${esc(loop.retiredReason)}` : ""}. Only you can see this page, and the code is never reused.`, "bad"));

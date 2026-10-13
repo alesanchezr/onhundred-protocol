@@ -38,6 +38,7 @@ const loopSpec = obj(
     area: str("BRANCH-AREA, like R-PAR or C-SAL (protocol section 2.4)."),
     name: textObj("A verb and an object, 8 words or fewer, no names of people. Name what the loop produces, not the decision behind it."),
     doneWhen: textObj("The result outside your head, in 1 line."),
+    scope: textObj("Optional. What counts as this loop and what doesn't, in 1 to 3 sentences. Ask whether a neighbor loop could be confused with it; if not, leave it out. Never restate doneWhen or list steps."),
     estimate: estimateSchema,
     triage: triageSchema,
     evidence: str("Where in the history this loop showed up. Never published."),
@@ -46,7 +47,14 @@ const loopSpec = obj(
   ["area", "name", "doneWhen"]
 );
 const newLoopSpec = obj(
-  { name: loopSpec.properties.name, doneWhen: loopSpec.properties.doneWhen, estimate: estimateSchema, triage: triageSchema, evidence: loopSpec.properties.evidence },
+  {
+    name: loopSpec.properties.name,
+    doneWhen: loopSpec.properties.doneWhen,
+    scope: loopSpec.properties.scope,
+    estimate: estimateSchema,
+    triage: triageSchema,
+    evidence: loopSpec.properties.evidence,
+  },
   ["name", "doneWhen"]
 );
 const levels = { type: "string", enum: P.levels };
@@ -222,7 +230,7 @@ const TOOLS = [
   {
     name: "list_pending",
     title: "List what waits for approval",
-    description: "Everything waiting for the owner: proposed loops, retirements, baselines, and text agents wrote (names, doneWhen, questions, bets, lessons) next to the live version. breaksNewRules lists what a new protocol version flags: rename those first.",
+    description: "Everything waiting for the owner: proposed loops, retirements, baselines, and text agents wrote (names, doneWhen, scope, questions, bets, lessons) next to the live version. breaksNewRules lists what a new protocol version flags: rename those first.",
     inputSchema: obj({}),
     annotations: { title: "List what waits for approval", ...READ },
     run: async (_a, call) => {
@@ -231,7 +239,9 @@ const TOOLS = [
       return {
         breaksNewRules: { version: breaks.version, adopted: breaks.adopted, items: breaks.items.map((v) => v.message) },
         text: pendingItems(state).map((i) => ({ target: i.target, kind: i.kind, live: Object.fromEntries(Object.keys(i.pending).map((k) => [k, i.ref[k] ?? null])), pending: i.pending })),
-        proposedLoops: state.loops.filter((l) => l.proposed && !l.retired).map((l) => ({ code: l.code, name: l.name, doneWhen: l.doneWhen, replaces: l.replaces, proposedBy: l.proposedBy })),
+        proposedLoops: state.loops
+          .filter((l) => l.proposed && !l.retired)
+          .map((l) => ({ code: l.code, name: l.name, doneWhen: l.doneWhen, scope: l.scope, replaces: l.replaces, proposedBy: l.proposedBy })),
         retirements: state.loops.filter((l) => l.retireProposed && !l.retired).map((l) => ({ code: l.code, ...l.retireProposed })),
         baselines: state.loops.filter((l) => l.pendingBaseline).map((l) => ({ code: l.code, ...l.pendingBaseline })),
       };
@@ -256,7 +266,12 @@ const TOOLS = [
 
   // Agent writes
   writeTool("propose_loops", "Propose loops", "Proposes new loops. Codes are assigned for you. Proposals stay hidden until the owner approves them. Read onhundred://docs/loops first: every loop passes the six tests.", obj({ loops: { type: "array", items: loopSpec } }, ["loops"])),
-  writeTool("rename_loop", "Rename a loop", "Changes a loop's name or doneWhen. On an approved loop the new text waits as pending until the owner approves it.", obj({ code: str("Loop code."), name: loopSpec.properties.name, doneWhen: loopSpec.properties.doneWhen }, ["code"])),
+  writeTool(
+    "rename_loop",
+    "Rename a loop",
+    "Changes a loop's name, doneWhen or scope. On an approved loop the new text waits as pending until the owner approves it.",
+    obj({ code: str("Loop code."), name: loopSpec.properties.name, doneWhen: loopSpec.properties.doneWhen, scope: loopSpec.properties.scope }, ["code"])
+  ),
   writeTool("update_loop", "Update a loop's estimate", "Updates estimate, triage scores, evidence, over500 or visibility (0 to 9, higher shows first on the grid). Levels never change here.", obj({ code: str("Loop code."), estimate: estimateSchema, triage: triageSchema, evidence: loopSpec.properties.evidence, over500: loopSpec.properties.over500, visibility: int("0 to 9.") }, ["code"])),
   writeTool("split_loop", "Split a loop", "Proposes 2 or more loops in the same area to replace 1. The old loop retires when the owner approves. keepBaseline starts them at mapped when the measured baseline still applies.", obj({ code: str("Loop to split."), into: { type: "array", items: newLoopSpec }, keepBaseline: bool("The old baseline still applies.") }, ["code", "into"])),
   writeTool("merge_loops", "Merge loops", "Proposes 1 loop to replace 2 or more in the same area. The old loops retire when the owner approves.", obj({ codes: { type: "array", items: { type: "string" } }, into: newLoopSpec }, ["codes", "into"])),
@@ -353,7 +368,7 @@ const PROMPTS = [
     name: "build_inventory",
     title: "Help me build my 100 loops",
     description: "Find, name and propose the loops of your life and work.",
-    text: "Help me build my 100 loops. Read onhundred://docs/loops and onhundred://docs/voice first, then call get_state. Ask me what you can read (calendar, email, documents) and work through one branch at a time: Relationships, Personal, Company. For every loop check the six tests, then propose it with propose_loops, in every language of the log. Show me each batch before you send it. Approving is my call.",
+    text: "Help me build my 100 loops. Read onhundred://docs/loops and onhundred://docs/voice first, then call get_state. Ask me what you can read (calendar, email, documents) and work through one branch at a time: Relationships, Personal, Company. For every loop check the six tests, decide whether it needs a scope, then propose it with propose_loops, in every language of the log. Show me each batch before you send it. Approving is my call.",
   },
   {
     name: "fill_slots",
@@ -374,7 +389,7 @@ function instructions(meta) {
   return [
     `Onhundred Protocol log${meta.ownerName ? ` for ${meta.ownerName}` : ""}. Mode: ${meta.mode}. It runs protocol v${meta.protocolVersion}.`,
     "Read onhundred://docs/loops before you propose or rename a loop, and onhundred://docs/voice before you write any public text.",
-    `Write names, doneWhen, questions, bets and lessons in every language of the log: ${langs}.`,
+    `Write names, doneWhen, scope, questions, bets and lessons in every language of the log: ${langs}.`,
     "Text you write waits as pending until the owner approves it with approve_text. Show the person the exact text before that call.",
     "Levels never change by hand: only record_hold and record_drop move them.",
     "Every write is checked against the protocol. A rejected write returns the rule it broke: fix it and try again.",

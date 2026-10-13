@@ -74,6 +74,25 @@ A proposed loop has to pass all six. If it fails one, rewrite it, split it or dr
 
 **Verbs that usually fail:** decide, choose, remember, remind, track, monitor, keep an eye on, stay on top of, think about, prepare, review, manage, handle. Ask "and then what happens?" and write that instead.
 
+## How to write the scope
+
+The name says what. Done when says when it is finished. **Scope** draws the boundary: what counts as this loop and what doesn't. It is optional and public. 1 to 3 sentences, 60 words or fewer per language.
+
+**Before you leave it empty, ask:** would a stranger or another agent confuse this loop with a neighbor in the same area? If yes, write a scope. If the name and done when already pass the stranger and one-rule tests alone, leave it out.
+
+When you write one, cover only what matters:
+
+1. **What counts** — the recurring cases this loop covers.
+2. **What doesn't** — name the neighboring loop or the work that stays with the person.
+3. **Fixed constraints** — budget band, channel, roles (never names), or cadence notes that `howOften` can't hold.
+
+**Never:** restate done when, list steps (those belong in experiment stages), or put evidence or history here.
+
+| Loop | Scope |
+| --- | --- |
+| Plan and book our date night | Covers our regular night out and anniversary plans. Birthday gifts and kid weekends are other loops. Both of us have to be free; no booking that needs a last-minute sitter. |
+| Pay the monthly bills | *(none — name and done when already draw the line)* |
+
 ## Picking the loops to start with
 
 The inventory needs all 100. The first 3 need to be good stories. On top of the six tests:
@@ -107,6 +126,7 @@ One row per loop, with these columns:
 | Code | BRANCH-AREA-NN |
 | Loop | The name, following the rules above |
 | Done when | The result outside your head, in one line ("The plan is booked and on the family calendar.") |
+| Scope | Optional. What counts and what doesn't, when a neighbor could confuse the boundary. Leave empty when name and done when are enough. |
 | Branch, Area | Where it lives |
 | How often, Hours/week | Estimates, labeled as estimates |
 | Time, Frequency, Clear rules, Digital data, Error risk | Scores from 1 to 5 (protocol section 5.2) |
@@ -123,6 +143,8 @@ One row per loop, with these columns:
 - [ ] Most readers do a version of it (needed for loops you start with).
 - [ ] The level where the agent acts fits the area's ceiling.
 - [ ] A verb and an object, 8 words or fewer, no names.
+- [ ] If two loops in the same area could steal each other's occurrences, each has a scope that draws the line.
+- [ ] The scope never restates done when, and never lists steps.
 
 ---
 

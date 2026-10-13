@@ -233,6 +233,8 @@ async function ownerAction(request, env, meta) {
 
   if (!Object.hasOwn(OWNER_PAGE_OPS, op)) return redirect(withQuery("/", "error", "Unknown action."));
   const r = await writer(env).write({ op, args: OWNER_PAGE_OPS[op](form), actor: OWNER_USER, access: "owner", directText: true });
+  // app.js asks for JSON to approve a loop without leaving the page.
+  if (request.headers.get("Accept")?.includes("application/json")) return Response.json(r.ok ? { ok: true } : { ok: false, error: r.error }, { status: r.ok ? 200 : 400 });
   if (!r.ok) return redirect(withQuery("/", "error", r.error));
   return redirect(withQuery("/", "done", op === "adopt_protocol" ? adoptedMessage(r.result) : DONE_MESSAGES[op] || "Saved."));
 }
