@@ -1,23 +1,211 @@
----
-description: Onhundred copywriting rules (VOICE.md) for seed data, the README, page copy and MCP tool text
-globs: README.md,seed/**,src/**/*.mjs
-alwaysApply: false
----
+# Voice: Onhundred
 
-# Voice
+How Onhundred writes: who speaks, how it sounds, and the rules every page follows. It sits next to DESIGN.md (how it looks) and PRODUCT.md (what it is).
 
-Every word follows [docs/VOICE.md](mdc:docs/VOICE.md). Read it before writing copy.
+Last updated: Oct 13, 2026.
 
-- **Two voices.** The lab (rules, labels, statuses, tool descriptions, errors) is short, exact and impersonal. The subject (Ale, first person) is candid and specific: manifesto, confession lines, experiment questions.
-- **Mechanical rules** (checked by `voiceIssues()` in `lib/protocol.mjs` for public loop and experiment text):
-  - no em-dashes; use a period, a comma or a colon
-  - no exclamation marks
-  - never use: leverage, unlock, empower, revolutionize, game-changer, seamless, cutting-edge, supercharge, journey, delve, robust, AI-powered, 10x, hack, "in today's world", "the future of work"
-  - retired words: part (say loop), task, test (say experiment; "success tests" is fine), subject (except the Social Experiment 001 framing), free slot, Phase 0
-- **Sentences:** numbers as digits, under 25 words, active voice, second person for instructions.
-- **Levels in plain words:** Help me (assisted), Do it, I approve (delegated), Do it alone (autonomous).
-- **Deadpan only,** at most 1 per page, aimed at the subject or the method, never at other people. No humor in consent, children, health, data handling or legal text.
-- **Field notes are real or absent.** Never invent an anecdote or a `learned` note.
-- **Error messages** state the rule, then give a 1-sentence reason.
-- **Spanish:** neutral Latin American, "tú". Fixed words: loop (kept in English), experimento, apuesta, etapa, bitácora.
-- **The protocol's Warning** is used verbatim and never edited for tone.
+## Rule zero: plain English, always
+
+This rule comes before every other rule in this file. When two rules disagree, this one wins.
+
+- **Write so anyone understands it on the first read.** That includes someone outside tech, and someone whose first language isn't English.
+- **The read-aloud test.** Read the sentence out loud to someone who has never heard of Onhundred. If they would ask "what does that mean?", rewrite it.
+- **Only two special words: loop and experiment.** Everything else uses words people already know. No other term gets a special meaning, a capital letter or a glossary entry it needs to be understood.
+- **Short words win.** If a shorter, more common word exists, use it: "use," not "utilize"; "start," not "commence"; "help," not "facilitate."
+- **Verbs, not nouns made from verbs.** "Measure it," not "the measurement of it." "Decide," not "make a determination."
+- **One idea per sentence, 20 words at most.**
+- **It applies everywhere.** The method, the guide, the site, the sheet, the prompts and company-facing material. Formal is allowed. Complicated is not.
+
+**Checked in code.** `scripts/voicecheck.mjs` reads the README and the docs in `docs/` before they are built. It flags banned words, sentences over 20 words, and sections that read above an 8th-grade level. `npm test` runs it on every push, and `npm run docs` won't build until it passes. Text that already failed when the check started is listed in `scripts/voice-debt.json`. It passes until someone edits it. New or edited text must pass. The changelog is exempt, because it records old words on purpose. So is anything between `<!-- voice:skip -->` and `<!-- voice:end -->`, like a list of banned words.
+
+## North star: the deadpan field log
+
+A lab that takes your life far too seriously, written by the person it is happening to. The method is calm, exact and step by step. The person running it is candid, specific and a little uncomfortable. The writing works when the two meet: a strict rule applied, with a straight face, to something deeply human.
+
+**References**
+
+- **Shape Up** (Basecamp): a method that reads like a story. Plain names kept the same everywhere, every rule backed by a reason, short chapters, real examples.
+- **Nathan Fielder's deadpan:** total seriousness applied to personal or absurd situations. Nobody winks. The humor comes from the commitment, not from jokes.
+
+## Who speaks
+
+Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the person, Martian Mono for the method). Both follow rule zero.
+
+| Voice | Who | Sounds like | Used for |
+| --- | --- | --- | --- |
+| The method | The rules | Short, exact, plain. Tells you what to do. No adjectives it can't defend | Rules, steps, tables, cards, labels, numbers |
+| The person | Ale, first person | Candid, specific, doubtful when it should be. Admits cost | Forewords, step openers, field notes, experiment posts, the site |
+
+### Where each voice appears
+
+| Place | Method | Person |
+| --- | --- | --- |
+| The method (protocol PDF) | Everywhere | A one-page foreword only ("Why I wrote this") |
+| Getting started guide | Instructions, cards, prompts | A short field note opening each step, 3 sentences at most |
+| Experiment posts and pages | The experiment card | Everything around it |
+| Site | Labels, statuses, grid | Manifesto, confession lines, experiment questions |
+| Company-facing material | Everywhere, formal but plain | Never |
+
+**Why this split:** the method has to work for anyone, so a company can use it without adopting a person. Guide readers need "someone like me" before they act, so they need the person. The rules stay in one voice so nobody confuses a story with a rule.
+
+**Field notes are real or absent.** A field note reports something that happened in Ale's own run. Until it happens, the opener is a reason or an admission, never an invented story.
+
+## Tone dials
+
+| Dial | Setting |
+| --- | --- |
+| Formal to casual | Middle. Contractions yes; slang, filler and internet speak no |
+| Simple to technical | Simple. Always |
+| Serious to funny | Serious on the surface, funny underneath. Deadpan only |
+| Warm to cold | Warm about people, cold about the method |
+| Certain to doubtful | Certain about rules, honest about results we don't have yet |
+| Hype | None |
+
+## Humor: deadpan only
+
+- **Where it comes from:** a strict method applied to personal life with total seriousness. A risk score for dinner. Goals for a birthday message. Never from jokes, puns, emojis or exclamation marks.
+- **Never wink.** No "yes, really," no "lol," no "spoiler." The reader decides it's funny.
+- **The target is Ale or the method.** Never the partner, the children, family, employees, students, buyers or anyone else involved.
+- **No humor in:** the Warning page, consent, children, health, when to stop, data, legal text and anything company-facing.
+- **One per page at most.** If every line is a bit, nothing is.
+
+**Examples of the register (illustrations, not real data)**
+- "P-HOM-03 · Get tonight's dinner on the table. How often: 5. Risk if the AI gets it wrong: 4, according to my family."
+- "EXP-03 asks whether an agent can book our date night restaurant. The bet: it will choose better than I do, because I always choose the same one."
+- "You prove it for 3 weeks. Not because 3 is scientific. Because 2 felt like luck and 4 felt like paperwork."
+
+## Storytelling rules
+
+1. **Open with what's at stake, then the rule.** Say what something costs before saying what to do about it.
+2. **One main character.** Ale's own run is the running example. Real numbers, real choices, real failures, once they exist.
+3. **Concrete over abstract.** "Answer the school group chat," not "relationship logistics." Name the thing before the code.
+4. **Every unit has tension.** Every experiment has a bet that can lose. Sections end on what's at risk or what comes next, not on a summary.
+5. **Every rule has a reason,** in one sentence, close to the rule.
+6. **Rhythm.** Mostly short sentences. An occasional one-line paragraph for the turn.
+7. **Honesty is the hook.** Admit cost, doubt and failure. Wrong bets get the same space as right ones.
+
+## Sentence rules
+
+- No em-dashes. Use a period, a comma or a colon.
+- Second person, active voice: "you." The method PDF also speaks to "you," not to "the owner."
+- First person singular for Ale: "I," not "we," except in company-facing text.
+- Results first: lead with what the reader gets or what happened.
+- No unverified figures. Every number is measured, sourced or labeled as an estimate.
+- Contractions are fine. Exclamation marks are not.
+- Numbers as digits (3 weeks, 100 loops).
+- 20 words at most per sentence.
+- No swearing, ever.
+
+## Words
+
+### The two special words
+
+| Word | Meaning |
+| --- | --- |
+| Loop | One thing you keep doing that ends in a result, like following up after sales calls or getting dinner on the table. It keeps coming back until someone closes it. Never "part," "task" or "job." Named by its result, never by a decision (see LOOPS.md) |
+| Experiment | Handing one loop to an AI agent to see if it works: a question, your bet and up to 3 rounds. Never "test" |
+
+### Everyday words we always use the same way
+
+These are ordinary words. They need no definition, but we don't swap them for synonyms.
+
+| Say | Means |
+| --- | --- |
+| Your list | All your loops: 10 to start, or 100 for everything |
+| Score | The 1-to-25 number that says which loops to try first |
+| Your 3 picks: easy, hard, fun | The 3 loops you're working on at once |
+| Round | One level of an experiment: round 1 "help me," round 2 "do it, I approve," round 3 "do it alone" |
+| Goals | What a round must do to pass, written before it starts |
+| Prove it for 3 weeks | After a round passes, it must keep passing for 3 weeks before the loop moves up |
+| Still yours / Help me / Do it, I approve / Do it alone | Where a loop stands. Never Assisted, Delegated or Autonomous |
+| Handed off | The main number: each loop at "do it, I approve" or "do it alone" counts 1, "help me" counts 0.5. Written as "3.5 of 10" |
+| Time saved, money saved | The other two numbers. Each is labeled measured or estimated |
+| What it costs today | A loop's time, how often, money and quality before AI touches it. Estimated, or measured over 3 times |
+| Measured | A loop whose cost you watched 3 times and approved |
+| Status: measuring, trying, proving | What a loop is doing right now. A loop with no status is waiting |
+| Limit | The highest level a loop can reach, set by area. Example: anything with your kids stops at "help me" |
+| Check-in | Every 2 weeks: what worked, what didn't, what's next |
+| Your bet | What you think will happen, written as If, then, because |
+| Question | What an experiment answers, in one sentence |
+| Log | Your record of everything |
+| Company, Personal, Relationships | The 3 parts of life. Each part has areas, like Sales or Home |
+| Ale's own run | The public run of the method at onhundred.com |
+| The method | How running text refers to the Onhundred Protocol. The product name stays "Onhundred Protocol" |
+
+### Banned: complicated words and their plain swaps
+
+`scripts/voicecheck.mjs` rejects these. The changelog is exempt.
+
+| Don't write | Write |
+| --- | --- |
+| Inventory | Your list |
+| Owner, subject, participant (for the person running it) | You, the person running it |
+| Application, reference application | Run, Ale's own run |
+| Branch | Part (of life) |
+| Baseline | What it costs today |
+| Timed | Measured |
+| Occurrence | Each time it happens |
+| Triage | Score |
+| Slot | Pick |
+| Stage | Round |
+| Holding, holding period | Proving it, prove it for 3 weeks |
+| Flag | Status |
+| Ceiling | Limit |
+| Eval, success test, success criterion | Goal |
+| Hypothesis | Your bet |
+| Cycle | The 2 weeks between check-ins |
+| Assisted, Delegated (as a level or metric), Autonomous | Help me, Do it I approve, Do it alone; Handed off |
+| Parameter | Number, setting |
+| Metric | Number |
+| Criteria, criterion | What counts, rule |
+| Threshold | Minimum, the number it must reach |
+| Achieved, terminated | Passed, stopped |
+| Pre-register, preregistration | Write it down before you start |
+| Aggregate | Total, combined |
+| Comparability | So results can be compared |
+| Procedure, methodology, framework | Steps, method |
+| Implement, utilize, facilitate, commence | Do, use, help, start |
+| Iterate, optimize | Try again, improve |
+| Workflow | Setup, steps |
+| Stakeholder | The people involved |
+| Subsequent, prior, regarding | Next, before, about |
+| Verifiable | Can be checked |
+| Material harm | Real harm |
+| Mapped, unmapped | Still yours, measured |
+
+**Never use (hype):** leverage, unlock, empower, revolutionize, game-changer, seamless, cutting-edge, supercharge, journey, delve, robust, "AI-powered," "10x," "hack," "in today's world," "the future of work."
+
+## Templates
+
+**Section opener (guide):** one stake or admission, then the instruction.
+> You probably think you know how long email takes you. Write it down before an agent touches it. If you want proof, watch it happen 3 times.
+
+**Field note (only when real):** three sentences. What I expected. What happened. What I changed.
+
+**Experiment post:** the question as the title, then the bet, the rounds and where each one stands, results against the goals, and what surprised me. Wrong bets and stopped rounds are published the same way.
+
+**Check-in update:** what worked, what didn't, what's next. One line on what changed in the method.
+
+**Warning:** fixed text, never edited for tone. It appears after the cover of every document.
+
+## Before and after
+
+**Before:** "A loop's baseline is the measured picture of what it costs today. Without it, nobody can later prove the agent made anything better."
+**After:** "You can't prove an agent saved you time if you never knew how long it took. So write down what it costs you today."
+
+**Before:** "Easy and hard slots are filled in code from the triage, so the owner can't quietly pick only the loops they already like."
+**After:** "The sheet picks your easy and hard loops from their scores. That way you can't quietly pick only the loops you already like."
+
+**Before:** "A stage closes as achieved, not achieved or terminated. If achieved, the loop gets the Holding flag."
+**After:** "A round ends one of 3 ways: it passed, it didn't pass, or you stopped it. If it passed, you prove it for 3 weeks."
+
+## Spanish
+
+- Neutral Latin American Spanish, "tú."
+- Same rule zero: palabras simples, frases cortas.
+- Deadpan translates; wordplay doesn't. Avoid idioms and puns in English so the Spanish version can keep the joke.
+- Keep the two special words fixed: loop (kept in English, like "deadline") and experimento. Everyday words: tu lista, puntaje, ronda, metas, apuesta, bitácora.
+
+## Company-facing register
+
+Formal, plain and results first. "We" for Onhundred, the company's name for the company. No humor, no first-person stories, no casual phrasing. Rule zero still applies: formal words, never complicated ones.

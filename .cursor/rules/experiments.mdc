@@ -17,7 +17,7 @@ An experiment is a question nobody can answer yet, a bet that can lose, and up t
   "question": { "en": "Can an agent send every birthday message and gift on time?", "es": "..." },
   "hypothesis": { "en": "If ..., then ..., because ...", "es": "..." },
   "loops": ["R-FAM-01", "R-FAM-02"],
-  "startLevel": "mapped",
+  "startLevel": "still",
   "goal": "delegated",
   "registeredAt": "2026-09-07",
   "peopleInvolved": "Private. Who, and proof of their consent.",
@@ -26,7 +26,7 @@ An experiment is a question nobody can answer yet, a bet that can lose, and up t
 ```
 
 - `slot` is easy, hard or fun. A fun slot needs `funReason`. At most 3 open experiments, one per slot.
-- Easy loops come from the Automate now group, hard loops have Clear rules or Digital data of 2 or less, and no slot takes a Not yet loop. Only loops at mapped or above.
+- Easy loops come from the Automate now group, hard loops have Clear rules or Digital data of 2 or less, and no slot takes a Not yet loop. From v1.4 any loop can be picked, and the first stage needs a cost for each loop: measured, or an estimate. Before v1.4 only measured loops.
 - `goal` never exceeds a loop's ceiling.
 - After registration the card only grows. Never rewrite the question, the bet or a started stage.
 
@@ -48,4 +48,4 @@ An experiment is a question nobody can answer yet, a bet that can lose, and up t
 
 `"conclusion": { "at": "...", "level": "delegated", "hypothesis": "confirmed" | "refuted" | "unclear" }`. A refuted bet is a result, not a failure, and is published the same way.
 
-Statuses (REGISTERED, RUNNING, HOLDING, LEVEL REACHED, NOT ACHIEVED, TERMINATED, CONCLUDED) are derived by `experimentStatus()` in [lib/protocol.mjs](mdc:lib/protocol.mjs). Never store them.
+Statuses (registered, running, holding, reached, notAchieved, terminated, concluded) are derived by `experimentStatus()` in [lib/protocol.mjs](mdc:lib/protocol.mjs). Never store them. People see them in plain words (NOT STARTED, TRYING, PROVING, LEVEL REACHED, DIDN'T PASS, STOPPED, ENDED): a stage is a round, a hold is proving, a slot is a pick.

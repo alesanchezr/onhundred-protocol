@@ -1,17 +1,25 @@
 // Server-rendered pages. Dark first. Every value that came from a client or an agent is escaped.
 import {
+  ABOUT_MAX_WORDS,
   LEVELS,
+  MAX_LINKS,
+  PROFILE_LINKS,
   assistedWeight,
   ceilingOf,
   changeIsCurrent,
   compareVersions,
   derive,
   esc,
+  estimateCanStart,
   isHardEligible,
+  isMeasured,
+  levelName,
+  logVersion,
   parseCode,
   pendingRuleBreaks,
   pickText,
   protocol as P,
+  publicActivity,
   publicView,
   renderGrid,
   triageGroup,
@@ -22,29 +30,30 @@ import { VIEW_HOURS } from "./auth.mjs";
 import { pendingItems } from "./ops.mjs";
 import { PROMPTS } from "./mcp.mjs";
 
+const LEVEL_NAME = { empty: "EMPTY", ...Object.fromEntries(LEVELS.map((l) => [l, levelName(l).toUpperCase()])) };
 const LEVEL_NOTES = {
   empty: "no loop here yet",
-  unmapped: "not looked at yet",
-  mapped: "named and measured, still yours",
-  assisted: "Help me.",
-  delegated: "Do it, I approve.",
-  autonomous: "Do it alone.",
+  still: "you decide and act. Filled squares are measured",
+  assisted: "the agent advises, you act",
+  delegated: "the agent acts, you approve",
+  autonomous: "the agent acts, you review",
 };
 const AREAS = { relationships: "RELATIONSHIPS", personal: "PERSONAL", company: "COMPANY" };
 const STATUS = {
-  registered: "REGISTERED",
-  running: "RUNNING",
-  holding: "HOLDING",
+  registered: "NOT STARTED",
+  running: "TRYING",
+  holding: "PROVING",
   reached: "LEVEL REACHED",
-  notAchieved: "NOT ACHIEVED",
-  terminated: "TERMINATED",
-  concluded: "CONCLUDED",
+  notAchieved: "DIDN'T PASS",
+  terminated: "STOPPED",
+  concluded: "ENDED",
 };
-const VERDICT = { confirmed: "BET CONFIRMED", refuted: "BET REFUTED", unclear: "UNCLEAR" };
+const VERDICT = { confirmed: "BET RIGHT", refuted: "BET WRONG", unclear: "NOT CLEAR" };
 const TIP = {
-  levels: Object.fromEntries(LEVELS.map((l) => [l, l.toUpperCase()])),
-  flags: { measuring: "MEASURING", experimenting: "EXPERIMENTING", holding: "HOLDING" },
-  outcomes: { achieved: "Last stage achieved", notAchieved: "Last stage not achieved", terminated: "Last stage terminated", dropped: "Dropped a level" },
+  levels: LEVEL_NAME,
+  measured: "MEASURED",
+  flags: { measuring: "MEASURING", experimenting: "TRYING", holding: "PROVING" },
+  outcomes: { achieved: "Last round passed", notAchieved: "Last round didn't pass", terminated: "Last round stopped", dropped: "Dropped a level" },
   open: "TAP AGAIN TO OPEN",
 };
 
@@ -62,12 +71,16 @@ export function html(body, { status = 200, headers = {}, cache = "no-store", for
 
 const CREDIT = P.attribution;
 
-function layout({ title, ownerName, version = P.version, owner = false, body, current = "", origin = "" }) {
+// signedIn without owner: the owner previewing the visitor's page. The body is the visitor's; the nav still knows who's here.
+function layout({ title, ownerName, version = P.version, owner = false, signedIn = owner, body, current = "", origin = "", description: about = "" }) {
   const link = (href, label) => `<a href="${href}"${current === href ? ' aria-current="page"' : ""}>${label}</a>`;
-  const description = `${ownerName ? `${ownerName}'s log` : "A log"} that follows the ${CREDIT.text}.`;
+  const description = about || `${ownerName ? `${ownerName}'s log` : "A log"} that follows the ${CREDIT.text}.`;
+  const signOut = `<form method="post" action="/logout"><button type="submit" class="linkish">SIGN OUT</button></form>`;
   const nav = owner
-    ? `<nav class="nav">${link("/", "LOG")}${link("/connections", "CONNECTIONS")}<a href="/export" data-export-open>EXPORT</a><form method="post" action="/logout"><button type="submit" class="linkish">SIGN OUT</button></form></nav>`
-    : `<nav class="nav"><a href="/login">SIGN IN</a></nav>`;
+    ? `<nav class="nav">${link("/", "LOG")}${link("/connections", "CONNECTIONS")}<a href="/export" data-export-open>EXPORT</a>${signOut}</nav>`
+    : signedIn
+      ? `<nav class="nav"><a href="/">BACK TO YOUR LOG</a>${signOut}</nav>`
+      : `<nav class="nav"><a href="/login">SIGN IN</a></nav>`;
   return `<!doctype html>
 <html lang="en" class="dark">
 <head>
@@ -126,11 +139,15 @@ const exportDialog = () => `<dialog class="modal" data-export-dialog aria-labell
 
 const notice = (text, kind = "") => `<p class="notice${kind ? " " + kind : ""}">${text}</p>`;
 
+// Saves confirm in a toast that leaves on its own; errors stay in the page until the person acts on them.
+const toast = (text) =>
+  `<div class="toast" role="status" aria-live="polite" data-toast>${CHECK_CIRCLE_ICON}<span>${text}</span><button class="notice-close" type="button" data-dismiss aria-label="Close">${CLOSE_ICON}</button></div>`;
+
 function flash(url) {
   const done = url.searchParams.get("done");
   const error = url.searchParams.get("error");
   if (error) return notice(esc(error), "bad");
-  if (done) return notice(esc(done), "good");
+  if (done) return toast(esc(done));
   return "";
 }
 
@@ -148,23 +165,26 @@ function protocolNotice(meta, upgrade) {
   const u = meta.protocolUpgrade;
   if (u)
     return notice(
-      `You adopted protocol v${esc(u.version)}. It takes effect at the start of cycle ${esc(u.fromCycle)}. Until then the log runs v${esc(meta.protocolVersion)}.`
+      `You adopted protocol v${esc(u.version)}. It takes effect after check-in ${esc(u.fromCycle - 1)}. Until then the log runs v${esc(meta.protocolVersion)}.`
     );
   if (!upgrade) return "";
   const running = meta.mode === "frozen" && meta.cycle >= 1;
-  const when = running ? `takes effect at the start of cycle ${meta.cycle + 1}` : "takes effect now, since no cycle is running";
+  const when = running ? `takes effect after check-in ${meta.cycle}` : "takes effect now, since check-ins haven't started";
   const what = changesSince(meta.protocolVersion);
   return `<form method="post" action="/owner/action" class="notice upgrade"><input type="hidden" name="op" value="adopt_protocol"><span>Protocol v${esc(P.version)} is in this code and your log runs v${esc(meta.protocolVersion)}${what ? ` (${esc(what)})` : ""}. Adopting it ${when}.</span><button class="btn signal small" type="submit">ADOPT v${esc(P.version)}</button></form>`;
 }
 
 const shortDate = (day) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
-// For 1 cycle after an adoption: what changed, and Delegated under both versions with the same loops.
+// Until the next check-in after an adoption: what changed, and the handed-off figure under both versions with the same loops.
 export function changeNote(change) {
-  const what = P.changes?.[change.to]?.en;
+  const what = Object.entries(P.changes || {})
+    .filter(([v]) => compareVersions(v, change.from) > 0 && compareVersions(v, change.to) <= 0)
+    .map(([, t]) => t.en)
+    .join("; ");
   const head = `Adopted ${shortDate(change.at)}${what ? `: ${what}` : ""}.`;
   if (change.delegatedBefore === change.delegatedAfter) return head;
-  return `${head} Delegated went from ${change.delegatedBefore} to ${change.delegatedAfter} with no change in loops.`;
+  return `${head} Handed off went from ${change.delegatedBefore} to ${change.delegatedAfter} with no change in loops.`;
 }
 
 // Empty squares pad each branch toward its share of the 100, so the grid always shows what's left to fill.
@@ -197,18 +217,218 @@ const drawGrid = (view, meta, opts = {}) =>
     }
   );
 
+// The check-in closes the last day of each 2-week period.
+function nextCheckIn(day) {
+  const left = P.limits.cycleWeeks * 7 - (Number(day) || 1);
+  if (left <= 0) return "Today";
+  return left === 1 ? "Tomorrow" : `In ${left} days`;
+}
+
+// Profile and share icons from Phosphor (MIT license), bold weight. Bluesky uses the butterfly.
+const LINK_ICONS = {
+  x:
+    "M218.12,209.56l-61-95.8,59.72-65.69a12,12,0,0,0-17.76-16.14L143.81,92.77,106.12,33.56A12,12,0,0,0,96,28H48A12,12,0,0,0,37.88,46.44l61,95.8L39.12,207.93a12,12,0,1,0,17.76,16.14l55.31-60.84,37.69,59.21A12,12,0,0,0,160,228h48a12,12,0,0,0,10.12-18.44ZM166.59,204,69.86,52H89.41l96.73,152Z",
+  linkedin:
+    "M216,20H40A20,20,0,0,0,20,40V216a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V40A20,20,0,0,0,216,20Zm-4,192H44V44H212ZM112,176V120a12,12,0,0,1,21.43-7.41A40,40,0,0,1,192,148v28a12,12,0,0,1-24,0V148a16,16,0,0,0-32,0v28a12,12,0,0,1-24,0ZM96,120v56a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0ZM68,80A16,16,0,1,1,84,96,16,16,0,0,1,68,80Z",
+  github:
+    "M212.62,75.17A63.7,63.7,0,0,0,206.39,26,12,12,0,0,0,196,20a63.71,63.71,0,0,0-50,24H126A63.71,63.71,0,0,0,76,20a12,12,0,0,0-10.39,6,63.7,63.7,0,0,0-6.23,49.17A61.5,61.5,0,0,0,52,104v8a60.1,60.1,0,0,0,45.76,58.28A43.66,43.66,0,0,0,92,192v4H76a20,20,0,0,1-20-20,44.05,44.05,0,0,0-44-44,12,12,0,0,0,0,24,20,20,0,0,1,20,20,44.05,44.05,0,0,0,44,44H92v12a12,12,0,0,0,24,0V192a20,20,0,0,1,40,0v40a12,12,0,0,0,24,0V192a43.66,43.66,0,0,0-5.76-21.72A60.1,60.1,0,0,0,220,112v-8A61.5,61.5,0,0,0,212.62,75.17ZM196,112a36,36,0,0,1-36,36H112a36,36,0,0,1-36-36v-8a37.87,37.87,0,0,1,6.13-20.12,11.65,11.65,0,0,0,1.58-11.49,39.9,39.9,0,0,1-.4-27.72,39.87,39.87,0,0,1,26.41,17.8A12,12,0,0,0,119.82,68h32.35a12,12,0,0,0,10.11-5.53,39.84,39.84,0,0,1,26.41-17.8,39.9,39.9,0,0,1-.4,27.72,12,12,0,0,0,1.61,11.53A37.85,37.85,0,0,1,196,104Z",
+  instagram:
+    "M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,72a24,24,0,1,1,24-24A24,24,0,0,1,128,152ZM176,20H80A60.07,60.07,0,0,0,20,80v96a60.07,60.07,0,0,0,60,60h96a60.07,60.07,0,0,0,60-60V80A60.07,60.07,0,0,0,176,20Zm36,156a36,36,0,0,1-36,36H80a36,36,0,0,1-36-36V80A36,36,0,0,1,80,44h96a36,36,0,0,1,36,36ZM196,76a16,16,0,1,1-16-16A16,16,0,0,1,196,76Z",
+  youtube:
+    "M170.49,117.91l-56-36A12,12,0,0,0,96,92v72a12,12,0,0,0,18.49,10.09l56-36a12,12,0,0,0,0-20.18ZM120,142V114l21.81,14Zm118.21-73.5a28.05,28.05,0,0,0-16.93-19.14C186.4,35.91,131.29,36,128,36s-58.4-.09-93.28,13.38A28.05,28.05,0,0,0,17.79,68.52C15.15,78.72,12,97.32,12,128s3.15,49.28,5.79,59.48a28.05,28.05,0,0,0,16.93,19.14C68.21,219.55,120.36,220,127.37,220h1.26c7,0,59.16-.45,92.65-13.38a28.05,28.05,0,0,0,16.93-19.14c2.64-10.2,5.79-28.8,5.79-59.48S240.85,78.72,238.21,68.52ZM215,181.46a4,4,0,0,1-2.34,2.77C182.78,195.76,132.27,196,128.32,196h-.39c-.53,0-53.64.17-84.56-11.77A4,4,0,0,1,41,181.46c-1.88-7.24-5-23.82-5-53.46s3.15-46.22,5-53.46a4,4,0,0,1,2.34-2.77C74.29,59.83,127.39,60,127.92,60h.15c.54,0,53.64-.17,84.56,11.77A4,4,0,0,1,215,74.54c1.88,7.24,5,23.82,5,53.46S216.85,174.22,215,181.46Z",
+  tiktok:
+    "M224,68a44.05,44.05,0,0,1-44-44,12,12,0,0,0-12-12H128a12,12,0,0,0-12,12V156a16,16,0,1,1-22.85-14.47A12,12,0,0,0,100,130.69V88A12,12,0,0,0,85.9,76.19a79.35,79.35,0,0,0-47.08,27.74A81.84,81.84,0,0,0,20,156a80,80,0,0,0,160,0V122.67A107.47,107.47,0,0,0,224,132a12,12,0,0,0,12-12V80A12,12,0,0,0,224,68Zm-12,39.15a83.05,83.05,0,0,1-37-14.91A12,12,0,0,0,156,102v54a56,56,0,0,1-112,0,57.86,57.86,0,0,1,32-51.56V124a40,40,0,1,0,64,32V36h17.06A68.21,68.21,0,0,0,212,90.94Z",
+  threads:
+    "M188.84,120.46a68.14,68.14,0,0,0-10-6.23c-3.72-21.68-16.41-37.41-35.52-43.2C121.94,64.55,97.29,72.42,86,89.34a12,12,0,0,0,20,13.32c5.47-8.2,19.11-12.08,30.41-8.66a24.72,24.72,0,0,1,14.88,12.24,86.73,86.73,0,0,0-8.86-.45C108.56,105.79,84,125.22,84,152c0,22.9,17.54,39.52,41.71,39.52a52,52,0,0,0,37.23-16c6-6.23,12.88-16.46,15.72-32.07,6.2,6.42,9.34,14.67,9.34,24.59,0,17.74-19.07,44-60,44-45.76,0-68-27.48-68-84s22.24-84,68-84c31.08,0,51,12.42,60.8,38a12,12,0,0,0,22.4-8.62C197.77,38.44,169,20,128,20,68.67,20,36,58.35,36,128s32.67,108,92,108c31.36,0,51.08-12.05,62.11-22.15C203.81,201.28,212,184.14,212,168,212,148.36,204,131.92,188.84,120.46Zm-43.2,38.39a27.9,27.9,0,0,1-19.93,8.67c-8.17,0-17.71-4.06-17.71-15.52,0-15.26,17.84-22.21,34.41-22.21a60.23,60.23,0,0,1,13.51,1.52C155.36,142.93,151.84,152.41,145.64,158.85Z",
+  bluesky:
+    "M235.79,48c-4.27-5.48-12.4-12-26.88-12-17.86,0-40.5,11.7-60.57,31.3-3,2.89-5.74,5.85-8.34,8.84V56a12,12,0,0,0-24,0V76.14c-2.6-3-5.38-6-8.34-8.84C87.59,47.7,65,36,47.09,36c-14.48,0-22.61,6.54-26.88,12C7,65,12,93.91,19.28,122.66c5.75,22.64,17.8,33,28.88,37.69A48.12,48.12,0,0,0,92,228a47.87,47.87,0,0,0,36-16.28A48,48,0,0,0,212,180a48.51,48.51,0,0,0-4.14-19.65c11.08-4.67,23.13-15,28.88-37.69C244,93.91,249,65,235.79,48ZM92,204a24,24,0,0,1-24-24,24.36,24.36,0,0,1,21.31-24.07,12,12,0,0,0-2.64-23.86A47.63,47.63,0,0,0,65.17,140c-8.19-.29-18-4.92-22.63-23.24-7.41-29.18-8.55-47.35-3.39-54C39.74,62,41.3,60,47.09,60,58.3,60,75.91,69.83,90.9,84.47c15.25,14.9,25.1,31.86,25.1,43.2V180A24,24,0,0,1,92,204Zm121.45-87.25C208.81,135.07,199,139.7,190.82,140a47.54,47.54,0,0,0-21.51-7.92,12,12,0,1,0-2.64,23.86A24.36,24.36,0,0,1,188,180a24,24,0,1,1-48,0V127.67c0-11.34,9.85-28.3,25.1-43.2C180.09,69.83,197.7,60,208.91,60c5.79,0,7.35,2,7.94,2.76C222,69.4,220.87,87.57,213.46,116.75Z",
+  mastodon:
+    "M184,28H72A44.05,44.05,0,0,0,28,72V192a44.05,44.05,0,0,0,44,44h88a12,12,0,0,0,0-24H72a20,20,0,0,1-20-20v-4H184a44.05,44.05,0,0,0,44-44V72A44.05,44.05,0,0,0,184,28Zm20,116a20,20,0,0,1-20,20H52V72A20,20,0,0,1,72,52H184a20,20,0,0,1,20,20Zm-16-40v32a12,12,0,0,1-24,0V104a12,12,0,0,0-24,0v32a12,12,0,0,1-24,0V104a12,12,0,0,0-24,0v32a12,12,0,0,1-24,0V104a36,36,0,0,1,60-26.8A36,36,0,0,1,188,104Z",
+  website:
+    "M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,187a113.4,113.4,0,0,1-20.39-35h40.82a116.94,116.94,0,0,1-10,20.77A108.61,108.61,0,0,1,128,207Zm-26.49-59a135.42,135.42,0,0,1,0-40h53a135.42,135.42,0,0,1,0,40ZM44,128a83.49,83.49,0,0,1,2.43-20H77.25a160.63,160.63,0,0,0,0,40H46.43A83.49,83.49,0,0,1,44,128Zm84-79a113.4,113.4,0,0,1,20.39,35H107.59a116.94,116.94,0,0,1,10-20.77A108.61,108.61,0,0,1,128,49Zm50.73,59h30.82a83.52,83.52,0,0,1,0,40H178.75a160.63,160.63,0,0,0,0-40Zm20.77-24H173.71a140.82,140.82,0,0,0-15.5-34.36A84.51,84.51,0,0,1,199.52,84ZM97.79,49.64A140.82,140.82,0,0,0,82.29,84H56.48A84.51,84.51,0,0,1,97.79,49.64ZM56.48,172H82.29a140.82,140.82,0,0,0,15.5,34.36A84.51,84.51,0,0,1,56.48,172Zm101.73,34.36A140.82,140.82,0,0,0,173.71,172h25.81A84.51,84.51,0,0,1,158.21,206.36Z",
+  whatsapp:
+    "M187.3,159.06A36.09,36.09,0,0,1,152,188a84.09,84.09,0,0,1-84-84A36.09,36.09,0,0,1,96.94,68.7,12,12,0,0,1,110,75.1l11.48,23a12,12,0,0,1-.75,12l-8.52,12.78a44.56,44.56,0,0,0,20.91,20.91l12.78-8.52a12,12,0,0,1,12-.75l23,11.48A12,12,0,0,1,187.3,159.06ZM236,128A108,108,0,0,1,78.77,224.15L46.34,235A20,20,0,0,1,21,209.66l10.81-32.43A108,108,0,1,1,236,128Zm-24,0A84,84,0,1,0,55.27,170.06a12,12,0,0,1,1,9.81l-9.93,29.79,29.79-9.93a12.1,12.1,0,0,1,3.8-.62,12,12,0,0,1,6,1.62A84,84,0,0,0,212,128Z",
+};
+const linkIcon = (kind) => phosphor(LINK_ICONS[kind] || LINK_ICONS.website);
+
+// What a visitor's post says. Third person, because whoever shares it is rarely the owner.
+function shareText(meta, points) {
+  const who = meta.ownerName || "";
+  if (points > 0)
+    return who
+      ? `${who} has handed off ${points} of ${P.limits.loops} loops of life and work to AI agents. Every result is in the log.`
+      : `${points} of ${P.limits.loops} loops of life and work handed off to AI agents so far. Every result is in the log.`;
+  return who
+    ? `${who} is handing off ${P.limits.loops} loops of life and work to AI agents, one at a time. Every result is in the log.`
+    : `${P.limits.loops} loops of life and work, handed off to AI agents one at a time. Every result is in the log.`;
+}
+
+const SHARE_TO = [
+  { id: "x", name: "X", href: (t, u) => `https://x.com/intent/post?text=${t}&url=${u}` },
+  { id: "linkedin", name: "LinkedIn", href: (_t, u) => `https://www.linkedin.com/sharing/share-offsite/?url=${u}` },
+  { id: "bluesky", name: "Bluesky", href: (t, u) => `https://bsky.app/intent/compose?text=${t}%20${u}` },
+  { id: "whatsapp", name: "WhatsApp", href: (t, u) => `https://wa.me/?text=${t}%20${u}` },
+];
+
+function shareMenu(meta, points, origin) {
+  const url = `${origin}/`;
+  const t = encodeURIComponent(shareText(meta, points));
+  const u = encodeURIComponent(url);
+  const items = SHARE_TO.map(
+    (s) =>
+      `<a class="menu-item" href="${esc(s.href(t, u))}" target="_blank" rel="noopener" aria-label="Share on ${s.name} (opens in a new tab)">${linkIcon(s.id)}${s.name.toUpperCase()}</a>`
+  ).join("");
+  return `<details class="menu share" data-menu><summary class="btn small signal">SHARE${CARET_ICON}</summary><div class="menu-list">${items}<input type="hidden" id="share-url" value="${esc(url)}"><button class="menu-item" type="button" data-copy="#share-url" aria-label="Copy the link to this log">${COPY_ICON}COPY LINK</button></div></details>`;
+}
+
+const profilePrompt = (meta) =>
+  `Use Onhundred to write the header of my public log. Read onhundred://docs/voice, then call get_state.${meta.ownerName ? "" : " Ask me the name to show and set ownerName."} Ask me why I run the protocol, and write it in 1 or 2 sentences, ${ABOUT_MAX_WORDS} words or fewer, in every language of the log. Ask me for up to ${MAX_LINKS} profile links: ${Object.values(PROFILE_LINKS).map((k) => k.name).join(", ")}. Show me the exact text and links before you call set_meta with about and links.`;
+
+const profileDialog = (meta) => `<dialog class="modal" data-dialog data-profile-dialog aria-labelledby="profile-title">
+<h3 id="profile-title">Edit your header with AI</h3>
+<p class="modal-loop">Your name, 1 line on why you run the protocol and your links show above your numbers on the public page. Edit the prompt if you like, then open it in your AI app.</p>
+<div class="copy block-code">${promptBox("profile-prompt", profilePrompt(meta), 7)}</div>
+<div class="actions"><button class="btn" type="button" data-dialog-close>CANCEL</button>${promptMenu("#profile-prompt", profilePrompt(meta), { up: true })}</div>
+</dialog>`;
+
+const LINK_HINTS = {
+  x: "@handle or x.com/handle",
+  linkedin: "linkedin.com/in/handle",
+  github: "@handle",
+  instagram: "@handle",
+  youtube: "@channel",
+  tiktok: "@handle",
+  threads: "@handle",
+  bluesky: "handle.bsky.social",
+  mastodon: "@you@instance.social",
+  website: "yoursite.com",
+};
+
+// The page saves links itself: they need no wording, so no AI app is involved.
+const linksDialog = (meta) => {
+  const current = Object.fromEntries((meta.links || []).map((l) => [l.kind, l.url]));
+  const fields = Object.entries(PROFILE_LINKS)
+    .map(
+      ([kind, k]) =>
+        `<label class="link-field"><span class="link-kind">${linkIcon(kind)}${esc(k.name.toUpperCase())}</span><input class="field" type="text" name="link_${kind}" value="${esc(current[kind] || "")}" placeholder="${esc(LINK_HINTS[kind])}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></label>`
+    )
+    .join("");
+  return `<dialog class="modal" data-dialog data-links-dialog aria-labelledby="links-title">
+<form method="post" action="/owner/action" data-quick-form>
+<input type="hidden" name="op" value="set_meta"><input type="hidden" name="setting" value="links">
+<h3 id="links-title">Your social accounts</h3>
+<p class="modal-loop">They show as FOLLOW buttons above your numbers on the public page. Paste a link or type a handle, up to ${MAX_LINKS}.</p>
+<div class="link-fields">${fields}</div>
+<label class="modal-all"><input type="checkbox" name="none" value="1"${Array.isArray(meta.links) && !meta.links.length ? " checked" : ""}> <span>I don't use social media. Stop asking.</span></label>
+<p class="notice bad" data-form-error role="alert" hidden></p>
+<div class="actions"><button class="btn signal" type="submit">SAVE LINKS</button><button class="btn" type="button" data-dialog-close>CANCEL</button></div>
+</form>
+</dialog>`;
+};
+
+const nameDialog = (meta) => `<dialog class="modal" data-dialog data-name-dialog aria-labelledby="name-title">
+<form method="post" action="/owner/action" data-quick-form>
+<input type="hidden" name="op" value="set_meta"><input type="hidden" name="setting" value="name">
+<h3 id="name-title">Your name</h3>
+<p class="modal-loop">It shows in large type above your numbers on the public page.</p>
+<input class="field" type="text" name="ownerName" value="${esc(meta.ownerName || "")}" maxlength="80" required autocomplete="name" aria-labelledby="name-title">
+<p class="notice bad" data-form-error role="alert" hidden></p>
+<div class="actions"><button class="btn signal" type="submit">SAVE</button><button class="btn" type="button" data-dialog-close>CANCEL</button></div>
+</form>
+</dialog>`;
+
+// The owner types the line straight in. Owner text goes live at once, checked like every public text.
+const aboutDialog = (meta) => {
+  const langs = meta.languages;
+  const fields = langs
+    .map(
+      (lang) =>
+        `<label class="about-field">${langs.length > 1 ? `<span class="label">${esc(lang.toUpperCase())}</span>` : ""}<textarea class="field" name="about_${esc(lang)}" rows="3" placeholder="I run the protocol to…">${esc(meta.about?.[lang] || "")}</textarea></label>`
+    )
+    .join("");
+  return `<dialog class="modal" data-dialog data-about-dialog aria-labelledby="about-title">
+<form method="post" action="/owner/action" data-quick-form>
+<input type="hidden" name="op" value="set_meta"><input type="hidden" name="setting" value="about">
+<h3 id="about-title">Why you run the protocol</h3>
+<p class="modal-loop">1 or 2 sentences under your name on the public page, ${ABOUT_MAX_WORDS} words or fewer${langs.length > 1 ? ", in every language of the log" : ""}. Leave it empty to remove it.</p>
+<div class="about-fields">${fields}</div>
+<p class="notice bad" data-form-error role="alert" hidden></p>
+<div class="actions"><button class="btn signal" type="submit">SAVE</button><button class="btn" type="button" data-dialog-close>CANCEL</button></div>
+</form>
+</dialog>`;
+};
+
+// Until the owner adds links or says they have none, every visit to the log page asks.
+function linksNotice(published) {
+  const text = published
+    ? "Visitors can't follow you yet. Add your social accounts so they show above your numbers."
+    : "Add your social accounts. Visitors see them above your numbers once you publish.";
+  return `<div class="notice upgrade links-ask"><span>${text}</span><button class="btn signal small" type="button" data-open-dialog="[data-links-dialog]">ADD YOUR LINKS</button></div>`;
+}
+
+// Who runs this log, why, and where to follow them: the first thing a visitor reads.
+// The owner sees the same header, plus SHARE once published, a links button, and an AI button for the rest.
+function profileHead(meta, points, { owner, connected, published, origin }) {
+  const lang = meta.languages[0];
+  const about = pickText(meta.about, lang);
+  const links = (meta.links || []).filter((l) => PROFILE_LINKS[l.kind]);
+  const edit = owner && connected;
+  const share = owner && published;
+  if (!meta.ownerName && !about && !links.length && !owner) return "";
+  const name = meta.ownerName || (owner ? "Your name" : "");
+  const follow = links.length
+    ? `<div class="profile-follow"><span class="label" id="follow-label">FOLLOW${meta.ownerName ? ` ${esc(meta.ownerName.split(/\s+/)[0].toUpperCase())}` : ""}</span><ul class="profile-links" aria-labelledby="follow-label">${links
+        .map((l) => {
+          const label = `${meta.ownerName ? `${meta.ownerName} on ` : ""}${PROFILE_LINKS[l.kind].name} (opens in a new tab)`;
+          return `<li><a href="${esc(l.url)}" target="_blank" rel="me noopener" aria-label="${esc(label)}" title="${esc(PROFILE_LINKS[l.kind].name)}">${linkIcon(l.kind)}</a></li>`;
+        })
+        .join("")}</ul></div>`
+    : "";
+  const textMissing = !meta.ownerName || !about;
+  const pencil = (dialog, label) =>
+    owner ? ` <button class="pencil" type="button" data-open-dialog="[${dialog}]" aria-label="${label}" title="${label}">${PENCIL_ICON}</button>` : "";
+  // The pencil wraps with the last word, never alone on its own line.
+  const withPencil = (text, btn) => {
+    if (!btn) return esc(text);
+    const at = text.lastIndexOf(" ") + 1;
+    return `${esc(text.slice(0, at))}<span class="nowrap">${esc(text.slice(at))}${btn}</span>`;
+  };
+  const aboutPencil = pencil("data-about-dialog", about ? "Edit why you run the protocol" : "Write why you run the protocol");
+  const aboutLine = about
+    ? `<p class="profile-about">${withPencil(about, aboutPencil)}</p>`
+    : owner
+      ? `<p class="profile-about empty">${withPencil("Add 1 line on why you run the protocol, so visitors know what this log is for.", aboutPencil)}</p>`
+      : "";
+  const nameLine = name
+    ? `<h1 class="profile-name${meta.ownerName ? "" : " empty"}">${withPencil(name, pencil("data-name-dialog", meta.ownerName ? "Edit your name" : "Add your name"))}</h1>`
+    : "";
+  const linksBtn = owner
+    ? `<button class="btn small" type="button" data-open-dialog="[data-links-dialog]">${links.length ? "EDIT LINKS" : "ADD LINKS"}</button>`
+    : "";
+  const editBtn = edit
+    ? `<button class="btn small" type="button" data-open-dialog="[data-profile-dialog]">${textMissing ? "ADD WITH AI" : "EDIT WITH AI"}</button>`
+    : "";
+  const actions = follow + (share ? shareMenu(meta, points, origin) : "") + linksBtn + editBtn;
+  return `<section class="profile">
+<div class="profile-id">${nameLine}${aboutLine}</div>
+${actions ? `<div class="profile-actions">${actions}</div>` : ""}
+</section>${edit ? profileDialog(meta) : ""}${owner ? linksDialog(meta) + aboutDialog(meta) + nameDialog(meta) : ""}`;
+}
+
 // The figure leads; everything else is a labelled status row beside it (below it on phones).
-// The small grid at the end of the row only shows on wide screens, where it opens the full one (the next section).
-function readout(view, meta, owner) {
+// The owner's small grid at the end of the row only shows on wide screens, where it opens the full one (the next section).
+// Visitors get the full grid open instead.
+function readout(view, meta, owner, headed = false) {
   const m = view.metrics;
   const approved = view.loops.length;
   const row = (label, value, note = "") =>
     `<div><dt>${label}</dt><dd>${value}${note ? noteButton(note) : ""}</dd></div>`;
-  const stage = meta.stage ? ` · ${esc(meta.stage)}` : "";
   const rows = [
-    row(`CYCLE ${esc(meta.cycle || 1)}`, meta.cycle ? `Day ${esc(meta.day)}${stage}` : "Not started", meta.cycle ? "" : "Starts when the inventory is frozen."),
+    meta.cycle
+      ? row(`CHECK-IN ${esc(meta.cycle)}`, nextCheckIn(meta.day))
+      : row("CHECK-INS", "Not started", "They start when your list is frozen."),
     row(
-      "INVENTORY",
+      "YOUR LIST",
       meta.mode === "frozen" ? `v${esc(meta.inventoryVersion || 1)} · ${approved} loops` : `${approved} of ${P.limits.loops} approved`,
       meta.mode === "frozen" ? "Frozen: a new loop needs a merge or a retirement." : ""
     ),
@@ -217,11 +437,11 @@ function readout(view, meta, owner) {
   const change = meta.protocolChange;
   const current = changeIsCurrent(change, new Date().toISOString().slice(0, 10));
   rows.push(row("PROTOCOL", `v${esc(meta.protocolVersion)}`, current ? esc(changeNote(change)) : ""));
-  const mini = drawGrid(view, meta, { compact: true });
+  const mini = owner ? drawGrid(view, meta, { compact: true }) : null;
   return `<section class="readout">
-<div class="readout-main"><h1 class="figure"><span class="pct" data-assisted-weight="${assistedWeight(m.version || P.version)}">${m.delegatedPoints}</span><span class="cap">OF ${P.limits.loops}<br>DELEGATED</span></h1>${owner ? `<a class="btn small" href="/?view=public" target="_blank" rel="noopener" aria-label="Check your public dashboard (opens in a new tab)">CHECK YOUR PUBLIC DASHBOARD${NEW_TAB_ICON}</a>` : ""}</div>
+<div class="readout-main"><${headed ? "p" : "h1"} class="figure"><span class="pct" data-assisted-weight="${assistedWeight(m.version || P.version)}">${m.delegatedPoints}</span><span class="cap">OF ${P.limits.loops}<br>HANDED OFF</span></${headed ? "p" : "h1"}>${owner ? `<a class="btn small" href="/?view=public" target="_blank" rel="noopener" aria-label="Check your public dashboard (opens in a new tab)">CHECK YOUR PUBLIC DASHBOARD${NEW_TAB_ICON}</a>` : ""}</div>
 <dl class="status">${rows.join("")}</dl>
-<a class="grid mini" href="#activity" role="button" aria-expanded="false" aria-controls="activity" data-grid-toggle style="grid-template-columns:${mini.columns}" aria-label="Show the full delegation grid">${mini.html}</a>
+${mini ? `<a class="grid mini" href="#activity" role="button" aria-expanded="false" aria-controls="activity" data-grid-toggle style="grid-template-columns:${mini.columns}" aria-label="Show the full delegation grid">${mini.html}</a>` : ""}
 </section>`;
 }
 
@@ -249,8 +469,19 @@ const APP_ICONS = {
 const phosphor = (d) =>
   `<svg viewBox="0 0 256 256" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
 
+const CHECK_CIRCLE_ICON = phosphor(
+  "M176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z"
+);
+
+const PENCIL_ICON = phosphor(
+  "M230.14,70.54,185.46,25.85a20,20,0,0,0-28.29,0L33.86,149.17A19.85,19.85,0,0,0,28,163.31V208a20,20,0,0,0,20,20H92.69a19.86,19.86,0,0,0,14.14-5.86L230.14,98.82a20,20,0,0,0,0-28.28ZM91,204H52V165l84-84,39,39ZM192,103,153,64l18.34-18.34,39,39Z"
+);
+
 const NEW_TAB_ICON = phosphor(
   "M228,104a12,12,0,0,1-24,0V69l-59.51,59.51a12,12,0,0,1-17-17L187,52H152a12,12,0,0,1,0-24h64a12,12,0,0,1,12,12Zm-44,24a12,12,0,0,0-12,12v64H52V84h64a12,12,0,0,0,0-24H48A20,20,0,0,0,28,80V208a20,20,0,0,0,20,20H176a20,20,0,0,0,20-20V140A12,12,0,0,0,184,128Z"
+);
+const CLOSE_ICON = phosphor(
+  "M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"
 );
 const HELP_ICON = phosphor(
   "M144,180a16,16,0,1,1-16-16A16,16,0,0,1,144,180Zm92-52A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM128,64c-24.26,0-44,17.94-44,40v4a12,12,0,0,0,24,0v-4c0-8.82,9-16,20-16s20,7.18,20,16-9,16-20,16a12,12,0,0,0-12,12v8a12,12,0,0,0,23.73,2.56C158.31,137.88,172,122.37,172,104,172,81.94,152.26,64,128,64Z"
@@ -318,7 +549,7 @@ const promptBox = (id, text = "", rows = 6) =>
   `<textarea class="prompt-box" id="${id}" rows="${rows}" spellcheck="false" aria-label="Prompt. Edit it before you send it.">${esc(text)}</textarea>`;
 
 function emptyState(owner, connected) {
-  if (!owner) return `<section class="block empty-state"><h2>No loops yet</h2><p>The inventory is still being built.</p></section>`;
+  if (!owner) return `<section class="block empty-state"><h2>No loops yet</h2><p>The list is still being made.</p></section>`;
   if (!connected) {
     return `<section class="block empty-state">
 <h2>No loops yet</h2>
@@ -340,13 +571,13 @@ function gridSection(view, meta, owner, connected, hasProposals) {
   const legend = ["empty", ...LEVELS]
     .map(
       (l) =>
-        `<li data-level="${l}"><i class="cell" data-s="${l}"></i><span class="lv">${l.toUpperCase()}<small>${esc(LEVEL_NOTES[l])}</small></span><span class="n">${counts[l] || 0}</span></li>`
+        `<li data-level="${l}"><i class="cell" data-s="${l}"></i><span class="lv">${LEVEL_NAME[l]}<small>${esc(LEVEL_NOTES[l])}</small></span><span class="n">${counts[l] || 0}</span></li>`
     )
     .join("");
   const grid = view.loops.length
     ? `<div class="grid" data-grid data-tip="${esc(JSON.stringify(TIP))}" style="grid-template-columns:${columns}" role="img" aria-label="Delegation grid: each square is 1 loop">${cells}</div>`
     : `<div class="grid" data-grid style="grid-template-columns:${columns}" role="img" aria-label="Delegation grid: no loops yet">${cells}</div>`;
-  return `<section class="block" id="activity">
+  return `<section class="block" id="activity"${owner ? "" : " data-open"}>
 ${grid}
 <ul class="legend">${legend}</ul>
 </section>${view.loops.length || hasProposals ? "" : emptyState(owner, connected)}`;
@@ -361,8 +592,8 @@ function experimentsSection(experiments, lang) {
       const bet = pickText(e.hypothesis, lang) || pickText(e.pending?.hypothesis, lang);
       let status = STATUS[e.status] || "";
       if (e.status === "concluded") status += ` · ${VERDICT[e.verdict] || ""}`;
-      else if (e.stage) status += ` · STAGE ${e.stage} · ${String(e.level).toUpperCase()}`;
-      return `<li class="exp"><span class="exp-id">${esc(e.code)} · ${esc(e.slot.toUpperCase())}</span><span class="exp-title">${esc(q)}</span><span class="exp-status" data-status="${esc(e.status)}">${esc(status)}</span>${bet ? `<p class="exp-bet"><span class="label">BET</span>${esc(bet)}</p>` : ""}</li>`;
+      else if (e.stage) status += ` · ROUND ${e.stage} · ${LEVEL_NAME[e.level] || String(e.level).toUpperCase()}`;
+      return `<li class="exp"><span class="exp-id">${esc(e.code)} · ${esc(e.slot.toUpperCase())} PICK</span><span class="exp-title">${esc(q)}</span><span class="exp-status" data-status="${esc(e.status)}">${esc(status)}</span>${bet ? `<p class="exp-bet"><span class="label">BET</span>${esc(bet)}</p>` : ""}</li>`;
     })
     .join("");
   return `<section class="block">${sectionTitle(EXPERIMENTS_ICON, "EXPERIMENTS")}<ul class="exps">${rows}</ul></section>`;
@@ -405,11 +636,11 @@ function proposedCard(proposed, broken, lang, published, fixable, connected) {
 <input type="hidden" name="op" value="approve_loops"><div data-codes-inputs></div>
 <h3 id="approve-title" data-approve-title>Approve this loop?</h3>
 <p class="modal-target" data-approve-loop><span class="code" data-approve-code></span><span data-approve-name></span></p>
-<p>Approving adds a loop to your inventory for good:</p>
+<p>Approving adds a loop to your list for good:</p>
 <ul class="modal-list">
 <li>It counts toward your ${P.limits.loops} loops.</li>
 <li>${visibility}</li>
-<li>Your agents can measure it, and it can fill an experiment slot.</li>
+<li>Your agents can measure it, and it can be picked for an experiment.</li>
 <li>Its code is never reused. To take it out later you retire it, and the history keeps both steps.</li>
 <li data-approve-replaces hidden></li>
 </ul>
@@ -527,7 +758,7 @@ function pendingSection(state, published, connected) {
   for (const l of baselines) {
     const b = l.pendingBaseline;
     parts.push(
-      `<form method="post" action="/owner/action" class="card"><input type="hidden" name="op" value="approve_baseline"><input type="hidden" name="code" value="${esc(l.code)}"><h3>Baseline for ${esc(l.code)}</h3><p>${esc(pickText(l.name, lang))}: ${esc(b.hoursPerWeek)} h a week, $${esc(b.moneyUsd)}, ${esc(b.occurrences)} occurrences (${esc(b.confidence)} confidence)${b.quality ? `, ${esc(b.quality)}` : ""}.</p><button class="btn" type="submit">APPROVE BASELINE</button></form>`
+      `<form method="post" action="/owner/action" class="card"><input type="hidden" name="op" value="approve_baseline"><input type="hidden" name="code" value="${esc(l.code)}"><h3>Measured cost for ${esc(l.code)}</h3><p>${esc(pickText(l.name, lang))}: ${esc(b.hoursPerWeek)} h a week, $${esc(b.moneyUsd)}, watched ${esc(b.occurrences)} times (${esc(b.confidence)} confidence)${b.quality ? `, ${esc(b.quality)}` : ""}.</p><button class="btn" type="submit">APPROVE COST</button></form>`
     );
   }
   return `<section class="block">${sectionTitle(WAITING_ICON, "<mark>WAITING</mark> FOR YOU")}${parts.join("")}</section>`;
@@ -536,25 +767,25 @@ function pendingSection(state, published, connected) {
 const HISTORY_LABELS = {
   propose_loops: "Loops proposed",
   rename_loop: "New name, done-when or scope proposed",
-  update_loop: "Estimate or triage updated",
+  update_loop: "Estimate or score updated",
   split_loop: "Split proposed",
   merge_loops: "Merge proposed",
   retire_loop: "Retirement proposed",
   set_measuring: "Measuring turned on or off",
-  record_baseline: "Baseline recorded",
-  register_stage_try: "Stage registered",
-  close_stage_try: "Stage closed",
-  record_hold: "Hold recorded",
+  record_baseline: "Measured cost recorded",
+  register_stage_try: "Round written down",
+  close_stage_try: "Round ended",
+  record_hold: "Proving recorded",
   record_drop: "Level dropped",
   add_learned: "Lesson proposed",
   approve_loops: "Loops approved",
   approve_text: "Text published",
   reject_text: "Proposed text discarded",
-  approve_baseline: "Baseline approved",
+  approve_baseline: "Measured cost approved",
   set_published: "Partner publishing changed",
-  freeze_inventory: "Inventory frozen",
-  register_experiment: "Experiment registered",
-  conclude_experiment: "Experiment concluded",
+  freeze_inventory: "List frozen",
+  register_experiment: "Experiment written down",
+  conclude_experiment: "Experiment ended",
   set_meta: "Settings changed",
   adopt_protocol: "Protocol version adopted",
   undo_event: "A change was undone",
@@ -586,13 +817,105 @@ function eventsSection(events, loops) {
   return `<section class="block" id="history">${sectionTitle(HISTORY_ICON, "HISTORY")}${timelineList("history", items, HISTORY_SHOWN)}</section>`;
 }
 
+// Same stroke weight as the Phosphor bold icons.
+const PULSE_ICON = `<svg viewBox="0 0 256 256" width="18" height="18" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 128h36l28-72 56 144 28-72h60"/></svg>`;
+
+const PULSE_DAYS = 84;
+const PULSE_TICK = P.limits.cycleWeeks * 7;
+const PULSE_SHOWN = 6;
+const PULSE_GROUPS = 60;
+const PULSE_LABELS = {
+  approve_loops: "Added to the list",
+  approve_baseline: "Cost measured",
+  approve_text: "New text published",
+  freeze_inventory: `List frozen at ${P.limits.loops} loops`,
+  register_experiment: "Experiment written down",
+  register_stage_try: "Round started",
+  close_stage_try: { achieved: "Round passed", notAchieved: "Round didn't pass", terminated: "Round stopped", "": "Round ended" },
+  record_hold: { passed: `Held for ${P.limits.holdWeeks} weeks: moved up`, failed: `Didn't hold for ${P.limits.holdWeeks} weeks`, "": "Proving ended" },
+  record_drop: "Dropped a level",
+  conclude_experiment: { confirmed: "Experiment ended: bet right", refuted: "Experiment ended: bet wrong", unclear: "Experiment ended: not clear", "": "Experiment ended" },
+  adopt_protocol: "New protocol version adopted",
+};
+const PULSE_BAD = new Set(["record_drop", "notAchieved", "terminated", "failed"]);
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+// Visitors only: what moved, day by day. Agents fill each bar from the baseline, the person stacks on top,
+// so the green share growing over the weeks is the run working.
+function activitySection(items, view, meta) {
+  if (!items.length) return "";
+  const end = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+  const perDay = new Map();
+  for (const it of items) {
+    const c = perDay.get(it.day) || { person: 0, agent: 0 };
+    c[it.by === "agent" ? "agent" : "person"]++;
+    perDay.set(it.day, c);
+  }
+  const days = Array.from({ length: PULSE_DAYS }, (_, i) => {
+    const day = new Date(end - (PULSE_DAYS - 1 - i) * 86400000).toISOString().slice(0, 10);
+    return { day, ...(perDay.get(day) || { person: 0, agent: 0 }) };
+  });
+  const total = days.reduce((n, d) => n + d.person + d.agent, 0);
+  const agents = days.reduce((n, d) => n + d.agent, 0);
+  const peak = Math.max(1, ...days.map((d) => d.person + d.agent));
+  const pct = (n) => Math.round((n / peak) * 1000) / 10;
+  const name = meta.ownerName ? meta.ownerName.toUpperCase() : "";
+  const weeks = PULSE_DAYS / 7;
+
+  const bar = (d, i) => {
+    const back = PULSE_DAYS - 1 - i;
+    const n = d.person + d.agent;
+    const mark = back === 0 ? "TODAY" : back % PULSE_TICK === 0 ? shortDate(d.day).toUpperCase() : "";
+    const cls = back === 0 ? "now" : mark && back % (PULSE_TICK * 2) ? "minor" : "";
+    const segs = (d.agent ? `<i class="a" style="height:${pct(d.agent)}%"></i>` : "") + (d.person ? `<i class="p" style="height:${pct(d.person)}%"></i>` : "");
+    return `<li style="--i:${i}"${cls ? ` class="${cls}"` : ""}${mark ? ` data-mark="${mark}"` : ""} data-date="${esc(shortDate(d.day).toUpperCase())}" data-n="${n ? plural(n, "change", "changes") : "No changes"}"${d.agent ? ` data-ag="${plural(d.agent, "by an agent", "by agents")}"` : ""}>${segs}</li>`;
+  };
+
+  const levelOf = new Map(view.loops.map((l) => [l.code, l.level]));
+  const firstLoop = new Map(view.experiments.map((e) => [e.code, e.loops[0]]));
+  const groups = [];
+  for (const it of items) {
+    const key = `${it.day}|${it.tool}|${it.result || ""}|${it.by}`;
+    const last = groups.at(-1);
+    if (last?.key === key) {
+      for (const c of it.codes) if (!last.codes.includes(c)) last.codes.push(c);
+    } else groups.push({ key, ...it, codes: [...it.codes] });
+  }
+  const rows = groups.slice(0, PULSE_GROUPS).map((g) => {
+    const label = PULSE_LABELS[g.tool];
+    const refs = g.codes.slice(0, HISTORY_REFS).map((c) => ({ text: c, href: levelOf.has(c) ? `/loop/${c}` : "" }));
+    if (g.codes.length > HISTORY_REFS) refs.push({ text: `+${g.codes.length - HISTORY_REFS} MORE` });
+    return {
+      at: g.day,
+      s: g.codes.map((c) => levelOf.get(c) || levelOf.get(firstLoop.get(c))).find(Boolean),
+      text: typeof label === "string" ? label : label[g.result || ""],
+      kind: PULSE_BAD.has(g.tool) || PULSE_BAD.has(g.result) ? "bad" : "",
+      by: g.by === "agent" ? "BY AN AGENT" : g.by === "system" ? "ON SCHEDULE" : name ? `BY ${name}` : "BY HAND",
+      byKind: g.by === "agent" ? "agent" : "person",
+      refs,
+    };
+  });
+
+  const sum = total
+    ? `<b>${total}</b> ${total === 1 ? "change" : "changes"} in the last ${weeks} weeks. Agents made <b class="ag">${agents}</b>.`
+    : `No changes in the last ${weeks} weeks.`;
+  return `<section class="block pulse" id="pulse">
+<div class="pulse-head">${sectionTitle(PULSE_ICON, "ACTIVITY")}<ul class="pulse-key"><li data-by="agent">AGENTS</li><li data-by="person">${esc(name || "BY HAND")}</li></ul></div>
+<p class="pulse-sum">${sum}</p>
+<figure class="spark" data-spark role="img" aria-label="Changes per day for the last ${weeks} weeks: ${total} in all, ${agents} by agents."><ol class="spark-bars" style="--days:${PULSE_DAYS}">${days.map(bar).join("")}</ol></figure>
+${timelineList("pulse", rows, PULSE_SHOWN)}
+</section>`;
+}
+
 const PUBLISH_CONFIRM =
   "Publish your log? Anyone with the link sees your grid and experiments. Evidence, notes and partner loops stay private.";
 
 const privateNotice = () =>
   `<form method="post" action="/owner/action" class="notice upgrade" data-confirm="${esc(PUBLISH_CONFIRM)}"><input type="hidden" name="op" value="set_meta"><span>Your progress is private. You can publish it here.</span><button class="btn signal small" type="submit">PUBLISH</button></form>`;
 
-const previewNotice = () => notice(`This is what visitors see. <a href="/">Back to your log</a>.`, "good");
+// Closing it leaves the page exactly as a visitor sees it; a reload brings it back.
+const previewNotice = () =>
+  `<div class="notice good closable"><span>This is what visitors see. <a href="/">Back to your log</a>.</span><button class="notice-close" type="button" data-dismiss aria-label="Close this note to see the page as visitors do">${CLOSE_ICON}</button></div>`;
 
 // Opened from an AI app's link: the owner view without a sign-in, so nothing on it changes the log.
 const viewOnlyNotice = () =>
@@ -603,12 +926,13 @@ function waitingLine(state) {
   return n ? notice(`${n} ${n === 1 ? "item waits" : "items wait"} for you. <a href="/login?next=/">Sign in</a> to approve ${n === 1 ? "it" : "them"}.`) : "";
 }
 
-export function logPage({ state, owner, viewOnly = false, events = [], url, upgrade, configured: isConfigured, hasConnections, published = false, preview = false }) {
+export function logPage({ state, owner, viewOnly = false, events = [], publicEvents = [], url, upgrade, configured: isConfigured, hasConnections, published = false, preview = false }) {
   const meta = state.meta;
   const lang = meta.languages[0];
   const view = owner ? derive(state) : publicView(state);
   const acts = owner && !viewOnly;
   const title = meta.ownerName ? `${meta.ownerName}: Onhundred Protocol log` : "Onhundred Protocol log";
+  const head = profileHead(meta, view.metrics.delegatedPoints, { owner: acts, connected: hasConnections, published, origin: url?.origin || "" });
   const body = [
     flash(url),
     preview ? previewNotice() : "",
@@ -617,13 +941,17 @@ export function logPage({ state, owner, viewOnly = false, events = [], url, upgr
     acts ? protocolNotice(meta, upgrade) : "",
     acts && !hasConnections ? notice(`Next: <a href="/connect">connect your first AI app</a>.`, "good") : "",
     acts && !published ? privateNotice() : "",
-    readout(view, meta, acts),
+    acts && meta.links == null ? linksNotice(published) : "",
+    head,
+    readout(view, meta, acts, head.includes('class="profile-name')),
     gridSection(view, meta, acts, hasConnections, acts && state.loops.some((l) => l.proposed && !l.retired)),
+    owner ? "" : activitySection(publicActivity(publicEvents, view), view, meta),
     acts ? pendingSection(state, published, hasConnections) : viewOnly ? waitingLine(state) : "",
     experimentsSection(view.experiments, lang),
     owner ? eventsSection(events, state.loops) : "",
   ].join("\n");
-  return layout({ title, ownerName: meta.ownerName, owner: acts, body, current: "/", origin: url?.origin });
+  const about = pickText(meta.about, lang);
+  return layout({ title, ownerName: meta.ownerName, owner: acts, signedIn: acts || preview, body, current: "/", origin: url?.origin, description: about });
 }
 
 // ---------------------------------------------------------------------------
@@ -642,8 +970,9 @@ const CRITERIA_NOTE = {
   digital: "Whether the information it needs already lives in apps, files or email. 1 is mostly in your head or on paper, 5 is all in systems. An agent only works with what it can read, so it adds to the score.",
   risk: `What happens if the agent gets it wrong. 1 is an easy fix, 5 is real harm or lost money. Risk subtracts from the score, and ${P.triage.notYet.minRisk} or more puts the loop in Not yet.`,
 };
-const OUTCOME_WORD = { achieved: "achieved", notAchieved: "not achieved", terminated: "terminated" };
-const BET_WORD = { confirmed: "bet confirmed", refuted: "bet refuted", unclear: "unclear" };
+const OUTCOME_WORD = { achieved: "passed", notAchieved: "didn't pass", terminated: "stopped" };
+const BET_WORD = { confirmed: "bet right", refuted: "bet wrong", unclear: "not clear" };
+const SOURCE_WORD = { baseline: "measured cost", estimate: "estimate" };
 const DROP_WORD = { failingDays: `after ${P.limits.failureDays} failing days`, harm: "after harm", consentLost: "after consent was withdrawn" };
 const UPDOWN_ICON = phosphor(
   "M184.49,167.51a12,12,0,0,1,0,17l-48,48a12,12,0,0,1-17,0l-48-48a12,12,0,0,1,17-17L128,207l39.51-39.52A12,12,0,0,1,184.49,167.51Zm-96-79L128,49l39.51,39.52a12,12,0,0,0,17-17l-48-48a12,12,0,0,0-17,0l-48,48a12,12,0,0,0,17,17Z"
@@ -656,7 +985,7 @@ const EVENT_LABELS = {
   rename_loop: "New name, done-when or scope proposed",
   approve_text: "New text published",
   reject_text: "Proposed text discarded",
-  update_loop: "Estimate or triage updated",
+  update_loop: "Estimate or score updated",
   set_measuring: "Measuring turned on or off",
   split_loop: "Split proposed",
   merge_loops: "Merge proposed",
@@ -665,7 +994,7 @@ const EVENT_LABELS = {
   undo_event: "A change was undone",
 };
 
-// The try that still decides something: running, or achieved and waiting for its hold.
+// The try that still decides something: running, or passed and still proving.
 const openTry = (e) => {
   if (e.conclusion) return null;
   const t = byStage(e).at(-1);
@@ -678,23 +1007,25 @@ function levelStack(loop, exps) {
   const top = lvIdx(ceiling);
   const tries = exps.flatMap((e) => byStage(e).map((t) => ({ ...t, exp: e })));
   const reachedOn = (l) => {
-    if (l === "mapped" && loop.baseline?.approvedAt) return loop.baseline.approvedAt;
     const passed = tries.filter((t) => t.level === l && t.hold?.result === "passed").map((t) => t.hold.at);
     const dropped = (loop.drops || []).filter((d) => d.to === l).map((d) => d.at);
     return [...passed, ...dropped].sort().at(-1);
   };
   const ahead = (l) => {
     const open = exps.map((e) => [e, openTry(e)]).find(([, t]) => t?.level === l);
-    if (open) return [`${open[0].code} ${open[1].outcome == null ? "TRYING NOW" : "HOLDING"}`, "run"];
+    if (open) return [`${open[0].code} ${open[1].outcome == null ? "TRYING NOW" : "PROVING"}`, "run"];
     const failed = tries.filter((t) => t.level === l && (t.outcome === "notAchieved" || t.outcome === "terminated" || t.hold?.result === "failed")).at(-1);
-    if (failed) return [`NOT ACHIEVED ${upDate(failed.hold?.at || failed.closedAt)}`, "bad"];
+    if (failed) return [`DIDN'T PASS ${upDate(failed.hold?.at || failed.closedAt)}`, "bad"];
     return ["NOT TRIED YET", ""];
   };
+  const measured = isMeasured(loop);
+  const mark = (l) => (l === "still" && measured ? " data-measured" : "");
   const inner = (l, [meta, kind] = ["", ""], extra = "") =>
-    `<i class="cell" data-s="${l}"${extra}></i><span class="lvl-name">${l.toUpperCase()}${l === ceiling && l !== "autonomous" ? `<span class="tag">CEILING</span>` : ""}</span><span class="lvl-plain">${esc(sentence(LEVEL_NOTES[l]))}</span><span class="lvl-meta${kind ? " " + kind : ""}">${esc(meta)}`;
-  let nowMeta = loop.pendingBaseline ? ["BASELINE WAITING", "run"] : loop.flag === "measuring" ? ["MEASURING", "run"] : ["", ""];
+    `<i class="cell" data-s="${l}"${mark(l)}${extra}></i><span class="lvl-name">${LEVEL_NAME[l]}${l === ceiling && l !== "autonomous" ? `<span class="tag">LIMIT</span>` : ""}</span><span class="lvl-plain">${esc(sentence(LEVEL_NOTES[l]))}</span><span class="lvl-meta${kind ? " " + kind : ""}">${esc(meta)}`;
+  let nowMeta = loop.pendingBaseline ? ["COST WAITING", "run"] : loop.flag === "measuring" ? ["MEASURING", "run"] : ["", ""];
   const since = reachedOn(loop.level);
   if (!nowMeta[0] && since) nowMeta = [`SINCE ${upDate(since)}`, ""];
+  if (!nowMeta[0] && loop.level === "still" && measured) nowMeta = ["MEASURED", ""];
   const flag = loop.flag ? ` data-flag="${esc(loop.flag)}"` : "";
   const rows = [];
   for (let i = top; i > cur; i--) rows.push(`<li class="lvl-row up" style="--k:${i - cur}">${inner(LEVELS[i], ahead(LEVELS[i]))}</span></li>`);
@@ -703,8 +1034,8 @@ function levelStack(loop, exps) {
     rows.push(`<li class="lvl-row down" data-reached style="--k:${cur - i}">${inner(LEVELS[i], [on ? upDate(on) : "", ""])}</span></li>`);
   }
   return `<div class="lvl" data-level-stack>
-<button class="lvl-row lvl-now" type="button" aria-expanded="false" aria-controls="lvl-others" aria-label="Level: ${loop.level}. Show every level">${inner(loop.level, nowMeta, flag)}${UPDOWN_ICON}</span></button>
-<ol class="lvl-others" id="lvl-others" aria-label="Every level up to the ceiling">${rows.join("")}</ol>
+<button class="lvl-row lvl-now" type="button" aria-expanded="false" aria-controls="lvl-others" aria-label="Level: ${esc(levelName(loop.level))}. Show every level">${inner(loop.level, nowMeta, flag)}${UPDOWN_ICON}</span></button>
+<ol class="lvl-others" id="lvl-others" aria-label="Every level up to the limit">${rows.join("")}</ol>
 </div>`;
 }
 
@@ -713,20 +1044,20 @@ function experimentItem(e, lang, today) {
   const bet = pickText(e.hypothesis, lang) || pickText(e.pending?.hypothesis, lang);
   let status = STATUS[e.status] || "";
   if (e.conclusion) status += ` ${upDate(e.conclusion.at)} · ${VERDICT[e.conclusion.hypothesis] || ""}`;
-  else if (e.stage) status += ` · STAGE ${e.stage} · ${String(e.level).toUpperCase()}`;
+  else if (e.stage) status += ` · ROUND ${e.stage} · ${LEVEL_NAME[e.level] || String(e.level).toUpperCase()}`;
   const stages = byStage(e)
     .map((t) => {
       const end = t.closedAt || t.deadline;
-      let out = "RUNNING";
+      let out = "TRYING";
       if (t.outcome == null && t.start > today) out = "SCHEDULED";
       if (t.outcome) out = OUTCOME_WORD[t.outcome].toUpperCase();
-      if (t.outcome === "achieved") out += t.hold ? ` · HOLD ${t.hold.result.toUpperCase()}` : " · HOLDING";
+      if (t.outcome === "achieved") out += t.hold ? (t.hold.result === "passed" ? " · PROVED" : " · DIDN'T HOLD") : " · PROVING";
       const ok = t.outcome == null || (t.outcome === "achieved" && t.hold?.result !== "failed");
       const learned = pickText(t.learned, lang);
-      return `<li><span class="st">STAGE ${t.stage}${t.try > 1 ? ` · TRY ${t.try}` : ""} · ${t.level.toUpperCase()}</span><span>${t.start ? `${shortDate(t.start)} to ${shortDate(end)}.` : ""}${learned ? ` ${esc(learned)}` : ""}</span><span class="out ${ok ? "ok" : "no"}">${out}</span></li>`;
+      return `<li><span class="st">ROUND ${t.stage}${t.try > 1 ? ` · TRY ${t.try}` : ""} · ${LEVEL_NAME[t.level] || t.level.toUpperCase()}</span><span>${t.start ? `${shortDate(t.start)} to ${shortDate(end)}.` : ""}${learned ? ` ${esc(learned)}` : ""}</span><span class="out ${ok ? "ok" : "no"}">${out}</span></li>`;
     })
     .join("");
-  return `<li class="exp"><span class="exp-id">${esc(e.code)} · ${esc(String(e.slot).toUpperCase())}</span><span class="exp-title">${esc(q)}</span><span class="exp-status" data-status="${esc(e.status)}">${esc(status)}</span>${bet ? `<p class="exp-bet"><span class="label">BET</span>${esc(bet)}</p>` : ""}${stages ? `<ol class="stages">${stages}</ol>` : ""}</li>`;
+  return `<li class="exp"><span class="exp-id">${esc(e.code)} · ${esc(String(e.slot).toUpperCase())} PICK</span><span class="exp-title">${esc(q)}</span><span class="exp-status" data-status="${esc(e.status)}">${esc(status)}</span>${bet ? `<p class="exp-bet"><span class="label">BET</span>${esc(bet)}</p>` : ""}${stages ? `<ol class="stages">${stages}</ol>` : ""}</li>`;
 }
 
 function experimentsBox(exps) {
@@ -745,32 +1076,38 @@ const experimentsDrawer = (code, exps, lang, today) =>
     : "";
 
 // The one thing that happens next, worked out from the loop's state.
-function nextLine(loop, exps, owner, today, measuringFull) {
+function nextLine(loop, exps, owner, today, measuringFull, version) {
   const open = exps.find((e) => !e.conclusion);
   const t = open && byStage(open).at(-1);
   if (loop.retired) return "";
-  if (loop.proposed) return "Approve it on the log page to add it to the inventory.";
-  if (loop.pendingBaseline) return owner ? "A baseline is waiting for your approval on the log page." : "A baseline is waiting for approval.";
+  if (loop.proposed) return "Approve it on the log page to add it to your list.";
+  if (loop.pendingBaseline) return owner ? "A measured cost is waiting for your approval on the log page." : "A measured cost is waiting for approval.";
   if (open && t?.outcome == null && t) {
-    if (t.start > today) return `${open.code} stage ${t.stage} starts ${shortDate(t.start)}.`;
-    return `${open.code} stage ${t.stage} closes ${shortDate(t.deadline)}. A ${P.limits.holdWeeks}-week hold then decides ${sentence(t.level)}.`;
+    if (t.start > today) return `${open.code} round ${t.stage} starts ${shortDate(t.start)}.`;
+    return `${open.code} round ${t.stage} ends ${shortDate(t.deadline)}. If it passes, ${P.limits.holdWeeks} weeks of proving decide ${levelName(t.level)}.`;
   }
   if (open && t?.outcome === "achieved" && !t.hold)
-    return `${open.code} is holding at ${t.level}. The hold ends ${shortDate(new Date(Date.parse(`${t.closedAt}T00:00:00Z`) + P.limits.holdWeeks * 7 * 86400000).toISOString().slice(0, 10))}.`;
-  if (open) return `${open.code} has no running stage. The next stage or a conclusion comes next.`;
-  if (loop.level === "unmapped") {
+    return `${open.code} is proving ${levelName(t.level)}. Proving ends ${shortDate(new Date(Date.parse(`${t.closedAt}T00:00:00Z`) + P.limits.holdWeeks * 7 * 86400000).toISOString().slice(0, 10))}.`;
+  if (open) return `${open.code} has no running round. The next round or the end of the experiment comes next.`;
+  if (loop.level === "still" && !isMeasured(loop)) {
     const n = P.limits.occurrencesToMeasure;
-    if (loop.flag === "measuring") return `Being timed now. After it happens ${n} times, its real cost becomes the starting point for experiments.`;
-    if (!owner) return `Nobody has timed this loop yet. Before an experiment, it has to happen ${n} times so its real cost is known.`;
-    return measuringFull
-      ? `All ${P.limits.measuringSlots} measuring slots are taken. Start measuring this loop when one opens.`
-      : `Start measuring it. After it happens ${n} times, its real cost is known and experiments can start.`;
+    if (loop.flag === "measuring") return `Being measured now. After it happens ${n} times, its real cost is the starting point for time saved.`;
+    if (!estimateCanStart(version)) {
+      if (!owner) return `Nobody has measured this loop yet. Before an experiment, it has to happen ${n} times so its real cost is known.`;
+      return measuringFull
+        ? `All ${P.limits.measuringSlots} measuring spots are taken. Start measuring this loop when one opens.`
+        : `Start measuring it. After it happens ${n} times, its real cost is known and experiments can start.`;
+    }
+    if (!loop.estimate?.hoursPerWeek)
+      return owner
+        ? "Write down its estimated cost so it can be picked for an experiment. Measure it if you want proof of time saved."
+        : "It needs an estimated cost before an experiment can pick it.";
   }
-  if (lvIdx(loop.level) >= lvIdx(ceilingOf(loop))) return `It's at its ceiling, ${loop.level}. No experiment takes it higher.`;
+  if (lvIdx(loop.level) >= lvIdx(ceilingOf(loop))) return `It's at its limit, ${levelName(loop.level)}. No experiment takes it higher.`;
   const group = triageGroup(loop);
-  if (group === "automateNow") return "In Automate now: it can fill the easy slot in the next experiment.";
-  if (isHardEligible(loop)) return "It can fill the hard slot in the next experiment.";
-  return "No experiment yet. It waits for a slot.";
+  if (group === "automateNow") return "In Automate now: it can be the easy pick in the next experiment.";
+  if (isHardEligible(loop)) return "It can be the hard pick in the next experiment.";
+  return "No experiment yet. It waits to be picked.";
 }
 
 function loopTimeline(loop, exps, events) {
@@ -778,31 +1115,33 @@ function loopTimeline(loop, exps, events) {
   const add = (at, s, text, kind = "", by = "") => at && items.push({ at: String(at), s, text, kind, by, i: items.length });
   const b = loop.baseline || loop.pendingBaseline;
   if (b?.recordedAt)
-    add(b.recordedAt, "unmapped", `Baseline recorded: ${b.occurrences} occurrences${b.hoursPerWeek != null ? `, ${b.hoursPerWeek} h a week` : ""}`, "", b.recordedBy || "");
-  if (loop.baseline?.approvedAt) add(loop.baseline.approvedAt, "mapped", "Baseline approved: moved to mapped");
+    add(b.recordedAt, "still", `Measured cost recorded: watched ${b.occurrences} times${b.hoursPerWeek != null ? `, ${b.hoursPerWeek} h a week` : ""}`, "", b.recordedBy || "");
+  if (loop.baseline?.approvedAt) add(loop.baseline.approvedAt, "still", "Measured cost approved: the loop is measured");
   for (const e of exps) {
-    add(e.registeredAt, e.startLevel, `${e.code} registered in the ${e.slot} slot`);
+    add(e.registeredAt, e.startLevel, `${e.code} written down as the ${e.slot} pick`);
     for (const t of byStage(e)) {
-      const name = `${e.code} stage ${t.stage}${t.try > 1 ? ` try ${t.try}` : ""}`;
-      add(t.start, t.level, `${name} started: aims for ${t.level}`, t.outcome == null ? "run" : "");
+      const name = `${e.code} round ${t.stage}${t.try > 1 ? ` try ${t.try}` : ""}`;
+      add(t.start, t.level, `${name} started: aims for ${levelName(t.level)}`, t.outcome == null ? "run" : "");
       if (t.closedAt) add(t.closedAt, t.level, `${name} ${OUTCOME_WORD[t.outcome]}`, t.outcome === "achieved" ? "" : "bad");
-      if (t.hold) add(t.hold.at, t.level, t.hold.result === "passed" ? `Hold passed: reached ${t.level}` : `${name} hold failed`, t.hold.result === "passed" ? "" : "bad");
+      if (t.hold)
+        add(t.hold.at, t.level, t.hold.result === "passed" ? `Proved: reached ${levelName(t.level)}` : `${name} didn't hold`, t.hold.result === "passed" ? "" : "bad");
     }
-    if (e.conclusion) add(e.conclusion.at, e.conclusion.level || e.startLevel, `Concluded ${e.code}: ${BET_WORD[e.conclusion.hypothesis] || ""}`);
+    if (e.conclusion) add(e.conclusion.at, e.conclusion.level || e.startLevel, `Ended ${e.code}: ${BET_WORD[e.conclusion.hypothesis] || ""}`);
   }
-  for (const d of loop.drops || []) add(d.at, d.to, `Dropped from ${d.from} to ${d.to} ${DROP_WORD[d.cause] || ""}`.trim(), "bad");
+  for (const d of loop.drops || [])
+    add(d.at, d.to, `Dropped from ${levelName(d.from)} to ${levelName(d.to)} ${DROP_WORD[d.cause] || ""}`.trim(), "bad");
   if (loop.retiredAt) add(loop.retiredAt, loop.level, `Retired${loop.retiredReason ? `: ${loop.retiredReason}` : ""}`, "bad");
   for (const ev of events) if (EVENT_LABELS[ev.tool]) add(ev.at, null, EVENT_LABELS[ev.tool], "", `#${ev.id} · ${ev.actor}`);
   const day = (it) => it.at.slice(0, 10);
   return items.sort((a, z) => (day(a) === day(z) ? z.i - a.i : day(a) < day(z) ? 1 : -1));
 }
 
-// Items: { at, s (level of the cell), text, kind ("run" or "bad"), by, refs: [{ text, href }] shown after the text }.
+// Items: { at, s (level of the cell), text, kind ("run" or "bad"), by, byKind ("agent" or "person"), refs: [{ text, href }] shown after the text }.
 const timelineItem = (it) => {
   const day = it.at.slice(0, 10);
   const clock = it.at.length > 10 ? it.at.slice(11, 16) : "";
   const refs = (it.refs || []).map((r) => (r.href ? `<a class="code" href="${esc(r.href)}">${esc(r.text)}</a>` : `<span class="code">${esc(r.text)}</span>`)).join(" ");
-  return `<li${it.kind ? ` class="${it.kind}"` : ""}><time datetime="${esc(clock ? it.at : day)}">${esc(day)}${clock ? `<small>${esc(clock)}</small>` : ""}</time><i class="cell" data-s="${it.s || "empty"}"></i><span><b>${esc(it.text)}</b>${refs ? ` ${refs}` : ""}${it.by ? `<span class="by">${esc(it.by)}</span>` : ""}</span></li>`;
+  return `<li${it.kind ? ` class="${it.kind}"` : ""}><time datetime="${esc(clock ? it.at : day)}">${esc(day)}${clock ? `<small>${esc(clock)}</small>` : ""}</time><i class="cell" data-s="${it.s || "empty"}"></i><span><b>${esc(it.text)}</b>${refs ? ` ${refs}` : ""}${it.by ? `<span class="by"${it.byKind ? ` data-by="${it.byKind}"` : ""}>${esc(it.by)}</span>` : ""}</span></li>`;
 };
 
 function timelineList(id, items, shown) {
@@ -841,11 +1180,11 @@ function costSection(loop, owner) {
   if (b?.occurrences != null) row("MEASURED", `${esc(b.occurrences)} times, ${esc(b.confidence)} confidence`);
   if (evidence) row("EVIDENCE", `${esc(loop.evidence)}<span class="private">PRIVATE</span>`);
   const source = b?.approvedAt
-    ? `From the baseline approved ${shortDate(b.approvedAt)}.`
+    ? `From the measured cost approved ${shortDate(b.approvedAt)}.`
     : b
-      ? "From the measured baseline."
+      ? "From the measured cost."
       : est
-        ? "From the estimate. A measured baseline replaces it."
+        ? "From the estimate. A measured cost replaces it."
         : "";
   const cost = rows.length
     ? `<div><h2 class="title">COST</h2><dl class="status">${rows.join("")}</dl>${source ? `<p class="source">${source}</p>` : ""}</div>`
@@ -877,40 +1216,43 @@ function costSection(loop, owner) {
         : group === "notYet"
           ? t.risk >= P.triage.notYet.minRisk
             ? `Risk ${P.triage.notYet.minRisk} or more puts it in Not yet.`
-            : "It's at its ceiling, so it's in Not yet."
+            : "It's at its limit, so it's in Not yet."
           : `Automate now needs a score of ${minScore} or more and risk ${maxRisk} or less.`;
-    triage = `<div><h2 class="title">TRIAGE</h2><ul class="triage">${list}</ul><p class="why">Score ${score}, ${GROUP_WORD[group]}. ${why}${t.source ? ` Scored from the ${esc(t.source)}.` : ""}</p></div>`;
+    triage = `<div><h2 class="title">SCORE</h2><ul class="triage">${list}</ul><p class="why">Score ${score}, ${GROUP_WORD[group]}. ${why}${t.source ? ` Scored from the ${esc(SOURCE_WORD[t.source] || t.source)}.` : ""}</p></div>`;
   }
-  return `<section class="block"><details class="card disclosure"><summary><span><b>Cost and triage</b><small>${esc(summary.join(" · ") || "Evidence")}</small></span><span class="disclosure-toggle" data-closed="MORE DETAILS" data-open="HIDE DETAILS"></span></summary><div class="disclosure-body"><div class="two">${cost}${triage}</div></div></details></section>`;
+  return `<section class="block"><details class="card disclosure"><summary><span><b>Cost and score</b><small>${esc(summary.join(" · ") || "Evidence")}</small></span><span class="disclosure-toggle" data-closed="MORE DETAILS" data-open="HIDE DETAILS"></span></summary><div class="disclosure-body"><div class="two">${cost}${triage}</div></div></details></section>`;
 }
 
 // Every owner action is a prompt for the AI app: the page itself never writes.
-function loopActions(loop, exps, name, areaName) {
+function loopActions(loop, exps, name, areaName, version) {
   const who = `${loop.code}, ${name}`;
   const items = [];
   const add = (label, prompt) => items.push([label, `Use Onhundred to ${prompt}`]);
   const open = exps.find((e) => !e.conclusion);
   const t = open && byStage(open).at(-1);
   const level = lvIdx(loop.level);
-  if (loop.level === "unmapped" && !loop.pendingBaseline) {
+  const measured = isMeasured(loop);
+  if (loop.level === "still" && !measured && !loop.pendingBaseline) {
     if (loop.flag !== "measuring") add("Start measuring", `start measuring ${who}. Call set_measuring, then tell me what you'll watch and how you'll count each time it happens.`);
-    add("Record a baseline", `record a baseline for ${who}. It needs at least ${P.limits.occurrencesToMeasure} occurrences. Ask me the hours a week and what it costs, then call record_baseline.`);
+    add("Record the measured cost", `record what ${who} costs today. It needs to be watched at least ${P.limits.occurrencesToMeasure} times. Ask me the hours a week and what it costs, then call record_baseline.`);
   }
   if (open && t?.outcome == null && t)
-    add("Close the running stage", `close the running stage of ${open.code} for ${who}. Ask me whether it was achieved, not achieved or terminated, and what it really cost, then call close_stage_try.`);
+    add("End the running round", `end the running round of ${open.code} for ${who}. Ask me whether it passed, didn't pass or was stopped, and what it really cost, then call close_stage_try.`);
   else if (open && t?.outcome === "achieved" && !t.hold)
-    add("Record the hold", `record the ${P.limits.holdWeeks}-week hold of ${open.code} for ${who}. Ask me whether it held, then call record_hold.`);
+    add("Record the proving", `record whether ${open.code} held for ${who} over ${P.limits.holdWeeks} weeks of proving. Ask me whether it kept passing, then call record_hold.`);
   else if (open) {
-    add("Start the next stage", `write the next stage of ${open.code} for ${who}. Call get_experiment first. Write the approach, the success tests and the deadline, show them to me, then call register_stage_try.`);
-    add("Conclude the experiment", `conclude ${open.code} for ${who}. Call get_experiment, tell me whether the bet held, and wait for my answer before conclude_experiment.`);
-  } else if (level >= lvIdx("mapped") && level < lvIdx(ceilingOf(loop)))
+    add("Start the next round", `write the next round of ${open.code} for ${who}. Call get_experiment first. Write the approach, the goals and the deadline, show them to me, then call register_stage_try.`);
+    add("End the experiment", `end ${open.code} for ${who}. Call get_experiment, tell me whether the bet was right, wrong or not clear, and wait for my answer before conclude_experiment.`);
+  } else if ((measured || estimateCanStart(version)) && level < lvIdx(ceilingOf(loop))) {
+    const cost = measured || loop.estimate?.hoursPerWeek ? "" : " It has no estimated cost yet: ask me for one and call update_loop first.";
     add(
       "Draft an experiment",
-      `draft an experiment for ${who}. It's at ${loop.level}. Call get_loop and suggest_slots first, and aim for ${LEVELS[level + 1]}. Write the question and the bet (If, then, because) following onhundred://docs/voice. Show me both before you call register_experiment.`
+      `draft an experiment for ${who}. It's at ${levelName(loop.level)}. Call get_loop and suggest_slots first, and aim for ${levelName(LEVELS[level + 1])}.${cost} Write the question and the bet (If, then, because) following onhundred://docs/voice. Show me both before you call register_experiment.`
     );
+  }
   if (level >= lvIdx("assisted")) {
     add("Record a drop", `record a drop for ${who}. Ask me what failed and for how many days, then call record_drop with the cause and a private note.`);
-    add("Stop it now", `stop ${who}, now. Someone was harmed or withdrew consent. Call record_drop so it goes straight back to mapped, then ask me what happened for the private note.`);
+    add("Stop it now", `stop ${who}, now. Someone was harmed or withdrew consent. Call record_drop so it goes straight back to ${levelName("still")}, then ask me what happened for the private note.`);
   }
   if (items.length) items.push(null);
   add("Rename", `rename ${who}. Read onhundred://docs/loops and onhundred://docs/voice, propose 3 names in every language of the log, and wait for my pick before rename_loop.`);
@@ -918,16 +1260,16 @@ function loopActions(loop, exps, name, areaName) {
     "Write the scope",
     `write the scope for ${who}. Read onhundred://docs/loops and onhundred://docs/voice. Ask whether a neighbor loop could be confused with it. If yes, propose a scope in every language of the log (what counts, what doesn't, fixed constraints). If not, explain why none is needed. Wait for my pick before rename_loop.`
   );
-  add("Update the estimate", `update the estimate and triage of ${who}. Ask me what changed, then call update_loop.`);
-  add("Split", `split ${who}, into smaller loops. Read onhundred://docs/loops, propose the new loops, and ask me whether the baseline still applies before split_loop.`);
+  add("Update the estimate", `update the estimate and score of ${who}. Ask me what changed, then call update_loop.`);
+  add("Split", `split ${who}, into smaller loops. Read onhundred://docs/loops, propose the new loops, and ask me whether the measured cost still applies before split_loop.`);
   add("Merge", `merge ${who}, with another ${areaName} loop. Show me the candidates and the merged name before merge_loops.`);
   add("Retire", `retire ${who}. Ask me why, then call retire_loop with that reason.`);
   return items;
 }
 
-function askMenu(loop, exps, name, areaName, connected) {
+function askMenu(loop, exps, name, areaName, connected, version) {
   if (!connected) return `<a class="btn signal" href="/connect">CONNECT YOUR AI</a>`;
-  const items = loopActions(loop, exps, name, areaName)
+  const items = loopActions(loop, exps, name, areaName, version)
     .map((it) =>
       it
         ? `<button class="menu-item" type="button" data-loop-prompt="${esc(it[1])}" data-title="${esc(it[0][0].toLowerCase() + it[0].slice(1))}">${esc(it[0].toUpperCase())}</button>`
@@ -974,7 +1316,7 @@ export function loopPage({ state, owner, viewOnly = false, code, events = [], co
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">LOG</a></li><li>${esc((branch?.name || p.branch).toUpperCase())}</li><li>${esc(areaName.toUpperCase())}</li><li aria-current="page">${esc(code)}</li></ol><span class="stepper">${step(prev, "PREV")}${step(next, "NEXT")}</span></nav>`;
 
   const actionable = owner && !viewOnly && !loop.retired && !loop.proposed;
-  const head = `<section class="loop-head"><div><h1>${esc(name)}</h1>${done ? `<p class="done"><span class="label">DONE WHEN</span>${esc(done)}</p>` : ""}${scope ? `<p class="scope"><span class="label">SCOPE</span>${esc(scope)}</p>` : ""}${loop.private ? `<p class="done">This loop stays private until the person in it agrees to publish it.</p>` : ""}</div>${actionable ? `<div class="head-side">${askMenu(loop, exps, name, areaName, connected)}</div>` : ""}</section>`;
+  const head = `<section class="loop-head"><div><h1>${esc(name)}</h1>${done ? `<p class="done"><span class="label">DONE WHEN</span>${esc(done)}</p>` : ""}${scope ? `<p class="scope"><span class="label">SCOPE</span>${esc(scope)}</p>` : ""}${loop.private ? `<p class="done">This loop stays private until the person in it agrees to publish it.</p>` : ""}</div>${actionable ? `<div class="head-side">${askMenu(loop, exps, name, areaName, connected, logVersion(meta))}</div>` : ""}</section>`;
 
   const notices = [];
   if (loop.retired) notices.push(notice(`Retired ${esc(upDate(loop.retiredAt))}${loop.retiredReason ? `: ${esc(loop.retiredReason)}` : ""}. Only you can see this page, and the code is never reused.`, "bad"));
@@ -982,7 +1324,7 @@ export function loopPage({ state, owner, viewOnly = false, code, events = [], co
   if (owner && loop.pending && !loop.retired) notices.push(notice(`New text is waiting for your approval on the <a href="/">log page</a>.`));
 
   const measuringFull = view.loops.filter((l) => l.flag === "measuring").length >= P.limits.measuringSlots;
-  const next_ = nextLine(loop, exps, owner, today, measuringFull);
+  const next_ = nextLine(loop, exps, owner, today, measuringFull, logVersion(meta));
   const status = `<section class="status-block"><div class="status-row">${levelStack(loop, exps)}${experimentsBox(exps)}</div>${next_ ? `<p class="next-line"><span class="label">NEXT</span>${esc(next_)}</p>` : ""}</section>`;
 
   const body = `<div class="loop-page">
@@ -1008,7 +1350,7 @@ ${mcpUrlBox(origin)}
 <p><a class="btn signal" href="/login">SIGN IN</a></p>
 ${!hasConnections ? `<p class="muted">First time here? Sign in with the owner password you chose when you deployed, then connect your first AI app.</p>` : ""}
 </section>`;
-  return layout({ title: "Onhundred Protocol log", ownerName: meta.ownerName, body, origin });
+  return layout({ title: "Onhundred Protocol log", ownerName: meta.ownerName, signedIn: preview, body, origin });
 }
 
 function setupNotice() {

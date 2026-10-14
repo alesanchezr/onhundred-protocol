@@ -22,6 +22,42 @@
     }
   });
 
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-dismiss]");
+    if (!btn) return;
+    const t = btn.closest("[data-toast]");
+    if (t) hideToast(t);
+    else btn.closest(".notice")?.remove();
+  });
+
+  // Toasts confirm a save, then leave after a few seconds. Hover or focus holds one in place, so it can be read.
+  // ?done= is dropped from the address so a reload doesn't say it again.
+  const TOAST_MS = 4500;
+  const hideToast = (t) => {
+    clearTimeout(t._timer);
+    t.dataset.leaving = "";
+    setTimeout(() => t.remove(), 250);
+  };
+  const armToast = (t) => {
+    const arm = () => (t._timer = setTimeout(() => hideToast(t), TOAST_MS));
+    const hold = () => clearTimeout(t._timer);
+    t.addEventListener("pointerenter", hold);
+    t.addEventListener("pointerleave", arm);
+    t.addEventListener("focusin", hold);
+    t.addEventListener("focusout", arm);
+    arm();
+  };
+  document.querySelectorAll("[data-toast]").forEach((t) => {
+    document.body.append(t);
+    armToast(t);
+  });
+  const doneParams = new URLSearchParams(location.search);
+  if (doneParams.has("done")) {
+    doneParams.delete("done");
+    const q = doneParams.toString();
+    history.replaceState(null, "", location.pathname + (q ? `?${q}` : "") + location.hash);
+  }
+
   // App links read the prompt box when clicked, so the agent gets the edited text.
   document.addEventListener("click", (e) => {
     const a = e.target.closest("a[data-app-href]");
@@ -361,6 +397,105 @@
     });
   }
 
+  // A button that names its dialog: the profile editor. The prompt keeps the person's edits between openings.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-open-dialog]");
+    const d = btn && document.querySelector(btn.dataset.openDialog);
+    if (!d || typeof d.showModal !== "function") return;
+    openDialog(d);
+    d.querySelector('textarea, input:not([type="hidden"])')?.focus();
+  });
+
+  // Header edits (about line, links): saved without leaving the page, so text that breaks a rule keeps everything typed.
+  document.addEventListener("submit", async (e) => {
+    const form = e.target.closest("[data-quick-form]");
+    if (!form) return;
+    e.preventDefault();
+    const error = form.querySelector("[data-form-error]");
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
+    try {
+      const res = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+      const r = await res.json();
+      if (r.ok) {
+        location.href = `/?done=${encodeURIComponent(r.done || "Saved.")}`;
+        return;
+      }
+      error.textContent = r.error || "This wasn't saved.";
+    } catch {
+      error.textContent = "This wasn't saved. Check your connection and try again.";
+    }
+    error.hidden = false;
+    submit.disabled = false;
+  });
+
+  // Activity: each day's bar explains itself on hover, or on tap on touch screens.
+  // The bars rise once, in a wave from the oldest day, the first time the chart is on screen.
+  const spark = document.querySelector("[data-spark]");
+  if (spark) {
+    const sparkTip = document.createElement("div");
+    sparkTip.className = "tip";
+    sparkTip.setAttribute("role", "tooltip");
+    document.body.append(sparkTip);
+    let hot = null;
+    const hideSpark = () => {
+      if (hot) delete hot.dataset.hot;
+      hot = null;
+      delete sparkTip.dataset.on;
+    };
+    const showSpark = (day) => {
+      if (!day) return hideSpark();
+      if (day === hot) return;
+      if (hot) delete hot.dataset.hot;
+      hot = day;
+      day.dataset.hot = "";
+      const lines = [
+        ["", day.dataset.date],
+        ["tip-name", day.dataset.n],
+        ["tip-flag", day.dataset.ag],
+      ];
+      sparkTip.replaceChildren(
+        ...lines
+          .filter((l) => l[1])
+          .map(([cls, text]) => {
+            const s = document.createElement("span");
+            s.className = cls;
+            s.textContent = text;
+            return s;
+          })
+      );
+      sparkTip.dataset.on = "";
+      const r = day.getBoundingClientRect();
+      const w = sparkTip.offsetWidth;
+      const h = sparkTip.offsetHeight;
+      sparkTip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + "px";
+      sparkTip.style.top = (r.top - h - 10 < 8 ? r.bottom + 10 : r.top - h - 10) + "px";
+    };
+    spark.addEventListener("pointerover", (e) => e.pointerType === "mouse" && showSpark(e.target.closest("li")));
+    spark.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && hideSpark());
+    spark.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showSpark(e.target.closest("li"));
+    });
+    document.addEventListener("click", hideSpark);
+    addEventListener("scroll", hideSpark, { passive: true });
+    document.addEventListener("keydown", (e) => e.key === "Escape" && hideSpark());
+
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+      spark.dataset.wait = "";
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          io.disconnect();
+          delete spark.dataset.wait;
+          spark.dataset.play = "";
+        },
+        { threshold: 0.4 }
+      );
+      io.observe(spark);
+    }
+  }
+
   const grid = document.querySelector("[data-grid]");
   if (!grid) return;
 
@@ -401,8 +536,10 @@
   // the board holds on 100 of 100, then drains in a wave from the top left, each square flipping down the ladder
   // to its real state and slowing as it falls. The flaps exist only while they turn.
   // The figure counts along: it shows the points of the cards facing up, then lands on the server's value.
-  const UP = ["unmapped", "mapped", "assisted", "delegated", "autonomous"];
-  const DOWN = ["autonomous", "delegated", "assisted", "mapped", "unmapped", "empty"];
+  // "measured" is a flap face only: a measured Still yours square shows filled.
+  const UP = ["still", "measured", "assisted", "delegated", "autonomous"];
+  const DOWN = ["autonomous", "delegated", "assisted", "measured", "still", "empty"];
+  const faceOf = (el) => (el.dataset.s === "still" && "measured" in el.dataset ? "measured" : el.dataset.s);
   const CLIMB_FLIP = 70;
   const DRAIN_FLIPS = [100, 125, 150, 175, 200];
   const HOLD_UNTIL = 1000;
@@ -471,7 +608,7 @@
     await sleep(Math.random() * 150);
     for (const s of UP) await flip(cell, s, CLIMB_FLIP, true);
     await sleep(start + HOLD_UNTIL - performance.now() + (r + c) * 22 + Math.random() * 160);
-    const end = DOWN.indexOf(el.dataset.s);
+    const end = DOWN.indexOf(faceOf(el));
     for (let i = 1; i <= end; i++) await flip(cell, DOWN[i], DRAIN_FLIPS[i - 1], true);
     unmount(cell);
   };
@@ -549,9 +686,9 @@
         jobs.delete(el);
         break;
       }
-      cell ||= mount(el, el.dataset.s);
+      cell ||= mount(el, faceOf(el));
       el.dataset.turning = "";
-      for (const s of [LEGEND_MID, el.dataset.s]) {
+      for (const s of [LEGEND_MID, faceOf(el)]) {
         if (jobs.get(el) !== job) break;
         if (cell.face !== s) await flip(cell, s, LEGEND_FLIP);
       }
@@ -633,7 +770,7 @@
     const lines = [
       ["tip-code", d.loop],
       ["tip-name", d.name],
-      ["", labels.levels && labels.levels[d.s]],
+      ["", labels.levels && labels.levels[d.s] + ("measured" in d && labels.measured ? ` · ${labels.measured}` : "")],
       ["tip-flag", labels.flags && labels.flags[d.flag]],
       ["failed" in d ? "tip-failed" : "", labels.outcomes && labels.outcomes[d.o]],
       ["tip-flag", touch && labels.open],

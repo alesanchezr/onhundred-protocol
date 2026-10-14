@@ -5,7 +5,7 @@ import { compareViolations, pendingRuleBreaks, validate } from "../lib/protocol.
 import { RULE_CHANGE_OPS, ToolError, clone, diffState, ops, pendingItems, restore } from "../src/ops.mjs";
 import { effectiveMeta, upgradeDiff } from "../src/store.mjs";
 
-const empty = (protocolVersion = "1.1") => ({ meta: { mode: "building", protocolVersion, languages: ["en"] }, loops: [], experiments: [] });
+const empty = (protocolVersion = "1.5") => ({ meta: { mode: "building", protocolVersion, languages: ["en"] }, loops: [], experiments: [] });
 const agent = { actor: "claude", access: "owner", now: "2026-10-12T12:00:00.000Z", cycle: 0 };
 const page = { ...agent, actor: "owner", directText: true };
 
@@ -46,29 +46,29 @@ test('"Decide ..." is rejected on a v1.1 log and accepted on a v1.0 log', () => 
   assert.equal(s.loops.length, 1);
 });
 
-test("adopt_protocol applies at once with no cycle running, records the change and lists what breaks", async () => {
+test("adopt_protocol applies at once before check-ins start, records the change and lists what breaks", async () => {
   let s = await seed();
   Object.assign(s.meta, { protocolVersion: "1.0", mode: "building", cycle: 0 });
   delete s.meta.cycleOneStart;
   s.loops[0].name.en = "Decide where we eat out";
   s = write(s, "adopt_protocol", {}, { ...page, cycle: 0 });
-  assert.equal(s.meta.protocolVersion, "1.1");
-  assert.deepEqual(s.meta.protocolChange, { from: "1.0", to: "1.1", at: "2026-10-12", cycle: 0, until: "2026-10-26", delegatedBefore: 7, delegatedAfter: 8.5 });
+  assert.equal(s.meta.protocolVersion, "1.5");
+  assert.deepEqual(s.meta.protocolChange, { from: "1.0", to: "1.5", at: "2026-10-12", cycle: 0, until: "2026-10-26", delegatedBefore: 7, delegatedAfter: 8.5 });
   assert.equal(lastResult.takesEffect, "now");
   assert.equal(lastResult.breaksNewRules.length, 1);
   assert.match(lastResult.breaksNewRules[0], new RegExp(`^${s.loops[0].code}: name \\(en\\) starts with a failing verb \\(decide\\)`));
   assert.equal(pendingRuleBreaks(s).items.length, 1);
-  assert.throws(() => write(s, "adopt_protocol", {}, page), /already runs v1.1/);
+  assert.throws(() => write(s, "adopt_protocol", {}, page), /already runs v1.5/);
 });
 
-test("adopt_protocol waits for the next cycle when one is running", async () => {
+test("adopt_protocol waits for the next check-in once they have started", async () => {
   let s = await seed();
   s.meta.protocolVersion = "1.0";
   s = write(s, "adopt_protocol", {}, { ...page, cycle: 16 });
   assert.equal(s.meta.protocolVersion, "1.0");
-  assert.deepEqual(s.meta.protocolUpgrade, { version: "1.1", fromCycle: 17, adoptedAt: page.now });
-  assert.equal(lastResult.takesEffect, "the start of cycle 17");
-  assert.throws(() => write(s, "adopt_protocol", {}, page), /takes effect at the start of cycle 17/);
+  assert.deepEqual(s.meta.protocolUpgrade, { version: "1.5", fromCycle: 17, adoptedAt: page.now });
+  assert.equal(lastResult.takesEffect, "after check-in 16");
+  assert.throws(() => write(s, "adopt_protocol", {}, page), /takes effect after check-in 16/);
 });
 
 test("a scheduled upgrade applies once its cycle starts, and the writer can save it", () => {
@@ -144,14 +144,53 @@ test("levels only move through holds", () => {
   s = write(s, "approve_loops", { codes: ["P-HOM-01"] }, page);
   s = write(s, "record_baseline", { code: "P-HOM-01", occurrences: 3, hoursPerWeek: 1 });
   s = write(s, "approve_baseline", { code: "P-HOM-01" }, page);
-  assert.equal(s.loops[0].level, "mapped");
+  assert.equal(s.loops[0].level, "still");
+  assert.ok(s.loops[0].baseline.approvedAt);
   s.loops[0].triage = { time: 4, frequency: 4, rules: 4, digital: 4, risk: 1, source: "baseline" };
   s = write(s, "register_experiment", { slot: "easy", question: { en: "Can an agent pay the rent?" }, hypothesis: { en: "If it has the bank login, then it pays on time, because the amount never changes." }, loops: ["P-HOM-01"], goal: "assisted" }, page);
   s = write(s, "register_stage_try", { experiment: "EXP-01", start: "2026-09-01", deadline: "2026-09-10", approach: "Draft the payment", successTests: "3 of 3 on time" });
   s = write(s, "close_stage_try", { experiment: "EXP-01", outcome: "achieved", closedAt: "2026-09-10" });
-  assert.equal(s.loops[0].level, "mapped");
+  assert.equal(s.loops[0].level, "still");
   s = write(s, "record_hold", { experiment: "EXP-01", result: "passed", at: "2026-10-01" });
   assert.equal(s.loops[0].level, "assisted");
+});
+
+const easyCard = {
+  slot: "easy",
+  question: { en: "Can an agent pay the rent?" },
+  hypothesis: { en: "If it has the bank login, then it pays on time, because the amount never changes." },
+  loops: ["P-HOM-01"],
+  goal: "assisted",
+};
+const round1 = { experiment: "EXP-01", start: "2026-09-01", deadline: "2026-09-10", approach: "Draft the payment", successTests: "3 of 3 on time" };
+const scored = (version) => {
+  let s = write(empty(version), "propose_loops", { loops: [spec("Pay the rent")] });
+  s = write(s, "approve_loops", { codes: ["P-HOM-01"] }, page);
+  s.loops[0].triage = { time: 4, frequency: 4, rules: 4, digital: 4, risk: 1, source: "estimate" };
+  return s;
+};
+
+test("from v1.4 an estimate is enough: the first round needs a cost, not a measurement", () => {
+  let s = write(scored("1.5"), "register_experiment", easyCard, page);
+  assert.throws(() => write(s, "register_stage_try", round1), /estimated hours a week/);
+  s = write(s, "update_loop", { code: "P-HOM-01", estimate: { howOften: "monthly", hoursPerWeek: 0.5 } });
+  s = write(s, "register_stage_try", round1);
+  assert.equal(s.experiments[0].stages[0].level, "assisted");
+  assert.equal(s.experiments[0].costToday["P-HOM-01"].source, "estimated");
+});
+
+test("before v1.4 only measured loops can be picked", () => {
+  assert.throws(() => write(scored("1.3"), "register_experiment", easyCard, page), /measured/);
+});
+
+test("measuring is only for loops that aren't measured yet, and approving the cost keeps the level", () => {
+  let s = scored("1.5");
+  s = write(s, "set_measuring", { code: "P-HOM-01", measuring: true });
+  s = write(s, "record_baseline", { code: "P-HOM-01", occurrences: 3, hoursPerWeek: 1 });
+  s = write(s, "approve_baseline", { code: "P-HOM-01" }, page);
+  assert.equal(s.loops[0].level, "still");
+  assert.throws(() => write(s, "record_baseline", { code: "P-HOM-01", occurrences: 3, hoursPerWeek: 1 }), /already measured/);
+  assert.throws(() => write(s, "set_measuring", { code: "P-HOM-01", measuring: true }), /already measured/);
 });
 
 test("diff and restore round-trip, which is what undo_event uses", () => {

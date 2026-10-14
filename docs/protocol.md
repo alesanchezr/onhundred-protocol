@@ -1,10 +1,8 @@
-# Onhundred Protocol v1.1
+# Onhundred Protocol v1.5
 
 A method for delegating your life and work to AI agents.
 
-Oct 12, 2026 · Reference application: Ale Sánchez · Pending external review
-
-By Ale Sánchez · [onhundred.com](https://onhundred.com) · Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Credit it as: "Based on the Onhundred Protocol by Ale Sánchez, onhundred.com, CC BY 4.0."
+Oct 13, 2026 · Ale's own run: Ale Sánchez · Waiting for outside review
 
 ## Warning
 
@@ -12,88 +10,89 @@ This protocol hands parts of your life and your work to AI agents. It can strain
 
 **Don't start if you can't stop the moment someone you love asks you to.**
 
-If it works, you get back the hours, the money and the attention you spend on everything a machine can do for you.
+If it works, you get back the hours, the money and the attention
+you spend on everything a machine can do for you.
 
 **Delegate agency.**
 
 ## How it works
 
-**The goal:** delegate to AI agents everything you do that can be delegated safely, and prove each step with numbers.
+**The goal:** hand to AI agents everything you do that can be handed off safely. Prove each step with numbers.
 
-You split your life (or your job) into exactly 100 recurring responsibilities, called loops. Then, a few at a time, you hand each one to an AI agent, and it stays there only if the evidence shows it works.
+You split your life (or your job) into a fixed list of things you keep doing, called loops. Start with 10, or list 100 to cover everything. Then you hand them to an AI agent, a few at a time. Each one stays there only if the numbers show it works.
 
 ```mermaid
 flowchart LR
-  A["1 · Inventory"] --> B["2 · Measure"] --> C["3 · Choose"] --> D["4 · Experiment"] --> E["5 · Hold"]
+  A["1 · List"] --> B["2 · Cost"] --> C["3 · Pick"] --> D["4 · Experiment"] --> E["5 · Prove"]
   E -- "next level" --> C
-  D -- "not achieved" --> C
+  D -- "didn't pass" --> C
 ```
 
-1. **Inventory.** An agent reads your recent history and proposes your 100 loops, each with a rough estimate of what it costs you. You approve the list.
-2. **Measure.** Before touching a loop, you watch it happen 3 times to record what it really costs: time, money and quality. That is its baseline.
-3. **Choose.** You work on 3 loops at a time: one easy, one hard, and one fun.
-4. **Experiment.** For each loop, you write down a question, your bet and how you'll know the agent succeeded, then you try.
-5. **Hold.** If it works, it has to keep working for 3 more weeks before the loop officially moves up a level. Then the same experiment can climb to the next level.
+1. **List.** An agent reads your recent history and proposes your loops (10 or 100). Each one comes with a rough guess of what it costs you. You approve the list.
+2. **Cost.** Before an agent touches a loop, you write down what it costs you today: time, money and quality. Your estimate is enough to start. If you want proof of time saved, watch it happen 3 times to measure it.
+3. **Pick.** You work on 3 loops at a time: one easy, one hard and one fun.
+4. **Experiment.** For each loop, you write down a question, your bet and how you'll know the agent did well. Then you try.
+5. **Prove.** If it works, it has to keep working for 3 more weeks. Only then does the loop move up a level. Then the same experiment can climb to the next level.
 
-Everything runs in two-week cycles. Every cycle you correct the list, close what finished and record what happened in the log.
+Every 2 weeks you hold a check-in with 3 questions: what worked, what didn't, what's next. You fix the list, refill your picks and record what happened in the log.
 
-**Three rules that never bend:**
+**3 rules that never bend:**
 
-- Success is defined before each stage of an experiment starts, and never changed afterward.
-- Failures are recorded with the same weight as successes.
-- Nobody else is affected by a delegation without knowing and agreeing to it.
+- You set the goals before each round of an experiment starts. You never change them after.
+- Failures count as much as successes.
+- Nobody else is affected by a hand-off unless they know about it and agree.
 
-The rest of this document is the detailed rulebook. Every number in it is collected in the Parameters table (section 16). Terms are defined where they first appear and collected in the Glossary at the end.
+The rest of this document is the detailed rulebook. Every number in it is in The numbers table (section 16). Words are explained where they first appear and listed under Words at the end.
 
-## 1. Purpose
+## 1. Why this exists
 
-It's easy to say AI will change your work. It's harder to say which loops, by how much and at what cost. This protocol answers that one loop at a time, and keeps the receipts.
+It's easy to say AI will change your work. It's harder to say which loops, by how much and at what cost. This method answers that one loop at a time, and keeps the receipts.
 
-**Objectives:**
+**What it sets out to do:**
 
-1. Map everything a person does, at home and at work, in 100 loops.
-2. Delegate to AI agents every loop that can be delegated safely, one level at a time.
-3. Measure the time and money each delegation frees, and what it costs.
-4. Document the process, costs and failures in enough detail for anyone to apply it.
+1. Map what you do, at home and at work, as a fixed list of loops: 10 to start, 100 for everything.
+2. Hand to AI agents every loop that can be handed off safely, one level at a time.
+3. Measure the time and money each hand-off saves, and what it costs.
+4. Write down the steps, costs and failures in enough detail for anyone to follow them.
 
-**Reference application:** Ale Sánchez, co-founder and CTO of 4Geeks, runs this protocol on his own life and publishes every result at onhundred.com, so others can see the method working, and failing, on a real case.
+**Ale's own run:** Ale Sánchez, co-founder and CTO of 4Geeks, runs this method on his own life. He publishes every result at onhundred.com. That way others can see the method work, and fail, on a real case.
 
-This protocol is written before the results. Its rules are not changed to make the results look better.
+This method is written before the results. Its rules don't change to make the results look better.
 
 ## 2. Who and what it covers
 
-A life is too big to delegate as one thing. The protocol cuts it into branches and areas, so a company can use one branch without ever seeing the others.
+A life is too big to hand off as one thing. The method cuts it into parts and areas. That way a company can use one part without ever seeing the others.
 
-### 2.1 Branches
+### 2.1 Parts of life
 
-The protocol covers a person's whole life, organized in three **branches**. Each application chooses which branches it activates.
+The method covers your whole life, in 3 **parts**. Each run chooses which parts it turns on.
 
-| Branch | What it covers | Who activates it |
+| Part | What it covers | Who turns it on |
 | --- | --- | --- |
-| C · Company | The person's work: the responsibilities of their role | Individuals and companies |
-| P · Personal | Finances, home, income, routines and health at the level of systems | Individuals only |
-| R · Relationships | The logistics around the people who matter to them | Individuals only |
+| C · Company | Your work: the duties of your role | Personal runs and companies |
+| P · Personal | Money, home, income, routines and health, as systems | Personal runs only |
+| R · Relationships | The planning around the people who matter to you | Personal runs only |
 
-### 2.2 Applications
+### 2.2 Runs
 
-An **application** is one person running the protocol. That person is the **owner**: the loops being delegated are theirs.
+A **run** is one person using the method. The loops being handed off are that person's own.
 
-- **Individual:** the owner activates all three branches. The reference application is individual.
-- **Organizational:** a company applies the protocol to each participating employee, activating only branch C. Branches P and R do not exist for the company; if an employee wants to use them, they belong to the employee alone, with no company access.
+- **Personal run:** you turn on all 3 parts. Ale's own run is a personal run.
+- **Company run:** a company runs the method with each employee who takes part. Only the Company part is turned on. The Personal and Relationships parts don't exist for the company. If an employee wants to use them, they belong to the employee alone. The company gets no access.
 
-### 2.3 Out of scope in any application
+### 2.3 Never covered, in any run
 
-- Other people's responsibilities. The protocol delegates what the owner does, not the people around them.
-- Applying the protocol to minors, in any form.
-- Clinical data or health diagnoses.
-- Irreversible legal or financial decisions without the owner's explicit approval at the time.
-- The activities of anyone who has not given consent.
+- Other people's duties. The method hands off what you do, not the people around you.
+- Using the method on minors, in any form.
+- Medical data or health diagnoses.
+- Legal or money decisions that can't be undone, unless you clearly approve them at the time.
+- What anyone does who hasn't agreed to take part.
 
 ### 2.4 Areas and codes
 
-Each branch is divided into **areas**, and every loop has a **code** in the format BRANCH-AREA-NN (for example, C-SAL-04, "follow up with leads"). The code makes it possible to activate whole branches, compare the same area across employees, and apply rules by area without reviewing loop by loop.
+Each part has **areas**. Every loop has a **code** in the format PART-AREA-NN, for example C-SAL-04 (follow up with leads). The code lets you turn on whole parts and compare the same area across employees. It also lets rules apply by area, without checking loop by loop.
 
-| Branch | Base areas (code) |
+| Part | Base areas (code) |
 | --- | --- |
 | C · Company | Sales (SAL), Marketing (MKT), Support (SUP), Finance (FIN), Operations (OPS), Product (PRD), People (PPL), Leadership (LDR) |
 | P · Personal | Finance (FIN), Home (HOM), Health (HLT), Income (INC), Administration (ADM) |
@@ -101,479 +100,544 @@ Each branch is divided into **areas**, and every loop has a **code** in the form
 
 **Rules:**
 
-- Base areas are shared across all applications, so results are comparable.
-- A company can add areas specific to its industry (for example, C-EDU for education), but cannot rename the base areas.
-- A loop belongs to a single area. If it fits in two, it is split into two loops.
-- A retired code is never reused, so every code keeps a single history.
-- Consent rules and ceilings are assigned by branch or by area, and every loop inherits them from its code.
+- Base areas are the same for every run, so results can be compared.
+- A company can add areas for its industry (for example, C-EDU for education). It can't rename the base areas.
+- A loop belongs to one area. If it fits in 2, you split it into 2 loops.
+- A retired code is never used again, so every code keeps one history.
+- Consent rules and limits are set by part or by area. Every loop gets them from its code.
 
-## 3. Loops and their levels
+## 3. Loops and where they stand
 
-Exactly 100 loops, five levels, three flags. The number is fixed on purpose: without a limit, the list only grows.
+A fixed number of loops (10 or 100), 4 levels, 3 statuses. The number is fixed on purpose: with no fixed size, the list only grows. It starts small on purpose too. 10 loops is a promise most people can keep.
 
-### 3.1 The 100 loops
+### 3.1 Your list of loops
 
-A **loop** is a recurring responsibility of the owner, specific enough to be delegated: following up after sales calls (C-SAL-04), getting dinner on the table (P-HOM-03), answering the school group chat (R-KID-02). The list of all 100 is the **inventory**. It's called a loop because it keeps coming back until someone closes it, and an open one keeps taking up space in your head.
+A **loop** is something you keep doing that ends in a result, clear enough to hand off. Examples: following up after sales calls (C-SAL-04), getting dinner on the table (P-HOM-03), answering the school group chat (R-KID-02). All your loops together are **your list**. It's called a loop because it keeps coming back until someone closes it. An open one keeps taking up space in your head.
 
-- There are always exactly 100 loops. A new loop forces merging two existing ones or retiring a less important one.
-- The split across branches and areas comes out of the inventory and can change every cycle.
-- A loop keeps its level across cycles unless a correction splits, merges or retires it. A split loop's new loops start at mapped if the measured baseline still applies, and at unmapped if not.
+- Every run picks its **list size**: 10 (to start) or 100 (everything). No other size is allowed, so results can be compared. Ale's own run uses 100.
+- Your list always holds exactly that number. To add a loop, you merge 2 loops or retire a less important one.
+- A run can grow from 10 to 100 at any check-in (section 5.4). It never shrinks.
+- How loops spread across parts and areas comes from your list. It can change at every check-in.
+- A loop keeps its level from one check-in to the next, unless a fix splits, merges or retires it. When you split a loop, the new loops start at still yours. They stay measured if the old measurement still applies. If not, you measure them again.
 
 ### 3.2 Levels
 
-Every loop sits on one track of five **levels**:
+Every loop sits on one track of 4 **levels**:
 
-| Level | Meaning | Who decides | Who acts |
-| --- | --- | --- | --- |
-| Unmapped | In the inventory, but not yet measured | The owner | The owner |
-| Mapped | Measured: we know what it costs today | The owner | The owner |
-| Assisted | Proven at this level | The owner, with the agent's recommendation | The owner |
-| Delegated | Proven at this level | The agent proposes, the owner approves | The agent |
-| Autonomous | Proven at this level | The agent | The agent; the owner reviews results |
-
-### 3.3 Flags
-
-While a loop is being worked on, it carries one flag on top of its level. A loop without a flag is idle.
-
-| Flag | Applies to | Meaning |
+| Level | Who decides | Who acts |
 | --- | --- | --- |
-| Measuring | Unmapped loops | Its baseline is being recorded (section 6) |
-| Experimenting | Mapped loops and above | A stage of an experiment is trying to move it up a level (section 8) |
-| Holding | Mapped loops and above | A stage succeeded; the loop must keep passing before its level changes (section 9) |
+| Still yours | You | You |
+| Help me | You, with the agent's advice | You |
+| Do it, I approve | The agent proposes, you approve | The agent |
+| Do it alone | The agent | The agent. You review the results |
 
-Flags never change a level. Only the end of a holding period, or a drop (section 9.2), does.
+Every level above still yours is earned. The loop passed a round and proved it for 3 weeks (section 9).
 
-## 4. The cycle
+Separately, every loop's cost today is either **estimated** or **measured**. Estimated means your own account, or the guess on your list. Measured means you watched it 3 times and approved the result (section 6). Measured is a mark on the loop, not a level. Any loop can enter an experiment. A measured one is what turns its time saved into a measured figure. A loop stays measured when it drops.
 
-Two weeks is long enough to see results and short enough to change course. Every cycle ends by reviewing the method itself, not just the results.
+### 3.3 Status
 
-Each application moves in **cycles** of two weeks, numbered consecutively. Each cycle has three moments:
+While you work on a loop, it has one **status** on top of its level. A loop with no status is **waiting**.
 
-1. **Map.** Correct the inventory (add, split, merge or retire loops), recalculate triage and fill open slots.
-2. **Delegate.** Run the active measurements and experiments.
-3. **Review.** Close stages that reached their deadline, record the cycle's changes in the log and hold a retrospective on the method itself.
+| Status | For | What it means |
+| --- | --- | --- |
+| Measuring | Loops not yet measured | You are recording what it costs today (section 6) |
+| Trying | Any loop | A round of an experiment is trying to move it up a level (section 8) |
+| Proving | Any loop | A round passed. The loop must keep passing before its level changes (section 9) |
 
-A loop can take several cycles to move up. The cycle is the rhythm of review and reporting, not the deadline for any single loop.
+A status never changes a level. Only finishing the 3 weeks of proving, or a drop (section 9.2), does.
 
-**Work-in-progress limits.** The owner's attention, not the number of open threads, sets the pace:
+## 4. The check-in
 
-- At most **3 experiments** at once, one per slot type (section 7). An experiment keeps its slot until it concludes.
-- At most **5 loops with the Measuring flag**. Measuring is mostly passive, so it can run further ahead.
+2 weeks is long enough to see results and short enough to change course. Every check-in reviews the method itself, not just the results.
 
-## 5. Step 1 · Build the inventory
+Each run moves in blocks of 2 weeks, numbered in order. The log and your list get a new version each time. Between check-ins, the open measurements and experiments run. At the end of each 2 weeks, you hold a **check-in** with 3 questions:
+
+1. **What worked?** Close rounds that reached their deadline and record how they ended.
+2. **What didn't?** Record failures and drops, and review the method itself.
+3. **What's next?** Fix your list (add, split, merge or retire loops), work out the scores again and fill open picks.
+
+A loop can take several check-ins to move up. The check-in sets the rhythm for review and reporting. It is not the deadline for any one loop.
+
+**How much at once.** Your attention sets the pace, not the number of open threads:
+
+- At most **3 experiments** at once, one for each kind of pick (section 7). An experiment keeps its pick until it ends.
+- At most **5 loops with the Measuring status**. Measuring mostly runs on its own, so more of it can run at once.
+
+## 5. Step 1 · Make your list
 
 Calendar, email and documents already describe most of a life. The question for this step: **can an agent read them well enough to map it?**
 
-### 5.1 Procedure
+### 5.1 Steps
 
-1. **History.** An agent reviews the last 90 days of existing records (calendar, email and Drive metadata and summaries, section 10) to find recurring responsibilities.
-2. **Sample week.** For one week, the owner runs the computer tracker and the wearable and adds voice notes, to cover what history does not show.
-3. **Proposal.** The agent groups the activity into 100 loops, assigns each its code, and **estimates** its time, frequency and cost.
-4. **Coverage check.** The proposed loops must explain at least 70% of the owner's waking hours in the sample week. Gaps are documented and filled with voice notes.
-5. **Review.** The owner confirms, merges, splits or rejects each proposed loop. No loop enters the inventory without their approval.
-6. **Close.** The inventory is frozen as version 1, with every loop at unmapped. Building it should take no more than one cycle.
+1. **History.** An agent reads the last 90 days of your calendar, email and Drive to find things you keep doing. It uses only basic details and summaries (section 10).
+2. **Sample week.** For 1 week, you run the computer tracker and the wearable, and add voice notes. This covers what history doesn't show. Required at 100, optional at 10.
+3. **Draft.** The agent groups what you do into the chosen number of loops and gives each one its code. It also **estimates** each loop's time, frequency and cost. At 10, it proposes the 10 loops that take the most hours.
+4. **Hours check.** At 100, the proposed loops must explain at least 70% of your waking hours in the sample week. You write down the gaps and fill them with voice notes. At 10 there is no hours check. 10 loops are a starting set, not a map.
+5. **Review.** You confirm, merge, split or reject each proposed loop. No loop goes on your list without your approval.
+6. **Close.** Your list is frozen as version 1. Every loop starts at still yours, and none is measured yet. Making it should take no more than 2 weeks.
 
-### 5.2 Triage
+### 5.2 Score
 
-Every loop gets a **triage** score from 1 to 5 on five criteria:
+You rate every loop from 1 to 5 on 5 things:
 
-| Criterion | Question | Effect |
+| What you rate | Question | Effect |
 | --- | --- | --- |
-| Time | How many hours per week does it take? | Adds |
+| Time | How many hours a week does it take? | Adds |
 | Frequency | How often does it repeat? | Adds |
-| Clear rules | How well defined is the way it's done? | Adds |
-| Digital data | Does the information already live in systems? | Adds |
+| Clear rules | How clear is the way it's done? | Adds |
+| Digital data | Does the information already live in apps or files? | Adds |
 | Error risk | What happens if the agent gets it wrong? | Subtracts |
 
-**Score** = Time + Frequency + Clear rules + Digital data − Error risk, with all criteria weighing the same.
+**Score** = Time + Frequency + Clear rules + Digital data − Error risk. All 5 count the same.
 
-The score is calculated in code: from the estimate while a loop is unmapped, and from its measured baseline afterward. Every recorded score says which of the two it comes from.
+Code works out the score, not you. It uses the estimate until a loop is measured, and the measurement after. Every recorded score says which one it came from.
 
 **Groups:**
 
-- **Automate now:** score of 13 or more and error risk of 2 or less.
-- **Not yet:** error risk of 4 or more, or a loop already at its ceiling.
+- **Automate now:** a score of 13 or more, and error risk of 2 or less.
+- **Not yet:** error risk of 4 or more, or a loop already at its limit.
 - **Later:** every other loop.
 
-In an organizational application, triage aggregated by area is the initial diagnostic: it shows which areas of the company hold the best-scoring loops.
+In a company run, the scores added up by area are the first check-up. They show which areas of the company hold the best-scoring loops.
 
 ### 5.3 Success and what gets recorded
 
-**Success criterion:** at least 60% of the loops in version 1 were proposed by the agent without major correction by the owner.
+**Success:** the agent proposed at least 60% of the loops in version 1 without a major fix from you.
 
-**Ongoing accuracy:** every later correction to a loop the inventory got wrong (a split, a merge, a retirement, an estimate off by more than half) is counted and recorded each cycle, as part of the answer to this step's question.
+**Accuracy over time:** every later fix to a loop your list got wrong is counted at each check-in. A fix means a split, a merge, a retirement or an estimate off by more than half. The count is part of the answer to this step's question.
 
-**Recorded:** the inventory, which loops the agent proposed correctly, which ones it missed and which it could not have known about.
+**Recorded:** your list, which loops the agent got right, which it missed and which it couldn't have known about.
 
-## 6. Step 2 · Measure a loop
+### 5.4 Growing from 10 to 100
 
-Nobody can prove an agent saved time without knowing how much time the loop took before. A loop's **baseline** is that number, measured before any agent touches it. It is measured only when the loop gets the Measuring flag, not before.
+At any check-in, a run at 10 can grow to 100. The agent proposes the other 90 loops. The sample week and the hours check run as they would for a new list of 100. The result is frozen as the next version of your list. The first 10 keep their codes, levels, measured marks and history. A run never shrinks from 100 to 10.
 
-**Which loops get measured.** Measuring slots are filled from the unmapped loops by estimated triage, always keeping at least one easy candidate and one hard candidate (section 7) in measurement, so an experiment slot never waits for a baseline.
+## 6. Step 2 · Know what a loop costs
 
-**How long.** Measurement runs until the loop has been observed 3 times. Each instance of a loop being done is an **occurrence**. Why 3: one occurrence is an anecdote, two can be a coincidence, three is a pattern worth testing against. A daily loop is measured in days; a monthly loop needs months. Slow loops measure in the background while faster ones move ahead.
+You can't prove an agent saved you time if you never knew how long it took. So you write down what a loop costs today, before any agent touches it. You don't need to measure it to start. You need to measure it to prove time saved.
 
-**Time cap.** If a loop has not occurred 3 times in 90 days, its baseline is taken from the occurrences observed and recorded as low-confidence. A loop observed zero times in 90 days is reviewed in the next Map: it may not be recurring, and can be retired or merged.
+### 6.1 Estimate (required)
+
+Before a loop's first round starts, you write down its **estimated** cost. That means time each time it happens, how often, money and, where it applies, 1 quality measure. It comes from your own account or the estimate on your list. You put it on the experiment card before round 1, so nobody can adjust it after the results. An estimate is enough to run an experiment. Every figure built on it is labeled estimated.
+
+### 6.2 Measure (optional)
+
+Measuring turns the estimate into a **measured** cost. You measure the loops you want proof for, usually before an experiment starts. Once an agent does the loop, you can't measure doing it by hand anymore. You can also measure from records (calendar, email, the computer tracker) when the history shows each time it happened. A loop is measured only while it has the Measuring status.
+
+**How long.** You measure until you've watched the loop happen 3 times. Why 3: once is a story, twice can be chance, 3 times is a pattern worth comparing against. A daily loop takes days to measure. A monthly loop takes months. Slow loops measure in the background while faster ones move ahead.
+
+**Time limit.** Say a loop hasn't happened 3 times in 90 days. Its cost then comes from the times you did see, marked as less certain. A loop not seen even once in 90 days is reviewed at the next check-in. It may not repeat at all, so you can retire it or merge it.
 
 **What is recorded:**
 
-- **Time:** how long each occurrence takes.
+- **Time:** how long it takes each time.
 - **Frequency:** how often it actually happens.
-- **Money:** anything spent doing it.
-- **Quality,** where it applies: a measure the experiment can later compare against (reply rate for lead follow-ups, zero late payments for bills).
+- **Money:** anything you spend doing it.
+- **Quality:** where it applies, a measure the experiment can compare against later. Examples: reply rate for lead follow-ups, zero late payments for bills.
 
-**Scope.** Measurement is limited to what the loop needs. Measuring one loop is not a reason to record more than that loop's activity.
+**Scope.** Measure only what the loop needs. Measuring one loop is no reason to record anything beyond that loop.
 
-**Approval.** The owner approves the measured baseline, the loop moves from unmapped to mapped, and its triage is recalculated with real data.
+**Approval.** You approve the measured cost, and the loop is marked measured. Its score is worked out again with real data. If an experiment is already running, the measured cost replaces the estimate for time saved. Goals already written down don't change.
 
-## 7. Step 3 · Choose what to work on
+## 7. Step 3 · Pick what to work on
 
-One loop likely to win, one likely to lose, and one chosen for the fun of it. The protocol works all three in parallel and declares the rule in advance, so the choice is part of the method rather than a hidden bias.
+One loop likely to win, one likely to lose, and one picked for fun. The method works all 3 at once and states the rule ahead of time. That way the choice is part of the method, not a hidden bias.
 
-There are three experiment **slots**, each with a type:
+You have 3 **picks** for experiments, each of a different kind:
 
-| Slot | Which loop enters | Purpose |
+| Pick | Which loop goes in | Why |
 | --- | --- | --- |
-| Easy | The idle loop with the highest score in the Automate now group | An early, likely win that keeps the pace |
-| Hard | The idle loop with the highest Time score among those with Clear rules or Digital data of 2 or less, outside the Not yet group | A valuable loop that needs research, longer measurement or solving blockers |
-| Fun | Any idle loop outside the Not yet group that the owner enjoys: something silly they would love to automate (getting dinner on the table counts), or something they are passionate about | Keeps the owner engaged |
+| Easy | The waiting loop with the highest score in the Automate now group | An early, likely win that keeps the pace |
+| Hard | The waiting loop with the highest Time rating, outside the Not yet group. Its Clear rules or Digital data must be 2 or less | A valuable loop that needs research, longer measuring or blockers removed |
+| Fun | Any waiting loop outside the Not yet group that you enjoy. It can be something silly you'd love to automate (getting dinner on the table counts), or something you love doing | Keeps you interested |
 
-Only loops at mapped or above can fill a slot.
+Any loop can fill a pick. If it isn't measured, you write down its estimated cost before round 1 (section 6.1).
 
 **Rules:**
 
-- Easy and hard slots are filled in code from the triage, so the owner can't quietly pick only the loops they already like. Ties are broken by code order.
-- The fun slot always records the reason for the choice.
-- If no loop is eligible for a slot, it stays empty and that is recorded.
+- A pick is filled as soon as it opens: at the check-in, or when its experiment ends. A pick never waits for the next check-in.
+- Code fills your easy and hard picks from the scores. That way you can't quietly pick only the loops you already like. If 2 loops tie, the one that comes first by code wins.
+- The fun pick always records why you chose it.
+- If no loop fits a pick, it stays empty, and that is recorded.
 
-**Expected curve.** Before Cycle 1, the owner records the expected shape of the main metric over time. Because easy loops enter first, delegation is expected to rise quickly and then slow down. Results are always reported by slot type, so the early rise is not mistaken for the long-term trend.
+**Expected curve.** Before your first 2 weeks start, you sketch how you expect Handed off to change over time. Easy loops go first, so you expect it to rise fast and then slow down. Results are always reported by kind of pick. That way the early rise isn't mistaken for the long-term trend.
 
 ## 8. Step 4 · Run an experiment
 
-An **experiment** is a question nobody can answer yet, a bet that can lose, and up to three **stages** to find out. Everything is written down before it starts, so nobody, including the owner, can move the goalposts. Experiments are what people follow, so how they are phrased and published matters as much as how they are run.
+An **experiment** is a question nobody can answer yet and a bet that can lose. It gets up to 3 **rounds** to find out. Everything is written down before it starts. That way nobody, not even you, can move the goalposts. Experiments are what people follow. How you word and publish them matters as much as how you run them.
 
 ### 8.1 The experiment card
 
-The card is registered in the log before the first stage starts. After that, it only grows: stages are added, nothing is rewritten.
+You add the card to the log before round 1 starts. After that it only grows: rounds are added, nothing is rewritten.
 
-| Field | Content |
+| Field | What goes in it |
 | --- | --- |
 | Code | EXP-NN |
-| Question | What the experiment answers, in one sentence anyone understands (for example, "Can an agent sell on a voice call, even when the buyer knows it's an agent?") |
-| Hypothesis | The owner's bet, written as If, then, because (for example, "If an AI voice agent, introduced as an AI, runs first sales calls with leads who agreed to it, then it will close less than half as many sales as I do, because buyers don't connect with an agent.") |
+| Question | What the experiment answers, in one sentence anyone understands. Example: "Can an agent sell on a voice call, even when the buyer knows it's an agent?" |
+| Your bet | What you think will happen, written as If, then, because. See the example below |
 | Loops | Which loops it tries to move |
-| Slot | Easy, hard or fun; for fun, the reason for the choice |
-| Starting level and goal | The loops' level today, and the highest level the experiment aims for, within the ceiling |
-| Baseline | The measured baseline of each loop, with its confidence |
-| People involved | Who, and proof of their consent |
+| Pick | Easy, hard or fun. For fun, why you chose it |
+| Start and target level | The loops' level today, and the highest level the experiment aims for, within the limit |
+| What it costs today | Each loop's cost: measured, with how sure you are, or estimated |
+| People involved | Who, and proof that they agreed |
 
-**A good question** is one sentence, answerable, about something people care about, and free of jargon. **A good hypothesis** names the approach, the expected result and the reason, so the outcome can prove it wrong.
+**Example bet:**
 
-### 8.2 Stages
+- **If** an AI voice agent, introduced as an AI, makes first sales calls to leads who agreed to it,
+- **then** it will close less than half as many sales as I do,
+- **because** buyers don't connect with an agent.
 
-An experiment climbs one level per stage, with up to three stages: assisted, delegated and autonomous. Each stage is registered before it starts and never changed once it starts.
+**A good question** is one sentence and can be answered. It is about something people care about, with no jargon.
 
-| Field | Content |
+**A good bet** names the approach, the result you expect and the reason. That way the result can prove it wrong.
+
+### 8.2 Rounds
+
+An experiment climbs one level per round, with up to 3 rounds. Round 1 aims for help me. Round 2 aims for do it, I approve. Round 3 aims for do it alone. You write each round down before it starts. Once it starts, you never change it.
+
+| Field | What goes in it |
 | --- | --- |
-| Stage | 1, 2 or 3, and the level it aims for |
-| Approach | What the agent will do, with which tools, and how it fits into the owner's work |
-| Why this approach | Why it should work, and what earlier stages taught |
-| Success tests | The evals that decide whether the stage worked, with a numeric threshold where applicable |
-| Stop early if | The condition that ends the stage immediately |
+| Round | 1, 2 or 3, and the level it aims for |
+| Approach | What the agent will do, with which tools, and how it fits into your work |
+| Why this approach | Why it should work, and what earlier rounds taught |
+| Goals | What the round must do to pass, with a number to reach where it applies |
+| Stop if | What ends the round at once |
 | Dates | Start date and deadline |
 | Expected cost | Tools and estimated AI cost |
-| Risks | What could go wrong and how it would be detected |
+| Risks | What could go wrong and how you would notice |
 
-A stage can be registered when the experiment starts or after the previous stage ends, so each stage can use what the last one taught. The approach never changes in the middle of a stage: the stage is closed as terminated and a new try of the same stage is registered.
+You can write a round down when the experiment starts or after the last round ends. That way each round can use what the last one taught. The approach never changes in the middle of a round. Instead, you stop the round and write down a new try of the same round.
 
-### 8.3 Closing a stage
+### 8.3 Ending a round
 
-Every stage closes with one of three outcomes:
+Every round ends one of 3 ways:
 
-- **Achieved:** the success tests passed. The loop gets the Holding flag (section 9).
-- **Not achieved:** the deadline arrived without passing. The owner registers a new try of the stage, or concludes the experiment.
-- **Terminated:** the stage was stopped early, with the reason. Same options as not achieved.
+- **Passed:** it met its goals. The loop gets the Proving status (section 9).
+- **Didn't pass:** the deadline came and it hadn't passed. You write down a new try of the round, or end the experiment.
+- **Stopped:** the round was stopped early, with the reason. Same options as didn't pass.
 
-Every outcome is recorded with the actual cost and what was learned.
+Every result is recorded with the actual cost and what you learned.
 
-### 8.4 Concluding the experiment
+### 8.4 Ending the experiment
 
-An experiment concludes when it reaches its goal level, when the owner decides to stop climbing, or when the loop drops back to mapped (section 9.2). At conclusion, the owner records the final level reached and whether the hypothesis was confirmed, refuted or unclear. A refuted hypothesis is a result, not a failure.
+An experiment ends when it reaches its target level, or when you decide to stop climbing. It also ends when the loop drops back to still yours (section 9.2). At the end, you record the final level reached. You also record whether your bet was right, wrong or not clear. A wrong bet is a result, not a failure.
 
-## 9. Step 5 · Hold the level
+## 9. Step 5 · Prove it holds
 
-Passing once proves an agent can do it. Passing for 3 weeks proves it does. **A running stage never changes a loop's level;** only a completed hold does.
+Passing once proves an agent can do it. Passing for 3 weeks proves it does. A running round **never** changes a loop's level. Only finishing the 3 weeks of proving does.
 
 ### 9.1 Moving up
 
 A loop moves up one level when:
 
-1. Its current stage closed as achieved.
-2. It kept passing that stage's success tests for 3 consecutive weeks while holding: long enough to include a bad week, short enough to keep moving.
-3. It did not require emergency interventions by the owner in that period, other than those expected at its level.
-4. Its AI cost is lower than the value of the time or money it frees, or there is a documented justification if not.
-5. The new level does not exceed the loop's ceiling.
+1. Its current round ended as passed.
+2. It kept passing that round's goals for 3 weeks in a row while proving. That's long enough to include a bad week, and short enough to keep moving.
+3. You didn't have to step in to rescue it in those weeks, beyond what its level expects.
+4. Its AI cost is less than the time or money it saves is worth. If not, you write down why it should still move up.
+5. The new level is not above the loop's limit.
 
-If any condition fails, the Holding flag is removed and the level stays where it was. Once the loop moves up, the experiment's next stage can start.
+If any of these fails, the Proving status comes off and the level stays where it was. Once the loop moves up, the experiment's next round can start.
 
 ### 9.2 Moving down
 
-| Cause | Effect |
+| Cause | Result |
 | --- | --- |
-| Fails its evals for 5 consecutive days | Drops one level |
-| Causes real harm to a person, to the owner's money or to the company | Drops immediately to mapped |
-| Loses the consent of anyone involved | Drops immediately to mapped |
+| Fails its goals for 5 days in a row | Drops 1 level |
+| Causes real harm to a person, to your money or to the company | Drops to still yours at once |
+| Loses the consent of anyone involved | Drops to still yours at once |
 
-Every drop is recorded with its cause. A loop's status always reflects its most recent stage, so a later failure is never hidden behind an earlier success.
+A drop never erases what the loop costs today. A measured loop stays measured. It can enter a new experiment without being measured again. Every drop is recorded with its cause. A loop's status always shows its most recent round. That way a later failure is never hidden behind an earlier success.
 
-### 9.3 Ceilings
+### 9.3 Limits
 
-A **ceiling** is the maximum level allowed for an area, even if it could technically go higher.
+A **limit** is the highest level allowed in an area, even if the loop could go higher.
 
-| Code | Ceiling |
+| Code | Limit |
 | --- | --- |
-| R-KID · Children | Assisted |
-| R-PAR · Partner | Delegated, only with their consent and a stop button |
-| P-HLT · Health | Assisted |
-| P-FIN · Decisions over $500 | Delegated |
-| C-PPL · Decisions about people (hiring, evaluating, firing) | Assisted |
+| R-KID · Children | Help me |
+| R-PAR · Partner | Do it, I approve, only with their consent and a stop button |
+| P-HLT · Health | Help me |
+| P-FIN · Decisions over $500 | Do it, I approve |
+| C-PPL · Decisions about people (hiring, reviewing, firing) | Help me |
 
-Ceilings are enforced in code: no loop can be recorded above its ceiling. In branch C, a company can set stricter ceilings by area, never more permissive than these.
+Limits are enforced in code. No loop can be recorded above its limit. In the Company part, a company can set stricter limits by area. It can never set looser ones than these.
 
 ## 10. What gets recorded, and what never does
 
-The protocol needs data about the owner's life. It never needs anyone else's. Every rule below follows from that.
+The method needs data about your life. It never needs anyone else's. Every rule below follows from that.
 
 **Sources:**
 
-| Source | What it captures | Restriction |
+| Source | What it records | Rule |
 | --- | --- | --- |
-| Local computer tracker (for example, Screenpipe) | Apps, documents, sites and meetings | Screen only, processed locally |
-| Wearable device (for example, Omi or Plaud NotePin) | Activity away from the desk | Off at home; muted by geofence if always-on |
-| Calendar, email and Drive, including the last 90 days of history | Meetings and recurring responsibilities | Metadata and summaries only, no third-party content |
-| Owner's voice notes | What leaves no digital trace | The owner's voice only |
+| Computer tracker on your own machine (for example, Screenpipe) | Apps, documents, sites and meetings | Screen only, processed on your machine |
+| Wearable device (for example, Omi or Plaud NotePin) | What you do away from the desk | Off at home. If always on, muted by location |
+| Calendar, email and Drive, including the last 90 days | Meetings and things you keep doing | Basic details and summaries only. Nothing other people wrote |
+| Your voice notes | What leaves no digital trace | Your own voice only |
 
 **Recording rules:**
 
-- The owner may record themselves. They do not record other people without consent. Many jurisdictions, including Florida, require the consent of all parties to record a conversation.
-- Work calls and meetings are recorded only with the standard recording notice at the start.
+- You may record yourself. You don't record other people without their consent. Many places, including Florida, require everyone's consent to record a talk.
+- Work calls and meetings are recorded only with the usual recording notice at the start.
 - The home is not recorded.
 
-**Retention and deletion:**
+**Keeping and deleting:**
 
-- The agent extracts what the owner did, not what others said.
-- Raw audio is deleted automatically after being summarized, within 7 days at most. The rule is enforced in code, not by hand.
-- Summaries are kept for the duration of the application and can be deleted at the request of anyone mentioned in them.
+- The agent pulls out what you did, not what others said.
+- Raw audio is deleted on its own after it is summarized, within 7 days at most. Code enforces this rule, not a person.
+- Summaries are kept while the run lasts. Anyone mentioned in one can ask to have it deleted.
 
-**Security:** raw data and summaries live on storage controlled by the owner, encrypted, with no third-party access. Any processing by an outside AI provider is limited to what a loop needs and is disclosed on the experiment card.
+**Security:** raw data and summaries live on storage you control. It is encrypted, and nobody else can reach it. An outside AI provider gets only what a loop needs. The experiment card says so.
 
-## 11. Metrics
+## 11. Your numbers
 
-Three numbers, all calculated in code, none typed by hand: how much is delegated, how much time it freed and what it cost.
+3 numbers, all worked out in code, none typed by hand. How much is handed off, how much time it saved and what it cost.
 
-| Metric | Formula |
+| Number | How it is worked out |
 | --- | --- |
-| Delegated (main metric) | Points out of 100: each loop at delegated or autonomous counts 1, at assisted 0.5, below that 0. Always written with its half points (23.5 of 100), never rounded |
-| Time freed | Hours per week no longer spent by the owner, against each loop's baseline |
-| Net savings | Money saved and earned by delegated loops, minus AI and tool costs |
+| Handed off (the main number) | Points out of your list size. Each loop at do it, I approve or do it alone counts 1. Help me counts 0.5. Still yours counts 0. Always written with its half points and its size (3.5 of 10, 23.5 of 100), never rounded |
+| Time saved | Hours a week you no longer spend, against what each loop cost before. Shown in 2 parts: measured (measured loops) and estimated (the rest). Never added into one figure without its label |
+| Money saved (after AI costs) | Money saved and earned by handed-off loops, minus AI and tool costs |
 
-Assisted counts half: it is real progress, and loops whose area caps them at assisted would otherwise never count.
+Help me counts half. It is real progress. Without it, loops whose area stops them at help me would never count.
 
-By branch or area, each metric is calculated the same way over that branch's or area's loops. All of them are also reported by slot type. In organizational applications they are reported by area in the **aggregate grid** (the sum of all participants' loops, grouped by area), never by individual employee.
+When runs of different sizes are compared, Handed off is also shown as a percent of the list. 3.5 of 10 is 35%.
 
-**Integrity rules:**
+By part or area, each number is worked out the same way over that part's or area's loops. All 3 are also reported by kind of pick. In a company run, they are reported by area in the **team grid**. The team grid adds up all employees' loops by area. It never shows one employee.
 
-- Every metric is calculated in code from its sources: the inventory, agent logs, AI billing, receipts and documents. None is entered by hand.
-- Every metric records its formula and its last-updated date.
-- The code that calculates the metrics, and the Parameters table it reads from, are open and live with the protocol at delegate.onhundred.com.
-- Estimated and measured figures are always labeled as such.
-- Savings are backed by a verifiable document (policy, contract, statement), with sensitive data hidden.
-- Money earned only counts if it comes directly from something delegated.
-- If a calculation error is found, it is corrected and the correction is recorded; previous values are not erased from the history.
+**Rules that keep the numbers honest:**
 
-## 12. Ethics and consent
+- Code works out every number from its sources: your list, agent logs, AI bills, receipts and documents. Nobody types one in by hand.
+- Every number records its formula and the date it was last updated.
+- The code that works out the numbers is open, and so is the table it reads (section 16). Both live with the method at delegate.onhundred.com.
+- Estimated and measured figures are always labeled.
+- Savings need a document that can be checked (policy, contract, statement), with private data hidden.
+- Money earned counts only if it comes straight from something you handed off.
+- If a math error is found, it is fixed and the fix is recorded. Old values stay in the history.
 
-**Principle:** the protocol delegates what the owner does. Nobody else is affected by a delegation without knowing and agreeing to it.
+## 12. Who has to agree
+
+**The main rule:** the method hands off what you do. Nobody else is affected by a hand-off unless they know about it and agree.
 
 | Person | Rule |
 | --- | --- |
-| Partner | Knows the protocol is running, approves anything published about them and can stop any loop that involves them at any time. May not know which specific message was assisted, but does know the protocol is running. |
-| Children | The protocol is never applied to them. Only the owner's logistics for being with them are automated. They never appear in any record with their face or identifiable data. |
-| Family and friends | Informed before appearing in any publication, and can ask not to appear. |
-| Employees and team | Participation is voluntary and does not affect their job. Consent is never requested as a condition. |
-| Students, leads and clients | Interactions are recorded only with the standard notice. No identifiable data is published. |
-| Companies in published case studies | Sign a publication agreement before starting. |
+| Partner | Knows the method is running. Approves anything published about them. Can stop any loop that involves them, at any time. May not know which message had AI help, but always knows the method is running |
+| Children | The method is never used on them. Only your own planning for time with them is automated. They never appear in any record with their face or details that identify them |
+| Family and friends | Told before they appear in anything published. They can ask not to appear |
+| Employees and team | Taking part is a free choice and doesn't affect their job. Consent is never a condition |
+| Students, leads and clients | Calls and messages with them are recorded only with the usual notice. Nothing that identifies them is published |
+| Companies in published case studies | Sign a publishing agreement before starting |
 
-**Loop names** never include a person's name or identifying detail. Loops in R-PAR are published only with the partner's approval.
+**Loop names** never include a person's name or any detail that identifies them. Loops in R-PAR are published only with your partner's approval.
 
-**Stop button:** anyone involved can ask to stop whatever involves them. The affected loop drops to mapped immediately, with no justification required.
+**Stop button:** anyone involved can ask to stop whatever involves them. The loop drops to still yours at once. They don't have to give a reason.
 
-**Health:** systems are shared (routines, reminders), never clinical data.
+**Health:** you share systems (routines, reminders), never medical data.
 
-### 12.1 Rules for organizational applications
+### 12.1 Rules for company runs
 
-Every loop with a C code inherits these rules when a company applies the protocol to its employees. The company signs them before starting.
+Every loop with a C code follows these rules when a company runs the method with its employees. The company signs them before starting.
 
-1. **Purpose limitation.** The inventory, the triage and the results are not used to evaluate performance, decide layoffs or set compensation.
-2. **Commitment on freed-up time.** Before starting, the company states in writing what happens to recovered hours (new projects, training, less overtime or another use) and communicates it to participants.
-3. **Voluntary participation.** No employee is required to participate, and not participating has no consequences. Where collective representation exists, the agreement is negotiated with it.
-4. **Data ownership.** Raw data belongs to the employee. The company sees the aggregate grid by area and the experiment results, not individual minute-by-minute activity.
-5. **Minimum aggregation.** The aggregate grid is only shown for areas with at least 5 participants, so no one is identifiable.
-6. **Branches P and R closed.** The company has no access to any employee's Personal and Relationships branches, not even to know whether they use them.
-7. **Own pace.** Each employee has their own slots and limits. The company cannot fill an employee's fun slot.
-8. **Legal compliance by jurisdiction.** Before starting, the legal annex for each region with participants is reviewed (monitoring notices in the US, GDPR and works councils in Europe, local regulations in Latin America).
+1. **One purpose only.** Lists, scores and results are never used to judge performance, decide layoffs or set pay.
+2. **A promise about saved time.** Before starting, the company writes down what happens to the hours saved. Examples: new projects, training, less overtime or another use. It tells every employee who takes part.
+3. **Taking part is a free choice.** No employee has to take part, and saying no has no effect on them. Where workers have a union or works council, the company agrees the terms with it.
+4. **Data belongs to the employee.** Raw data belongs to the employee. The company sees the team grid by area and the experiment results. It never sees one person's activity minute by minute.
+5. **At least 5 people.** The team grid shows an area only when at least 5 employees in it take part. That way nobody can be identified.
+6. **Personal and Relationships stay closed.** The company can't see any employee's Personal or Relationships parts. It can't even know whether they use them.
+7. **Own pace.** Each employee has their own picks and limits on how much runs at once. The company can't choose an employee's fun pick.
+8. **Local law.** Before starting, the company reviews the legal notes for each region where employees take part. Examples: monitoring notices in the US, GDPR and works councils in Europe, local rules in Latin America.
 
 **Roles:**
 
-| Role | Responsibility |
+| Role | What they do |
 | --- | --- |
-| Executive sponsor | Signs the rules and the commitment on freed-up time |
-| Protocol coordinator | Runs the cycles, maintains the log and reports internal results |
-| Participating employee | Owns their application, validates their inventory, takes part in experiments and can withdraw at any time |
-| Reviewer | Someone outside the participants' chain of command who audits compliance with these rules |
+| Executive sponsor | Signs the rules and the promise about saved time |
+| Coordinator | Runs the check-ins, keeps the log and reports results inside the company |
+| Each employee | Runs their own list, approves it, takes part in experiments and can leave at any time |
+| Reviewer | Someone outside the employees' chain of command who checks that these rules are followed |
 
-## 13. Reporting
+## 13. Sharing results
 
-Every application keeps a **log**: its inventory, experiments, outcomes and changes. What the log shows the world depends on who is running it.
+Every run keeps a **log**: its list, experiments, results and changes. Who sees the log depends on who is running it.
 
-| Application | Who sees the log |
+| Run | Who sees the log |
 | --- | --- |
-| Reference application | Everyone. It is published at onhundred.com, with agents, prompts and workflows at delegate.onhundred.com |
-| Individual | The owner. Publishing it is the owner's choice |
-| Organizational | The participating employee, and the protocol coordinator by area under section 12.1 |
+| Ale's own run | Everyone. It is published at onhundred.com, with agents, prompts and setups at delegate.onhundred.com |
+| Personal run | You. Publishing it is your choice |
+| Company run | The employee, and the coordinator by area, under section 12.1 |
 
-**What the log contains:**
+**What the log holds:**
 
-- The grid (the visual representation of the 100 loops), updated from its sources.
-- The expected curve, before Cycle 1.
-- Each experiment: its card before the first stage, each stage before it starts, and every outcome.
-- A weekly entry: what was delegated, what failed and what's left.
-- Each cycle's changes: loops added, retired, split and merged, flag and level changes, and the inventory accuracy count.
-- The agents, prompts and workflows used.
+- The grid (the picture of all the loops on your list), updated from its sources.
+- The expected curve, written before your first 2 weeks start.
+- Each experiment: its card before round 1, each round before it starts, and every result.
+- One entry per check-in: what worked, what didn't and what's next. It also lists what changed in those 2 weeks. That means loops added, retired, split and merged, status and level changes, and the list accuracy count.
+- The agents, prompts and setups used.
 
-**Publishing an experiment.** Each experiment gets one page, in this order: the question, the owner's bet, the stages with their status, results against the success tests, and what surprised the owner. Refuted bets and terminated stages are published with the same weight as the rest.
+**Publishing an experiment.** Each experiment gets one page. It starts with the question and your bet. Then come the rounds and where each one stands. Then the results against the goals, and what surprised you. Wrong bets and stopped rounds get the same space as the rest.
 
 **Rules for every log, private or public:**
 
-- Failures carry the same weight as successes.
-- No figure is recorded unless it can be verified.
-- Third-party data is anonymized before anything is published.
+- Failures count as much as successes.
+- No figure is recorded unless it can be checked.
+- Details about other people are removed before anything is published.
 
-**Reference application only:** 4Geeks figures are published only with the business partners' agreement (section 17), and published case studies with companies follow the agreement signed with each one, including how a failed result is published.
+**Ale's own run only:** a time saved figure is published as measured only when its loop is measured. Otherwise it is published as estimated. 4Geeks figures are published only with the business partners' agreement (section 17). Case studies with companies follow the agreement signed with each one. That includes how a failed result is published.
 
 ## 14. When to stop
 
-No hours saved are worth a relationship, a company or a person's health. The whole application is paused, not just one experiment, if any of these happens:
+No hours saved are worth a relationship, a company or a person's health. If any of these happens, you pause the whole run, not just one experiment:
 
-1. **Relationships:** the partner or a close family member asks to stop it, or the owner sees that the protocol is harming a relationship.
-2. **Health:** for 2 consecutive weeks, the owner works more hours than their average weekly work hours in the 90-day history used to build the inventory, or a health professional recommends pausing.
-3. **Company:** an automation causes material harm to the company or its clients.
-4. **Legal:** any reasonable doubt about the legality of a capture or publication, until it is resolved with a lawyer.
-5. **Data:** a leak or unauthorized access to the application's data.
+1. **Relationships:** your partner or a close family member asks you to stop. Or you see the method is hurting a relationship.
+2. **Health:** for 2 weeks in a row, you work more hours than your usual week. Your usual week is the average from the 90 days of history used to make your list. Or a health expert tells you to pause.
+3. **Company:** an automation causes real harm to the company or its clients.
+4. **Legal:** any fair doubt about whether a recording or a post is legal. You stay paused until a lawyer settles it.
+5. **Data:** a leak, or someone getting into the run's data without permission.
 
-**When paused:** the pause and its reason are recorded in the log, with as much detail as the situation allows. The application resumes only once the cause is resolved and the change is documented.
+**When paused:** record the pause and its reason in the log, with as much detail as the situation allows. The run starts again only once the cause is fixed and the change is written down.
 
-## 15. Conflict of interest and changes
+## 15. Keeping it honest
 
-The person running the reference application also sells AI training. This section is how that interest is kept away from the results, and how the protocol itself is allowed to change.
+Ale runs his own run in public, and he also sells AI training. This section keeps that interest away from the results. It also says how the method itself may change.
 
-### 15.1 Conflict of interest in the reference application
+### 15.1 Conflict of interest in Ale's own run
 
-The owner of the reference application is a co-founder and shareholder of 4Geeks, which offers AI training and automation services for companies. Onhundred is also a channel through which 4Geeks becomes known, and it can generate revenue for 4Geeks through courses, diagnostics and case studies.
+Ale is a co-founder and shareholder of 4Geeks. 4Geeks offers AI training and automation services to companies. Onhundred also helps people find 4Geeks. It can bring 4Geeks money through courses, company reviews and case studies.
 
-To keep that interest from contaminating the results:
+To keep that interest out of the results:
 
-- Success tests are defined before each stage and are not changed afterward.
-- The rule for choosing which loops to work on is declared in this protocol, and every fun choice is published with its reason.
-- Failures are published with the same weight as successes, even when they don't favor 4Geeks.
-- Tools are chosen for results, not commercial relationships, and any sponsorship or agreement with a tool is disclosed.
-- Onhundred's published content includes no offers; the relationship with 4Geeks is disclosed on the site.
+- Goals are set before each round and never changed after.
+- The rule for picking loops is written in this method. Every fun pick is published with its reason.
+- Failures are published with the same weight as successes, even when they don't help 4Geeks.
+- Tools are chosen for results, not business ties. Any sponsor deal or agreement with a tool is made public.
+- Onhundred's published content makes no sales offers. The tie to 4Geeks is made public on the site.
 
-### 15.2 Changes to the protocol
+### 15.2 Changes to the method
 
-- The protocol is versioned (v1.0, v1.1, v2.0) and every version stays published.
-- Every change is recorded in a public changelog with its date, what changed and why.
-- Changes apply from the next cycle. The success tests of a stage that has already started are never changed.
-- Changes that relax an ethics, consent or ceiling rule require external review before taking effect.
-- At the close of each cycle, the protocol is reviewed for needed changes, including triage weights and the Parameters table.
+- The method has version numbers (v1.0, v1.1, v2.0), and every version stays published.
+- Every change goes in a public What changed list, with its date, what changed and why.
+- Changes apply from the next check-in. The goals of a round that has started never change.
+- A change that loosens a rule about ethics, consent or limits needs an outside review first.
+- At each check-in, you review the method for needed changes. That includes the score weights and The numbers table.
 
-## 16. Parameters
+## 16. The numbers
 
-Every number in the protocol lives here. The metrics code reads its values from this table, published as a configuration file. The last column says whether an application (an individual or a company) can change a value.
+Every number in the method lives here. The code that works out your numbers reads this table, published as a settings file. The last column says whether a run (a person or a company) can change a value.
 
-| Parameter | Value | What it controls | Section | Can an application change it? |
+| Setting | Value | What it controls | Section | Can a run change it? |
 | --- | --- | --- | --- | --- |
-| Cycle length | 2 weeks | Rhythm of review and reporting | 4 | Yes |
-| Experiment slots | 3 (easy, hard, fun) | Experiments running at once | 4, 7 | The number, yes; the three types, no |
-| Measuring slots | 5 | Loops being measured at once | 4, 6 | Yes |
-| History lookback | 90 days | Records reviewed to build the inventory | 5 | Yes |
-| Sample week | 1 week | Live capture to fill gaps in history | 5 | Longer only |
-| Coverage | 70% of waking hours | Minimum the inventory must explain | 5 | Higher only |
-| Inventory success | 60% of loops | Agent proposals accepted without major correction | 5 | No, for comparability |
-| Triage groups | Automate now: score 13+ and risk 2 or less. Not yet: risk 4+ | How loops are grouped | 5.2 | No, for comparability |
-| Triage weights | All equal | How much each criterion counts | 5.2 | Reviewed each cycle |
-| Hard slot eligibility | Clear rules or Digital data 2 or less | Which loops count as hard | 7 | No, for comparability |
-| Occurrences to measure | 3 | Observations needed for a baseline | 6 | Higher only |
-| Measuring time cap | 90 days | Longest a loop can be measured | 6 | Yes |
-| Holding period | 3 consecutive weeks | Sustained success before moving up | 9.1 | Longer only |
-| Assisted weight | 0.5 | What a loop at assisted counts toward Delegated | 11 | No, for comparability |
-| Failure days | 5 consecutive days | Failures before dropping a level | 9.2 | Fewer only |
-| Financial ceiling | $500 | Decisions above it can't be autonomous | 9.3 | Lower only; individuals only |
+| List size | 10 or 100 | Loops on your list | 3.1, 5 | Yes, 10 or 100 only. It grows, never shrinks |
+| Check-in timing | 2 weeks | How often you hold a check-in | 4 | Yes |
+| Experiment picks | 3 (easy, hard, fun) | Experiments running at once | 4, 7 | The number, yes. The 3 kinds, no |
+| Measuring at once | 5 | Loops being measured at once | 4, 6 | Yes |
+| History read | 90 days | Records read to make your list | 5 | Yes |
+| Sample week | 1 week, required at 100, optional at 10 | Live recording to fill gaps in history | 5 | Longer only |
+| Hours explained | 70% of waking hours, at 100 only | The least your list must explain | 5 | Higher only |
+| List success | 60% of loops | Agent's loops kept without a major fix | 5 | No, so results can be compared |
+| Score groups | Automate now: score 13+ and risk 2 or less. Not yet: risk 4+ | How loops are grouped | 5.2 | No, so results can be compared |
+| Score weights | All equal | How much each rating counts | 5.2 | Reviewed at each check-in |
+| Hard pick rule | Clear rules or Digital data 2 or less | Which loops count as hard | 7 | No, so results can be compared |
+| Times to measure | 3 | Times you watch a loop to measure it | 6.2 | Higher only |
+| Measuring time limit | 90 days | Longest a loop can be measured | 6.2 | Yes |
+| Prove it | 3 weeks in a row | How long a passed round must keep passing before the loop moves up | 9.1 | Longer only |
+| Help me weight | 0.5 | What a loop at help me counts toward Handed off | 11 | No, so results can be compared |
+| Failure days | 5 days in a row | Failures before a loop drops a level | 9.2 | Fewer only |
+| Money limit | $500 | Decisions above it can't reach do it alone | 9.3 | Lower only. Personal runs only |
 | Raw audio deletion | 7 days | Longest raw audio can exist | 10 | Shorter only |
-| Minimum participants | 5 per area | Smallest area shown in the aggregate grid | 12.1 | Higher only |
-| Health stop | 2 consecutive weeks | Weeks of extra work hours before pausing | 14 | Fewer only |
+| Smallest area in the team grid | 5 employees per area | Fewest people an area needs before the team grid shows it | 12.1 | Higher only |
+| Health stop | 2 weeks in a row | Weeks of extra work hours before you pause | 14 | Fewer only |
 
-Ceilings by area (section 9.3) follow the same logic: an application can only make them stricter.
+Limits by area (section 9.3) follow the same logic. A run can only make them stricter.
 
-## 17. Open items
+## 17. Still to decide
 
-These items are not decided by one person alone. Until each is resolved, the rule in the last column applies.
+These items aren't decided by one person alone. Until each one is settled, the rule in the last column applies.
 
-| Item | What is needed | Until resolved |
+| Item | What's needed | Until then |
 | --- | --- | --- |
-| External review | A reviewer with research experience reviews this protocol | The protocol is published as pending external review |
-| Legal review | A lawyer reviews the capture and publication rules | Only the owner's own voice and screen are captured outside recorded work meetings |
-| Legal annexes by region | Annexes for the US, Latin America and Europe | No organizational application starts in a region without its annex |
-| Company figures | Agreement with the 4Geeks business partners on which figures the reference application shares | No 4Geeks figure is published |
-| Final base areas | Confirmation of the base area list after the first inventory | The areas in section 2.4 apply |
+| Outside review | Someone with research experience reviews this method | The method is published as waiting for outside review |
+| Legal review | A lawyer reviews the rules on recording and publishing | Outside recorded work meetings, only your own voice and screen are recorded |
+| Legal notes by region | Notes for the US, Latin America and Europe | No company run starts in a region without its notes |
+| Company figures | Agreement with the 4Geeks business partners on which figures Ale's own run shares | No 4Geeks figure is published |
+| Final base areas | Confirm the base area list after the first list is made | The areas in section 2.4 apply |
 
-## Glossary
+## Words
 
-| Term | Definition |
+| Word | Meaning |
 | --- | --- |
-| Aggregate grid | The sum of several owners' loops, grouped by area. Only in organizational applications. |
-| Application | One person running the protocol, alone or as part of a company. |
-| Area | A group of loops within a branch, such as Sales within Company. |
-| Baseline | The measured time, frequency, money and quality of a loop over its first occurrences, before any intervention. |
-| Branch | C (Company), P (Personal) or R (Relationships). |
-| Ceiling | The maximum level allowed for an area. |
-| Code | A loop's identifier, in the format BRANCH-AREA-NN. |
-| Cycle | A two-week period of Map, Delegate and Review. |
-| Estimate | A loop's approximate time, frequency and cost, inferred from existing records before measurement. |
-| Eval | A success test, defined before a stage starts, that decides whether it worked. |
-| Experiment | The story of handing a loop to an agent: a question, the owner's bet and up to three stages (EXP-01 onward). |
-| Flag | A temporary mark on a loop being worked on: Measuring, Experimenting or Holding. |
-| Grid | The visual representation of the 100 loops. |
-| Holding period | The weeks a loop must keep passing its success tests after an achieved stage before its level changes. |
-| Hypothesis | The owner's bet about an experiment, written as If, then, because. |
-| Idle | A loop with no flag. |
-| Inventory | The list of the owner's 100 loops, versioned every cycle. |
-| Level | A loop's degree of delegation: unmapped, mapped, assisted, delegated or autonomous. |
-| Log | An application's record: inventory, pre-registrations, outcomes and changes. |
-| Loop | A recurring responsibility of the owner, specific enough to be delegated. |
-| Occurrence | One instance of a loop being done. |
-| Owner | The person whose life or role is being delegated. |
-| Reference application | Ale Sánchez's public application of the protocol, published at onhundred.com. |
-| Slot | One of the three places for a running experiment: easy, hard or fun. |
-| Stage | One level of an experiment, with its own approach and success tests. |
-| Triage | The score that ranks which loops to work on first. |
+| Ale's own run | Ale Sánchez's public run of the method, published at onhundred.com |
+| Area | A group of loops within a part of life, such as Sales within Company |
+| Check-in | The review every 2 weeks: what worked, what didn't, what's next. Check-ins are numbered from 1 |
+| Code | A loop's ID, in the format PART-AREA-NN |
+| Estimate | A loop's rough time, frequency and cost, from existing records or your own account |
+| Experiment | Handing one loop to an AI agent to see if it works. It has a question, your bet and up to 3 rounds (EXP-01 onward) |
+| Goals | What a round must do to pass, written before it starts |
+| Grid | The picture of all the loops on your list |
+| Group | Automate now, Later or Not yet, set by a loop's score |
+| Handed off | The main number. Each loop at do it, I approve or do it alone counts 1, and help me counts 0.5. Written as "3.5 of 10" |
+| Level | Where a loop stands: still yours, help me, do it, I approve, or do it alone |
+| Limit | The highest level a loop can reach, set by area |
+| List size | The fixed number of loops on your list: 10 (to start) or 100 (everything) |
+| Log | A run's record: your list, what you wrote down before each start, results and changes |
+| Loop | Something you keep doing that ends in a result, clear enough to hand off. It keeps coming back until someone closes it |
+| Measured | A loop whose cost you watched 3 times and approved. A mark on the loop, not a level |
+| Part of life | Company (C), Personal (P) or Relationships (R) |
+| Pick | One of the 3 places for a running experiment: easy, hard or fun |
+| Prove it for 3 weeks | After a round passes, the loop must keep passing its goals for 3 weeks before its level changes |
+| Round | One level of an experiment, with its own approach and goals |
+| Run | One person using the method, alone or as part of a company |
+| Score | The number that says which loops to try first |
+| Status | What a loop is doing right now: Measuring, Trying or Proving |
+| Team grid | All employees' loops added up by area. Only in company runs |
+| Times | Each time a loop happens. You measure a loop over 3 times |
+| Waiting | A loop with no status |
+| What it costs today | A loop's time, frequency, money and quality before AI touches it. Estimated by you, or measured over 3 times |
+| Your bet | What you think an experiment will show, written as If, then, because |
+| Your list | All your loops, with a new version every 2 weeks |
 
-## Changelog
+## What changed
 
-**v1.1 · Oct 12, 2026.** Two rule changes and one editorial change:
+**v1.5 · Oct 13, 2026.** Plain English. Same rules, simpler words. No rule, number or step changed. The main renames:
 
-- Delegated is now points out of 100: each loop at delegated or autonomous counts 1, at assisted 0.5. It's written with its half points (23.5 of 100) and never rounded, and the weight is a new parameter, Assisted weight. The v1.0 code counted only delegated and autonomous loops, so a log that adopts v1.1 sees Delegated go up with no change in loops.
-- Loop names that start with "decide" or "choose" now fail the naming test, like "remember" or "track". A loop names what it produces, not the decision behind it (LOOPS.md).
+- Inventory is now your list. Owner is now you. Application is now run: personal run, company run and Ale's own run.
+- Branch is now part of life (Company, Personal, Relationships). Baseline is now what it costs today. Timed is now measured, and occurrence is now times.
+- Triage is now score. Slot is now pick: the easy, hard and fun pick. Stage is now round. Success tests and evals are now goals. Stop early if is now stop if.
+- Hypothesis is now your bet. Confirmed, refuted and unclear are now right, wrong and not clear.
+- Holding is now proving: prove it for 3 weeks. Flags are now statuses: Measuring, Trying and Proving. Idle is now waiting.
+- Achieved, not achieved and terminated are now passed, didn't pass and stopped.
+- Levels are now Still yours, Help me, Do it, I approve and Do it alone. Ceiling is now limit.
+- Cycle is now the 2 weeks between check-ins. Metrics are now your numbers: Handed off, Time saved and Money saved (after AI costs). Aggregate grid is now team grid.
+- Section titles renamed. Parameters is now The numbers, Open items is now Still to decide, Glossary is now Words and Changelog is now What changed.
+- The code format BRANCH-AREA-NN is now PART-AREA-NN. The five steps are now List, Cost, Pick, Experiment and Prove.
+- The levels table drops the "In plain words" column, since the level names are now plain. The example bet is shown as If, then and because lines.
+
+**v1.4 · Oct 13, 2026.** Measuring is optional:
+
+- An experiment can start from an estimated baseline. The owner writes down the loop's cost from their own account before stage 1, and it is recorded on the experiment card.
+- Measuring over 3 occurrences is now optional. It turns the estimate into a timed baseline, the proof needed for a measured time freed figure.
+- Step 2 is renamed "Know what a loop costs", with 6.1 Estimate (required) and 6.2 Measure (optional).
+- Any loop can fill a slot. Experimenting and Holding apply to any loop.
+- Time freed is reported in two parts, measured and estimated. The reference application publishes time freed as measured only for timed loops.
+
+**v1.3 · Oct 13, 2026.** A smaller start:
+
+- The inventory size is now 10 or 100. Starters commit to 10 loops, and the reference application stays at 100. The fixed-size rule applies to whichever size was chosen.
+- At 10, the agent proposes the 10 loops that take the most hours, the sample week is optional and there is no coverage check.
+- Added section 5.4: an application can grow from 10 to 100 at any check-in, keeping each loop's history, and never shrinks.
+- Delegated is written with its size (3.5 of 10) and reported as a percentage when sizes are compared.
+- Added Inventory size to the Parameters table and the glossary.
+
+**v1.2 · Oct 13, 2026.** Simplified levels and the cycle, after feedback that the method was hard to follow:
+
+- Replaced unmapped and mapped with one starting level, still yours, and a separate timed mark. Neither old level said anything about the agent, so the track is now four levels, three of them real progress. Only timed loops can enter an experiment, and drops go to still yours while keeping the baseline. The Delegated metric is unchanged.
+- Added a plain-words column to the levels table.
+- Replaced Map, Delegate and Review with one check-in at the end of each cycle, with three questions: what worked, what didn't, what's next.
+- Removed the weekly log entry. The check-in entry is the only update.
+- Slots are refilled as soon as an experiment concludes, instead of waiting for the next check-in.
+
+**v1.1 · Oct 12, 2026.** Editorial change, no rule changed:
+
 - Renamed the example loop P-HOM-03 from "deciding what's for dinner" to "getting dinner on the table" in sections 3.1 and 7. A decision is a step, not a result, so examples now name what the loop produces, following LOOPS.md.
 
 **v1.0 · Oct 9, 2026.** First published version. Changes from the Oct 5 draft:

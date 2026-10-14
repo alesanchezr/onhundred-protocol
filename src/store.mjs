@@ -1,5 +1,5 @@
 // D1 access: load the whole log (it's small) and save a diff plus its event in one batch.
-import { protocol as P, versionChange } from "../lib/protocol.mjs";
+import { protocol as P, upgradeLevels, versionChange } from "../lib/protocol.mjs";
 import { SCHEMA_VERSION, STATEMENTS } from "./schema.mjs";
 
 const DAY = 86400000;
@@ -43,7 +43,7 @@ export async function loadState(db) {
     tries.get(r.experiment_code).push(JSON.parse(r.data));
   }
   const experiments = e.results.map((r) => ({ ...JSON.parse(r.card), stages: tries.get(r.code) || [] }));
-  return { meta, loops, experiments };
+  return upgradeLevels({ meta, loops, experiments });
 }
 
 // Settings the owner hasn't stored fall back to the Worker's vars, then to protocol defaults.
@@ -190,6 +190,27 @@ export async function getEvents(db, { limit = 20, target, id } = {}) {
     ? db.prepare("SELECT id, at, actor, tool, target FROM events WHERE target LIKE ? ORDER BY id DESC LIMIT ?").bind(`%${target}%`, n)
     : db.prepare("SELECT id, at, actor, tool, target FROM events ORDER BY id DESC LIMIT ?").bind(n);
   return (await q.all()).results;
+}
+
+// Rows for publicActivity: the allowed tools, undo events with the id they undid, and the one arg a label needs.
+// Args can be cut at 8000 characters, so they're read only when they're valid JSON.
+export async function getPublicEvents(db, tools, { limit = 500 } = {}) {
+  const list = [...tools, "undo_event"];
+  const sql = `SELECT id, at, actor, tool, target,
+    CASE WHEN json_valid(args) THEN
+      CASE REPLACE(tool, 'override:', '')
+        WHEN 'undo_event' THEN json_extract(args, '$.id')
+      END
+    END AS undid,
+    CASE WHEN json_valid(args) THEN
+      CASE REPLACE(tool, 'override:', '')
+        WHEN 'close_stage_try' THEN json_extract(args, '$.outcome')
+        WHEN 'record_hold' THEN json_extract(args, '$.result')
+        WHEN 'conclude_experiment' THEN json_extract(args, '$.hypothesis')
+      END
+    END AS result
+    FROM events WHERE REPLACE(tool, 'override:', '') IN (${list.map(() => "?").join(", ")}) ORDER BY id DESC LIMIT ?`;
+  return (await db.prepare(sql).bind(...list, Math.min(Math.max(Number(limit) || 500, 1), 1000)).all()).results;
 }
 
 export async function snapshot(env) {

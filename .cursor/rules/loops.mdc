@@ -24,7 +24,7 @@ Stranger, done, action, one-rule, everyone-has-one and ceiling. If it fails one,
 ```json
 {
   "code": "R-PAR-01",
-  "level": "mapped",
+  "level": "still",
   "name": { "en": "Plan and book our date night", "es": "Planear y reservar nuestra cita" },
   "doneWhen": { "en": "The table is booked and on both calendars.", "es": "..." },
   "scope": { "en": "Covers our regular night out and anniversary plans. Birthday gifts and kid weekends are other loops.", "es": "..." },
@@ -42,8 +42,10 @@ Optional: `scope` (public boundary: what counts and what doesn't), `measuring`, 
 - Codes are `BRANCH-AREA-NN` from protocol section 2.4 and are never reused. Retire a loop with `retired: true`, never delete it.
 - A frozen inventory has exactly 100 active loops. Building mode allows 0 to 100.
 - Ceilings (protocol 9.3): R-KID and P-HLT and C-PPL cap at assisted, R-PAR at delegated, P-FIN with `over500` at delegated.
-- Mapped and above need an approved `baseline`. Above mapped needs an achieved stage at that level whose hold passed.
-- Only unmapped loops can be `measuring`, 5 at most.
+- Levels are `still` (Still yours), `assisted` (Help me), `delegated` (Do it, I approve) and `autonomous` (Do it alone). `levelName()` gives the words people see; the keys never change.
+- Measured is a mark, not a level: a loop is measured once its `baseline` is approved (`isMeasured()`). Logs from before v1.2 store `unmapped` and `mapped`; `upgradeLevels()` reads both as `still`.
+- Above still needs an achieved stage at that level whose hold passed. Before v1.4 it also needs an approved `baseline`.
+- Only unmeasured `still` loops can be `measuring`, 5 at most. Measuring is optional from v1.4.
 - Levels change only through holds and drops, never by editing `level` directly.
 
 ## Private by default

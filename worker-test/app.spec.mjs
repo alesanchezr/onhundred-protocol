@@ -48,7 +48,7 @@ describe("fresh install", () => {
     const row = await env.DB.prepare("SELECT value FROM meta WHERE key = 'mode'").first();
     expect(JSON.parse(row.value)).toBe("building");
     const version = await env.DB.prepare("SELECT value FROM meta WHERE key = 'protocolVersion'").first();
-    expect(JSON.parse(version.value)).toBe("1.1");
+    expect(JSON.parse(version.value)).toBe("1.5");
   });
 
   it("keeps /public.json private until publishing", async () => {
@@ -65,7 +65,7 @@ describe("fresh install", () => {
     expect(empties(before.match(/<a class="grid mini"[\s\S]*?<\/a>/)[0])).toHaveLength(100);
     expect(empties(before.match(/id="activity"[\s\S]*?<ul class="legend">/)[0])).toHaveLength(100);
     expect(before).toMatch(/<li data-level="empty">[\s\S]*?<span class="n">100<\/span>/);
-    expect(before).toMatch(/<li data-level="unmapped">[\s\S]*?<span class="n">0<\/span>/);
+    expect(before).toMatch(/<li data-level="still">[\s\S]*?<span class="n">0<\/span>/);
     expect(before).not.toContain('data-copy="#first-prompt"');
     expect(before).toContain('href="/connect">CONNECT YOUR AI');
     expect(before).not.toContain("claude.ai/new");
@@ -214,7 +214,10 @@ describe("owner pages", () => {
     const cookie = await ownerCookie();
     const res = await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }));
     const page = await res.text();
-    expect(page).toContain("DELEGATED");
+    expect(page).toContain("HANDED OFF");
+    expect(page).toMatch(/<li data-level="still">[\s\S]*?STILL YOURS/);
+    expect(page).toContain("DO IT, I APPROVE");
+    expect(page).not.toMatch(/UNMAPPED|data-s="mapped"/);
     expect(page).toMatch(/\d+ of 100 approved/);
     expect(page).toContain("HISTORY");
     const cells = (html) => html.match(/class="cell"/g) || [];
@@ -253,7 +256,7 @@ describe("owner pages", () => {
     expect(page).not.toContain("APPROVE SELECTED");
     expect(page).toContain(`aria-label="Approve ${first}: Renew the car insurance"`);
     expect(page).toContain("data-approve-dialog");
-    expect(page).toContain("Approving adds a loop to your inventory for good");
+    expect(page).toContain("Approving adds a loop to your list for good");
     expect(page).toContain("proposed loops that pass the rules");
 
     const res = await app().fetch(
@@ -274,7 +277,7 @@ describe("owner pages", () => {
     const cookie = await ownerCookie();
     const res = await app().fetch(new Request(`${BASE}/export`, { headers: { Cookie: cookie } }));
     const snap = await res.json();
-    expect(snap.protocolVersion).toBe("1.1");
+    expect(snap.protocolVersion).toBe("1.5");
     expect(Array.isArray(snap.events)).toBe(true);
   });
 
@@ -397,13 +400,13 @@ describe("protocol versions", () => {
   }
   const ownerPage = async (cookie) => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
 
-  it("offers ADOPT v1.1 on the owner page, and the button adopts it", async () => {
+  it("offers ADOPT v1.5 on the owner page, and the button adopts it", async () => {
     await onV10();
     const cookie = await ownerCookie();
     const before = await ownerPage(cookie);
     expect(before).toContain('name="op" value="adopt_protocol"');
-    expect(before).toContain("ADOPT v1.1");
-    expect(before).toContain("takes effect now, since no cycle is running");
+    expect(before).toContain("ADOPT v1.5");
+    expect(before).toContain("takes effect now, since check-ins haven't started");
 
     const res = await app().fetch(
       new Request(`${BASE}/owner/action`, {
@@ -414,11 +417,11 @@ describe("protocol versions", () => {
       })
     );
     expect(res.status).toBe(303);
-    expect(decodeURIComponent(res.headers.get("Location"))).toContain("Protocol v1.1 is adopted.");
+    expect(decodeURIComponent(res.headers.get("Location"))).toContain("Protocol v1.5 is adopted.");
     const after = await ownerPage(cookie);
-    expect(after).not.toContain("ADOPT v1.1");
-    expect(after).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
-    expect(after).not.toContain("Delegated went from 0 to 0");
+    expect(after).not.toContain("ADOPT v1.5");
+    expect(after).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half; 4 levels: still yours replaces unmapped and mapped/);
+    expect(after).not.toContain("Handed off went from 0 to 0");
   });
 
   it("adopts through MCP, lists what breaks the new rules, and shows the change note publicly", async () => {
@@ -430,29 +433,29 @@ describe("protocol versions", () => {
     expect((await call(key, "approve_loops", { codes: [code] })).error).toBeNull();
 
     const state = (await call(key, "get_state")).data;
-    expect(state.protocolVersion).toMatchObject({ log: "1.0", template: "1.1", upgradeAvailable: true });
+    expect(state.protocolVersion).toMatchObject({ log: "1.0", template: "1.5", upgradeAvailable: true });
     expect(state.metrics.delegated).toMatch(/ of 100$/);
     const ahead = (await call(key, "list_pending")).data.breaksNewRules;
-    expect(ahead).toMatchObject({ version: "1.1", adopted: false });
+    expect(ahead).toMatchObject({ version: "1.5", adopted: false });
     expect(ahead.items.some((m) => m.startsWith(`${code}: name`))).toBe(true);
 
     const tools = (await mcp(key, "tools/list")).body.result.tools;
     expect(tools.find((t) => t.name === "adopt_protocol").annotations.destructiveHint).toBe(true);
     const adopted = await call(key, "adopt_protocol");
     expect(adopted.error).toBeNull();
-    expect(adopted.data.result).toMatchObject({ from: "1.0", to: "1.1", takesEffect: "now" });
+    expect(adopted.data.result).toMatchObject({ from: "1.0", to: "1.5", takesEffect: "now" });
     expect(adopted.data.result.breaksNewRules.some((m) => m.startsWith(code))).toBe(true);
-    expect(adopted.data.result.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
-    expect((await call(key, "adopt_protocol")).error).toMatch(/already runs v1.1/);
+    expect(adopted.data.result.protocolChange).toMatchObject({ from: "1.0", to: "1.5" });
+    expect((await call(key, "adopt_protocol")).error).toMatch(/already runs v1.5/);
 
     const now = (await call(key, "list_pending")).data.breaksNewRules;
-    expect(now).toMatchObject({ version: "1.1", adopted: true });
+    expect(now).toMatchObject({ version: "1.5", adopted: true });
     expect((await call(key, "propose_loops", { loops: [loop("Choose the summer camp", "R-KID")] })).error).toMatch(/failing verb \(choose\)/);
 
     const cookie = await ownerCookie();
     const page = await ownerPage(cookie);
-    expect(page).toContain("Breaks v1.1 rules");
-    expect(page).toContain(`data-fix="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.1 rules: name (en) starts with a failing verb (decide).`);
+    expect(page).toContain("Breaks v1.5 rules");
+    expect(page).toContain(`data-fix="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.5 rules: name (en) starts with a failing verb (decide).`);
     expect(page).toContain(`aria-label="Fix ${code} with AI"`);
     expect(page).toMatch(new RegExp(`data-target="${code}"><svg[^]*?</svg>FIX</button></li>`));
     expect(page).toContain("data-fix-dialog");
@@ -461,11 +464,11 @@ describe("protocol versions", () => {
 
     expect((await call(key, "set_meta", { publish: true })).error).toBeNull();
     const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
-    expect(view.protocolVersion).toBe("1.1");
-    expect(view.protocolChange).toMatchObject({ from: "1.0", to: "1.1" });
+    expect(view.protocolVersion).toBe("1.5");
+    expect(view.protocolChange).toMatchObject({ from: "1.0", to: "1.5" });
     expect(view.attribution).toMatchObject({ text: "Onhundred Protocol by Ale Sánchez", url: "https://onhundred.com" });
     const publicPage = await (await app().fetch(new Request(`${BASE}/`))).text();
-    expect(publicPage).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half\./);
+    expect(publicPage).toMatch(/Adopted [A-Z][a-z]{2} \d+: assisted counts half; 4 levels: still yours replaces unmapped and mapped/);
     expect(publicPage).toContain('Follows the <a href="https://onhundred.com" rel="noopener">Onhundred Protocol by Ale Sánchez</a>.');
     expect(publicPage).toContain(`<meta property="og:image" content="${BASE}/og.png">`);
   });
@@ -477,7 +480,7 @@ describe("protocol versions", () => {
     expect((await call(key, "adopt_protocol")).error).toBeNull();
 
     const page = await ownerPage(await ownerCookie());
-    expect(page).toContain(`data-fix-prompt="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.1 rules: name (en) starts with a failing verb (decide).`);
+    expect(page).toContain(`data-fix-prompt="Use Onhundred to fix ${code} in my log. It breaks the protocol v1.5 rules: name (en) starts with a failing verb (decide).`);
     expect(page).toMatch(/data-dialog-close data-rule-fix><svg[^]*?<\/svg>FIX<\/button>/);
     expect(page.match(/data-fix-dialog/g)).toHaveLength(1);
     expect(page).toContain('<textarea class="prompt-box" id="fix-prompt"');
@@ -611,6 +614,182 @@ describe("publishing from the owner page", () => {
     expect(after).not.toContain("SOMEONE");
   });
 
+  it("puts the name, why and FOLLOW links above the numbers; the owner also gets SHARE", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    expect((await call(key, "set_meta", { links: [{ kind: "x", url: "https://evil.example/sam" }] })).error).toMatch(/not x\.com or twitter\.com/);
+    expect((await call(key, "set_meta", { links: [{ kind: "website", url: "javascript:alert(1)" }] })).error).toMatch(/https/);
+    expect((await call(key, "set_meta", { languages: ["en"], about: { en: "I want my evenings back!" } })).error).toMatch(/exclamation/);
+    const about = "I run a small design studio and want my evenings back.";
+    const set = await call(key, "set_meta", {
+      languages: ["en"],
+      ownerName: "Sam Rivera",
+      publish: true,
+      about: { en: about },
+      links: [
+        { kind: "x", url: "https://x.com/samrivera" },
+        { kind: "website", url: "https://sam.example" },
+      ],
+    });
+    expect(set.error).toBeNull();
+
+    const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
+    expect(view.meta).toMatchObject({ ownerName: "Sam Rivera", about: { en: about }, links: [{ kind: "x" }, { kind: "website" }] });
+
+    const page = await (await app().fetch(new Request(`${BASE}/`))).text();
+    expect(page).toContain('<h1 class="profile-name">Sam Rivera</h1>');
+    expect(page).toContain(`<p class="profile-about">${about}</p>`);
+    expect(page).toContain('<p class="figure">');
+    expect(page).toContain('href="https://x.com/samrivera" target="_blank" rel="me noopener"');
+    expect(page).toContain(`<meta property="og:description" content="${about}">`);
+    expect(page).toContain('<span class="label" id="follow-label">FOLLOW SAM</span>');
+    expect(page).not.toContain("SHARE");
+    expect(page.indexOf('class="profile"')).toBeLessThan(page.indexOf('class="readout"'));
+    expect(page).not.toContain("data-profile-dialog");
+
+    const owner = await (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: await ownerCookie() } }))).text();
+    expect(owner).toContain("FOLLOW SAM");
+    expect(owner).toContain(`id="share-url" value="${BASE}/"`);
+    expect(owner).toContain(`https://x.com/intent/post?text=${encodeURIComponent("Sam Rivera ")}`);
+    expect(owner).toContain('data-open-dialog="[data-profile-dialog]">EDIT WITH AI');
+    expect(owner).toContain("set_meta with about and links");
+
+    expect((await call(key, "set_meta", { about: null, links: null })).error).toBeNull();
+    const cleared = await (await app().fetch(new Request(`${BASE}/`))).text();
+    expect(cleared).not.toContain("profile-about");
+    expect(cleared).not.toContain("profile-links");
+  });
+
+  it("asks the owner for social links on the page and in every new MCP conversation until they answer", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    expect((await call(key, "set_meta", { ownerName: "Sam Rivera", publish: true, links: null })).error).toBeNull();
+    const cookie = await ownerCookie();
+    const ownerPage = async () => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    const post = (fields, headers = {}) =>
+      app().fetch(
+        new Request(`${BASE}/owner/action`, {
+          method: "POST",
+          headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded", ...headers },
+          body: new URLSearchParams({ op: "set_meta", setting: "links", ...fields }),
+          redirect: "manual",
+        })
+      );
+
+    const before = await ownerPage();
+    expect(before).toContain("Visitors can't follow you yet.");
+    expect(before).toContain('data-open-dialog="[data-links-dialog]">ADD YOUR LINKS');
+    expect(before).toContain('name="link_x"');
+    expect(before).toContain('data-open-dialog="[data-links-dialog]">ADD LINKS');
+    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).not.toContain("data-links-dialog");
+
+    const init = await mcp(key, "initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } });
+    expect(init.body.result.instructions).toContain("hasn't added their social accounts");
+    const state = (await call(key, "get_state")).data;
+    expect(state.profile).toMatchObject({ ownerName: "Sam Rivera", links: null });
+    expect(state.profile.missing).toContain("links");
+    expect(state.profile.ask).toMatch(/set_meta/);
+    expect((await call(key, "list_pending")).data.profile.missing).toContain("links");
+
+    const bad = await (await post({ link_x: "instagram.com/sam" }, { Accept: "application/json" })).json();
+    expect(bad.ok).toBe(false);
+    expect(bad.error).toMatch(/not x\.com/);
+
+    const saved = await (await post({ link_x: "@samrivera", link_github: "http://www.github.com/@sam/", link_website: "" }, { Accept: "application/json" })).json();
+    expect(saved).toEqual({ ok: true, done: "Your links are saved." });
+    const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
+    expect(view.meta.links).toEqual([
+      { kind: "x", url: "https://x.com/samrivera" },
+      { kind: "github", url: "https://github.com/sam" },
+    ]);
+    const after = await ownerPage();
+    expect(after).not.toContain("Visitors can't follow you yet.");
+    expect(after).toContain('value="https://x.com/samrivera"');
+    expect(after).toContain('data-open-dialog="[data-links-dialog]">EDIT LINKS');
+
+    const none = await post({ none: "1", link_x: "@samrivera" });
+    expect(none.status).toBe(303);
+    expect(decodeURIComponent(none.headers.get("Location"))).toContain("Nobody will ask for your links again.");
+    expect((await (await app().fetch(new Request(`${BASE}/public.json`))).json()).meta.links).toEqual([]);
+    const declined = await ownerPage();
+    expect(declined).not.toContain("Visitors can't follow you yet.");
+    expect(declined).not.toContain("profile-links");
+    expect(declined).toMatch(/name="none" value="1" checked/);
+    const quiet = await mcp(key, "initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } });
+    expect(quiet.body.result.instructions).not.toContain("social accounts");
+    expect((await call(key, "get_state")).data.profile.missing).not.toContain("links");
+
+    expect((await call(key, "set_meta", { links: null })).error).toBeNull();
+    expect(await ownerPage()).toContain("Visitors can't follow you yet.");
+  });
+
+  it("lets the owner write the about line from the pencil, checked like any public text", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    expect((await call(key, "set_meta", { languages: ["en"], publish: true, about: null })).error).toBeNull();
+    const cookie = await ownerCookie();
+    const ownerPage = async () => (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    const save = async (text) =>
+      (
+        await app().fetch(
+          new Request(`${BASE}/owner/action`, {
+            method: "POST",
+            headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+            body: new URLSearchParams({ op: "set_meta", setting: "about", about_en: text, about_zz: "Sneaky." }),
+          })
+        )
+      ).json();
+
+    const empty = await ownerPage();
+    expect(empty).toMatch(/<p class="profile-about empty">[^<]*<span class="nowrap">for\. <button class="pencil"[^>]*data-open-dialog="\[data-about-dialog\]"/);
+    expect(empty).toContain('name="about_en"');
+    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).not.toContain("data-about-dialog");
+
+    const bad = await save("I want my evenings back!");
+    expect(bad.ok).toBe(false);
+    expect(bad.error).toMatch(/exclamation/);
+
+    const line = "I run a small design studio and want my evenings back.";
+    expect(await save(`  ${line} `)).toEqual({ ok: true, done: "Your line is saved." });
+    expect((await (await app().fetch(new Request(`${BASE}/public.json`))).json()).meta.about).toEqual({ en: line });
+    const after = await ownerPage();
+    expect(after).toContain(`<p class="profile-about">I run a small design studio and want my evenings <span class="nowrap">back. <button class="pencil"`);
+    expect(after).toContain(`>${line}</textarea>`);
+
+    expect(await save(" ")).toEqual({ ok: true, done: "Your line is removed." });
+    expect((await (await app().fetch(new Request(`${BASE}/public.json`))).json()).meta.about).toBeUndefined();
+  });
+
+  it("lets the owner rename themselves from the pencil on the name, never to an empty name", async () => {
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    expect((await call(key, "set_meta", { ownerName: "Sam Rivera", publish: true })).error).toBeNull();
+    expect((await call(key, "set_meta", { ownerName: "   " })).error).toMatch(/can't be empty/);
+    const cookie = await ownerCookie();
+    const save = async (name) =>
+      (
+        await app().fetch(
+          new Request(`${BASE}/owner/action`, {
+            method: "POST",
+            headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+            body: new URLSearchParams({ op: "set_meta", setting: "name", ownerName: name }),
+          })
+        )
+      ).json();
+
+    const page = await (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: cookie } }))).text();
+    expect(page).toMatch(/<h1 class="profile-name">Sam <span class="nowrap">Rivera <button class="pencil"[^>]*data-open-dialog="\[data-name-dialog\]"/);
+    expect(page).toContain('name="ownerName" value="Sam Rivera"');
+    expect(await (await app().fetch(new Request(`${BASE}/`))).text()).toContain('<h1 class="profile-name">Sam Rivera</h1>');
+
+    expect((await save(" ")).error).toMatch(/can't be empty/);
+    expect(await save("  Samantha Rivera ")).toEqual({ ok: true, done: "Your name is saved." });
+    expect((await (await app().fetch(new Request(`${BASE}/public.json`))).json()).meta.ownerName).toBe("Samantha Rivera");
+
+    const toasted = await (await app().fetch(new Request(`${BASE}/?done=${encodeURIComponent("Your name is saved.")}`, { headers: { Cookie: cookie } }))).text();
+    expect(toasted).toMatch(/<div class="toast" role="status" aria-live="polite" data-toast>.*<span>Your name is saved\.<\/span>/);
+    expect(toasted).not.toContain('class="notice good"');
+    const failed = await (await app().fetch(new Request(`${BASE}/?error=${encodeURIComponent("Nope.")}`, { headers: { Cookie: cookie } }))).text();
+    expect(failed).toContain('<p class="notice bad">Nope.</p>');
+    expect(failed).not.toContain("data-toast");
+  });
+
   it("shows the owner what visitors see at /?view=public", async () => {
     const cookie = await ownerCookie();
     const get = async (path, headers = {}) => (await app().fetch(new Request(`${BASE}${path}`, { headers }))).text();
@@ -618,15 +797,55 @@ describe("publishing from the owner page", () => {
 
     const preview = await get("/?view=public", { Cookie: cookie });
     expect(preview).toContain("This is what visitors see.");
-    expect(preview).toContain("DELEGATED");
+    expect(preview).toMatch(/<div class="notice good closable">[\s\S]*?data-dismiss[\s\S]*?<\/div>/);
+    expect(preview).toContain("HANDED OFF");
     expect(preview).not.toContain("HISTORY");
     expect(preview).not.toContain('href="/?view=public"');
+    expect(preview).not.toContain('class="grid mini"');
+    expect(preview).toContain('id="activity" data-open');
+    expect(preview).toContain('<nav class="nav"><a href="/">BACK TO YOUR LOG</a><form method="post" action="/logout">');
+    expect(preview).not.toContain('href="/login"');
+    expect(await get("/?view=public")).toContain('<nav class="nav"><a href="/login">SIGN IN</a></nav>');
+    expect(await get("/", { Cookie: cookie })).toContain('class="grid mini"');
     expect(await get("/?view=public")).not.toContain("This is what visitors see.");
 
     await env.DB.prepare("INSERT INTO meta (key, value) VALUES ('publish', 'false') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
     const hidden = await get("/?view=public", { Cookie: cookie });
     expect(hidden).toContain("This is what visitors see.");
     expect(hidden).toContain("This log is private.");
+  });
+});
+
+describe("public activity", () => {
+  it("shows visitors what moved and who moved it, without private loops, app names, event ids or clock times", async () => {
+    await env.DB.prepare("INSERT INTO meta (key, value) VALUES ('publish', 'true') ON CONFLICT(key) DO UPDATE SET value = excluded.value").run();
+    const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
+    const [pub, priv] = (await call(key, "propose_loops", { loops: [loop("Water the balcony plants"), loop("Plan the anniversary dinner", "R-PAR")] })).data.result
+      .proposed;
+    expect((await call(key, "approve_loops", { codes: [pub, priv] })).error).toBeNull();
+    const waiting = (await call(key, "propose_loops", { loops: [loop("Sort the recycling")] })).data.result.proposed[0];
+
+    const page = await (await app().fetch(new Request(`${BASE}/`))).text();
+    const section = page.match(/<section class="block pulse" id="pulse">[\s\S]*?<\/section>/)[0];
+    expect(section).toContain("ACTIVITY");
+    expect(section).toContain("data-spark");
+    expect(section).toMatch(/Added to the list<\/b> <a class="code" href="\/loop\/[^"]+">/);
+    expect(section).toContain(`href="/loop/${pub}"`);
+    expect(section).toContain('<span class="by" data-by="agent">BY AN AGENT</span>');
+    expect(section).not.toContain(priv);
+    expect(section).not.toContain(waiting);
+    expect(section).not.toContain("claude");
+    expect(section).not.toMatch(/#\d+ ·/);
+    expect(section).not.toMatch(/<small>\d\d:\d\d<\/small>/);
+
+    const view = await (await app().fetch(new Request(`${BASE}/public.json`))).json();
+    expect(view.activity.some((a) => a.tool === "approve_loops" && a.codes.includes(pub) && a.by === "agent")).toBe(true);
+    expect(JSON.stringify(view.activity)).not.toContain(priv);
+    expect(JSON.stringify(view.activity)).not.toContain(waiting);
+
+    const owner = await (await app().fetch(new Request(`${BASE}/`, { headers: { Cookie: await ownerCookie() } }))).text();
+    expect(owner).not.toContain('id="pulse"');
+    expect(owner).toContain("HISTORY");
   });
 });
 
@@ -653,12 +872,14 @@ describe("links after writes", () => {
     const key = (await createApiKey(env.DB, { name: "claude", access: "owner" })).key;
     const code = (await call(key, "propose_loops", { loops: [loop("Clean the gutters")] })).data.result.proposed[0];
     const approved = await call(key, "approve_loops", { codes: [code] });
-    expect(approved.data.grid.delta.moved).toEqual([{ code, from: null, to: "unmapped" }]);
+    expect(approved.data.grid.delta.moved).toEqual([{ code, from: null, to: "still" }]);
     expect((await call(key, "record_baseline", { code, occurrences: 4, hoursPerWeek: 2 })).error).toBeNull();
-    const r = await call(key, "approve_baseline", { code });
-    expect(r.error).toBeNull();
-    expect(r.data.grid.delta.levels).toEqual({ mapped: 1, unmapped: -1 });
-    expect(r.data.grid.now.levels.mapped).toBeGreaterThan(0);
+    const measured = await call(key, "approve_baseline", { code });
+    expect(measured.error).toBeNull();
+    expect(measured.data.result).toMatchObject({ level: "still", measured: true });
+    expect(measured.data.grid.delta).toBeNull();
+    const r = approved;
+    expect(r.data.grid.now.levels.still).toBeGreaterThan(0);
     expect(r.data.links.open).toBe(r.data.links.graph);
     expect(r.data.links.open).toContain(`?moved=${code}`);
     expect(r.data.links.loop).toContain(`?to=/loop/${code}`);

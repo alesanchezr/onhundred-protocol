@@ -39,7 +39,7 @@
   },
   {
     "code": "R-PAR-02",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Buy the anniversary gift",
       "es": "Comprar el regalo de aniversario"
@@ -69,7 +69,7 @@
   },
   {
     "code": "R-PAR-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book our trips together",
       "es": "Reservar nuestros viajes juntos"
@@ -99,7 +99,7 @@
   },
   {
     "code": "R-PAR-04",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Split and pay our shared expenses",
       "es": "Dividir y pagar nuestros gastos compartidos"
@@ -132,7 +132,7 @@
   },
   {
     "code": "R-PAR-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Plan and book a weekend away",
       "es": "Planear y reservar un fin de semana fuera"
@@ -158,7 +158,7 @@
   },
   {
     "code": "R-PAR-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send flowers on the dates that matter",
       "es": "Enviar flores en las fechas importantes"
@@ -184,7 +184,7 @@
   },
   {
     "code": "R-PAR-07",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Schedule our weekly time together",
       "es": "Agendar nuestro tiempo juntos cada semana"
@@ -210,7 +210,7 @@
   },
   {
     "code": "R-KID-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Answer the school group chat",
       "es": "Responder el chat de padres del colegio"
@@ -242,7 +242,7 @@
   },
   {
     "code": "R-KID-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Sign and return school permission forms",
       "es": "Firmar y devolver los permisos del colegio"
@@ -274,7 +274,7 @@
   },
   {
     "code": "R-KID-03",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Pay school fees and activities",
       "es": "Pagar el colegio y las actividades"
@@ -306,7 +306,7 @@
   },
   {
     "code": "R-KID-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book the kids' doctor and dentist visits",
       "es": "Reservar las citas médicas de los niños"
@@ -331,7 +331,7 @@
   },
   {
     "code": "R-KID-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Schedule school pickups and drop-offs",
       "es": "Agendar quién lleva y recoge a los niños"
@@ -356,7 +356,7 @@
   },
   {
     "code": "R-KID-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Buy school supplies and uniforms",
       "es": "Comprar útiles y uniformes escolares"
@@ -381,7 +381,7 @@
   },
   {
     "code": "R-FAM-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send birthday messages to family",
       "es": "Enviar mensajes de cumpleaños a la familia"
@@ -415,7 +415,7 @@
   },
   {
     "code": "R-FAM-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Buy and ship family birthday gifts",
       "es": "Comprar y enviar regalos de cumpleaños familiares"
@@ -448,7 +448,7 @@
   },
   {
     "code": "R-FAM-03",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Plan the family weekend",
       "es": "Planear el fin de semana en familia"
@@ -480,7 +480,7 @@
   },
   {
     "code": "R-FAM-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book the family holiday trip",
       "es": "Reservar el viaje familiar de vacaciones"
@@ -506,7 +506,7 @@
   },
   {
     "code": "R-FAM-05",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Schedule the weekly call with my parents",
       "es": "Agendar la llamada semanal con mis papás"
@@ -538,7 +538,7 @@
   },
   {
     "code": "R-FAM-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book the family birthday dinners",
       "es": "Reservar las cenas de cumpleaños familiares"
@@ -563,7 +563,7 @@
   },
   {
     "code": "R-FAM-07",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send money to family each month",
       "es": "Enviar dinero a la familia cada mes"
@@ -595,7 +595,7 @@
   },
   {
     "code": "R-FAM-08",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to the family group chat",
       "es": "Responder el chat familiar"
@@ -620,7 +620,7 @@
   },
   {
     "code": "R-FRN-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Plan and book a monthly dinner with friends",
       "es": "Planear y reservar una cena mensual con amigos"
@@ -652,7 +652,7 @@
   },
   {
     "code": "R-FRN-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send birthday messages to friends",
       "es": "Enviar mensajes de cumpleaños a los amigos"
@@ -685,7 +685,7 @@
   },
   {
     "code": "R-FRN-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to invitations from friends",
       "es": "Responder las invitaciones de los amigos"
@@ -710,7 +710,7 @@
   },
   {
     "code": "R-FRN-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Buy gifts for friends' weddings",
       "es": "Comprar regalos para bodas de amigos"
@@ -735,7 +735,7 @@
   },
   {
     "code": "R-FRN-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Plan the yearly trip with friends",
       "es": "Planear el viaje anual con amigos"
@@ -760,7 +760,7 @@
   },
   {
     "code": "R-FRN-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Settle shared bills with friends",
       "es": "Saldar cuentas compartidas con amigos"
@@ -785,7 +785,7 @@
   },
   {
     "code": "R-NET-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Reply to introduction requests",
       "es": "Responder solicitudes de presentación"
@@ -817,7 +817,7 @@
   },
   {
     "code": "R-NET-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send thank-you notes after meetings",
       "es": "Enviar notas de agradecimiento después de reuniones"
@@ -849,7 +849,7 @@
   },
   {
     "code": "R-NET-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Schedule coffee with former colleagues",
       "es": "Agendar cafés con excolegas"
@@ -874,7 +874,7 @@
   },
   {
     "code": "R-NET-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to messages from professional contacts",
       "es": "Responder mensajes de contactos profesionales"
@@ -899,7 +899,7 @@
   },
   {
     "code": "R-NET-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Write and send recommendation letters",
       "es": "Escribir y enviar cartas de recomendación"
@@ -924,7 +924,7 @@
   },
   {
     "code": "R-NET-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send introductions between people who should meet",
       "es": "Enviar presentaciones entre personas que deberían conocerse"
@@ -1047,7 +1047,7 @@
   },
   {
     "code": "P-FIN-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Move savings into investments each month",
       "es": "Mover ahorros a inversiones cada mes"
@@ -1073,7 +1073,7 @@
   },
   {
     "code": "P-FIN-05",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Cancel subscriptions nobody uses",
       "es": "Cancelar suscripciones que nadie usa"
@@ -1105,7 +1105,7 @@
   },
   {
     "code": "P-FIN-06",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "File receipts for monthly expenses",
       "es": "Archivar los recibos de gastos del mes"
@@ -1137,7 +1137,7 @@
   },
   {
     "code": "P-FIN-07",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Renew the home and car insurance",
       "es": "Renovar los seguros de casa y auto"
@@ -1162,7 +1162,7 @@
   },
   {
     "code": "P-FIN-08",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Dispute wrong charges on statements",
       "es": "Disputar cobros incorrectos en los estados de cuenta"
@@ -1187,7 +1187,7 @@
   },
   {
     "code": "P-HOM-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Book home repairs and maintenance",
       "es": "Reservar reparaciones y mantenimiento de la casa"
@@ -1219,7 +1219,7 @@
   },
   {
     "code": "P-HOM-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Pay and schedule the cleaning service",
       "es": "Pagar y agendar el servicio de limpieza"
@@ -1316,7 +1316,7 @@
   },
   {
     "code": "P-HOM-05",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Reorder household supplies before they run out",
       "es": "Volver a pedir productos de la casa"
@@ -1348,7 +1348,7 @@
   },
   {
     "code": "P-HOM-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Schedule car service and repairs",
       "es": "Agendar el servicio y las reparaciones del auto"
@@ -1373,7 +1373,7 @@
   },
   {
     "code": "P-HOM-07",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Return online orders that don't fit",
       "es": "Devolver compras en línea que no sirven"
@@ -1398,7 +1398,7 @@
   },
   {
     "code": "P-HOM-08",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Renew the home internet and phone plans",
       "es": "Renovar los planes de internet y teléfono"
@@ -1423,7 +1423,7 @@
   },
   {
     "code": "P-HLT-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Book doctor and dentist appointments",
       "es": "Reservar citas con el médico y el dentista"
@@ -1455,7 +1455,7 @@
   },
   {
     "code": "P-HLT-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Refill prescriptions before they run out",
       "es": "Resurtir recetas antes de que se acaben"
@@ -1488,7 +1488,7 @@
   },
   {
     "code": "P-HLT-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book weekly training sessions",
       "es": "Reservar las sesiones de entrenamiento de la semana"
@@ -1514,7 +1514,7 @@
   },
   {
     "code": "P-HLT-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Submit medical insurance claims",
       "es": "Enviar reclamos al seguro médico"
@@ -1539,7 +1539,7 @@
   },
   {
     "code": "P-HLT-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Schedule yearly checkups",
       "es": "Agendar los chequeos anuales"
@@ -1564,7 +1564,7 @@
   },
   {
     "code": "P-INC-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send invoices for consulting work",
       "es": "Enviar las facturas por consultorías"
@@ -1596,7 +1596,7 @@
   },
   {
     "code": "P-INC-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Collect payments from late clients",
       "es": "Cobrar pagos atrasados de clientes"
@@ -1628,7 +1628,7 @@
   },
   {
     "code": "P-INC-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to speaking invitations",
       "es": "Responder invitaciones para dar charlas"
@@ -1653,7 +1653,7 @@
   },
   {
     "code": "P-INC-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Publish the weekly newsletter",
       "es": "Publicar el boletín semanal"
@@ -1678,7 +1678,7 @@
   },
   {
     "code": "P-INC-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Collect rent from the rental property",
       "es": "Cobrar el alquiler de la propiedad"
@@ -1703,7 +1703,7 @@
   },
   {
     "code": "P-ADM-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Renew passports and IDs before they expire",
       "es": "Renovar pasaportes e identificaciones antes de que venzan"
@@ -1735,7 +1735,7 @@
   },
   {
     "code": "P-ADM-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "File the quarterly tax estimates",
       "es": "Presentar los pagos provisionales de impuestos"
@@ -1767,7 +1767,7 @@
   },
   {
     "code": "P-ADM-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "File the yearly tax return",
       "es": "Presentar la declaración anual de impuestos"
@@ -1792,7 +1792,7 @@
   },
   {
     "code": "P-ADM-04",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Pay traffic and parking fines",
       "es": "Pagar multas de tránsito y estacionamiento"
@@ -1824,7 +1824,7 @@
   },
   {
     "code": "P-ADM-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Renew the car registration",
       "es": "Renovar el registro del auto"
@@ -1849,7 +1849,7 @@
   },
   {
     "code": "P-ADM-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Scan and file important mail",
       "es": "Escanear y archivar el correo importante"
@@ -1874,7 +1874,7 @@
   },
   {
     "code": "P-ADM-07",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book visa appointments for travel",
       "es": "Reservar citas de visa para viajes"
@@ -1899,7 +1899,7 @@
   },
   {
     "code": "C-SAL-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Follow up after a product demo",
       "es": "Dar seguimiento después de una demo"
@@ -1931,7 +1931,7 @@
   },
   {
     "code": "C-SAL-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send the proposal after a discovery call",
       "es": "Enviar la propuesta tras una llamada de diagnóstico"
@@ -1963,7 +1963,7 @@
   },
   {
     "code": "C-SAL-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Chase contracts that haven't been signed",
       "es": "Dar seguimiento a contratos sin firmar"
@@ -1989,7 +1989,7 @@
   },
   {
     "code": "C-SAL-04",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Book first calls with new leads",
       "es": "Agendar primeras llamadas con nuevos prospectos"
@@ -2021,7 +2021,7 @@
   },
   {
     "code": "C-SAL-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send the weekly sales forecast",
       "es": "Enviar el pronóstico semanal de ventas"
@@ -2046,7 +2046,7 @@
   },
   {
     "code": "C-SAL-06",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Renew contracts with current clients",
       "es": "Renovar contratos con clientes actuales"
@@ -2071,7 +2071,7 @@
   },
   {
     "code": "C-MKT-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Publish the company blog posts",
       "es": "Publicar los artículos del blog de la empresa"
@@ -2103,7 +2103,7 @@
   },
   {
     "code": "C-MKT-02",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Publish posts on company social accounts",
       "es": "Publicar en las redes sociales de la empresa"
@@ -2129,7 +2129,7 @@
   },
   {
     "code": "C-MKT-03",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send the monthly email to customers",
       "es": "Enviar el correo mensual a los clientes"
@@ -2161,7 +2161,7 @@
   },
   {
     "code": "C-MKT-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to press and podcast requests",
       "es": "Responder solicitudes de prensa y pódcasts"
@@ -2186,7 +2186,7 @@
   },
   {
     "code": "C-MKT-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Book speakers for company events",
       "es": "Reservar ponentes para eventos de la empresa"
@@ -2276,7 +2276,7 @@
   },
   {
     "code": "C-SUP-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Escalate bugs reported by customers",
       "es": "Escalar errores reportados por clientes"
@@ -2301,7 +2301,7 @@
   },
   {
     "code": "C-SUP-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to customer reviews on public sites",
       "es": "Responder reseñas de clientes en sitios públicos"
@@ -2326,7 +2326,7 @@
   },
   {
     "code": "C-FIN-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send invoices to clients each month",
       "es": "Enviar facturas a los clientes cada mes"
@@ -2358,7 +2358,7 @@
   },
   {
     "code": "C-FIN-02",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Chase overdue client invoices",
       "es": "Cobrar facturas vencidas de clientes"
@@ -2390,7 +2390,7 @@
   },
   {
     "code": "C-FIN-03",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Pay supplier invoices on time",
       "es": "Pagar facturas de proveedores a tiempo"
@@ -2422,7 +2422,7 @@
   },
   {
     "code": "C-FIN-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Approve team expense reports",
       "es": "Aprobar los reportes de gastos del equipo"
@@ -2447,7 +2447,7 @@
   },
   {
     "code": "C-FIN-05",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send the monthly numbers to the accountant",
       "es": "Enviar los números del mes al contador"
@@ -2472,7 +2472,7 @@
   },
   {
     "code": "C-OPS-01",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Renew software subscriptions and licenses",
       "es": "Renovar suscripciones y licencias de software"
@@ -2529,7 +2529,7 @@
   },
   {
     "code": "C-OPS-03",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send the agenda before each meeting",
       "es": "Enviar la agenda antes de cada reunión"
@@ -2561,7 +2561,7 @@
   },
   {
     "code": "C-OPS-04",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Send notes and next steps after meetings",
       "es": "Enviar notas y próximos pasos después de reuniones"
@@ -2593,7 +2593,7 @@
   },
   {
     "code": "C-PRD-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Publish the release notes",
       "es": "Publicar las notas de versión"
@@ -2625,7 +2625,7 @@
   },
   {
     "code": "C-PRD-02",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to feature requests from customers",
       "es": "Responder solicitudes de funciones de clientes"
@@ -2650,7 +2650,7 @@
   },
   {
     "code": "C-PRD-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Sort and file incoming bug reports",
       "es": "Clasificar y registrar los reportes de errores"
@@ -2675,7 +2675,7 @@
   },
   {
     "code": "C-PPL-01",
-    "level": "mapped",
+    "level": "still",
     "name": {
       "en": "Schedule interviews with candidates",
       "es": "Agendar entrevistas con candidatos"
@@ -2708,7 +2708,7 @@
   },
   {
     "code": "C-PPL-02",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send offer letters to hired candidates",
       "es": "Enviar cartas de oferta a candidatos contratados"
@@ -2733,7 +2733,7 @@
   },
   {
     "code": "C-PPL-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Pay the team's payroll each month",
       "es": "Pagar la nómina del equipo cada mes"
@@ -2790,7 +2790,7 @@
   },
   {
     "code": "C-LDR-02",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Send the agenda for the board meeting",
       "es": "Enviar la agenda de la junta directiva"
@@ -2815,7 +2815,7 @@
   },
   {
     "code": "C-LDR-03",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Reply to partnership proposals",
       "es": "Responder propuestas de alianzas"
@@ -2840,7 +2840,7 @@
   },
   {
     "code": "C-LDR-04",
-    "level": "unmapped",
+    "level": "still",
     "name": {
       "en": "Publish the quarterly goals for the team",
       "es": "Publicar los objetivos trimestrales del equipo"
