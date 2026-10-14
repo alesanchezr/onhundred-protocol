@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import P from "../protocol.json" with { type: "json" };
+import { checkFile, readDebt, report } from "./voicecheck.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = { protocol: "protocol.md", loops: "LOOPS.md", voice: "VOICE.md" };
@@ -25,6 +26,13 @@ export async function docsModule() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const debt = await readDebt();
+  const voice = report(await Promise.all(Object.values(DOCS).map((f) => checkFile(`docs/${f}`, debt))));
+  if (voice) {
+    console.log(voice);
+    console.log("\nNot built: rewrite these in plain English (VOICE.md, rule zero).");
+    process.exit(1);
+  }
   await writeFile(DOCS_MODULE, await docsModule());
   console.log("wrote src/docs.mjs from docs/ for protocol", `v${P.version}`);
 }

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/onhundred/protocol-log/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/onhundred/protocol-log/test.yml?branch=main&style=flat-square&label=tests&labelColor=0A0A09" alt="Tests"></a>
   <a href="https://github.com/onhundred/protocol-log/releases"><img src="https://img.shields.io/github/v/release/onhundred/protocol-log?style=flat-square&label=release&labelColor=0A0A09&color=C6F432" alt="Release"></a>
-  <a href="./docs/protocol.md"><img src="https://img.shields.io/badge/protocol-v1.1-C6F432?style=flat-square&labelColor=0A0A09" alt="Protocol v1.1"></a>
+  <a href="./docs/protocol.md"><img src="https://img.shields.io/badge/protocol-v1.5-C6F432?style=flat-square&labelColor=0A0A09" alt="Protocol v1.5"></a>
   <a href="#what-your-agent-can-do"><img src="https://img.shields.io/badge/MCP-38%20tools-C6F432?style=flat-square&labelColor=0A0A09" alt="MCP: 38 tools"></a>
   <a href="https://workers.cloudflare.com"><img src="https://img.shields.io/badge/runs%20on-Cloudflare%20Workers-C6F432?style=flat-square&labelColor=0A0A09&logo=cloudflare&logoColor=white" alt="Runs on Cloudflare Workers"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-C6F432?style=flat-square&labelColor=0A0A09" alt="License: Apache 2.0"></a>
@@ -32,14 +32,14 @@
 </p>
 
 <p align="center">
-  <img src="./docs/images/log.png" alt="The log page: the delegated figure, the cycle and the grid of 100 loops" width="880">
+  <img src="./docs/images/log.png" alt="The log page: the handed-off figure, the next check-in and the grid of 100 loops" width="880">
 </p>
 
 <div align="center">
 
 | **100** | **3** | **2 weeks** | **38** | **2 minutes** |
 | :---: | :---: | :---: | :---: | :---: |
-| loops in your life | loops at a time | per cycle | MCP tools | to deploy |
+| loops in your life | loops at a time | between check-ins | MCP tools | to deploy |
 
 </div>
 
@@ -62,20 +62,20 @@ You split your life (or your job) into exactly 100 recurring responsibilities, c
 
 ```mermaid
 flowchart LR
-  A["1 · Inventory"] --> B["2 · Measure"] --> C["3 · Choose"] --> D["4 · Experiment"] --> E["5 · Hold"]
+  A["1 · List"] --> B["2 · Cost"] --> C["3 · Pick"] --> D["4 · Experiment"] --> E["5 · Prove"]
   E -- "next level" --> C
-  D -- "not achieved" --> C
+  D -- "didn't pass" --> C
 ```
 
-1. **Inventory.** Your agent proposes your 100 loops. You approve the list.
-2. **Measure.** You watch each loop happen 3 times to record what it really costs.
-3. **Choose.** You work on 3 loops at a time: one easy, one hard and one fun.
+1. **List.** Your agent proposes your 100 loops. You approve the list.
+2. **Cost.** You write down what each loop costs you today. An estimate is enough to start. Watch it happen 3 times if you want proof of time saved.
+3. **Pick.** You work on 3 loops at a time: one easy, one hard and one fun.
 4. **Experiment.** You write a question, a bet and how you'll know it worked. Then you try.
-5. **Hold.** It has to keep working for 3 more weeks before the loop moves up a level.
+5. **Prove.** It has to keep working for 3 more weeks before the loop moves up a level.
 
-Each loop climbs 3 levels: **Help me**, **Do it, I approve** and **Do it alone**.
+Every loop starts as **Still yours** and climbs 3 levels: **Help me**, **Do it, I approve** and **Do it alone**.
 
-**3 rules that never bend:** success is defined before a stage starts and never changed afterward. Failures are recorded with the same weight as successes. Nobody else is affected by a delegation without knowing and agreeing to it.
+**3 rules that never bend:** you set the goals before a round starts and never change them afterward. Failures are recorded with the same weight as successes. Nobody else is affected by a delegation without knowing and agreeing to it.
 
 ## What you get
 
@@ -190,13 +190,13 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 
 | Tool | What it does |
 | --- | --- |
-| `get_state` | Start here: settings, cycle, both metrics, what waits for approval and any rule the log breaks. |
-| `list_loops` | Loops with level, flag, last outcome and triage group. |
+| `get_state` | Start here: settings, the check-in, both numbers, what waits for approval and any rule the log breaks. |
+| `list_loops` | Loops with level, measured mark, status, last result and score group. |
 | `get_loop` | Every field of 1 loop, including private ones. |
-| `list_experiments` | Experiments with slot, question, status and stage. |
-| `get_experiment` | The full card of 1 experiment, with every stage, hold and conclusion. |
+| `list_experiments` | Experiments with pick, question, status and round. |
+| `get_experiment` | The full card of 1 experiment, with every round, proving result and ending. |
 | `get_triage` | Loops grouped into Automate now, Later and Not yet. |
-| `suggest_slots` | The loops the protocol puts in each empty slot. |
+| `suggest_slots` | The loops the protocol puts in each open pick. |
 | `list_pending` | Everything waiting for the owner, next to the live version. |
 | `check_rules` | Every protocol check on the current log. |
 | `get_events` | The append-only history of every change. |
@@ -210,17 +210,17 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 | --- | --- |
 | `propose_loops` | Proposes new loops. They stay hidden until the owner approves them. |
 | `rename_loop` | Changes a name, "done when" or scope. On an approved loop it waits for approval. |
-| `update_loop` | Updates the estimate, triage scores, evidence or grid order. |
+| `update_loop` | Updates the estimated cost, scores, evidence or grid order. |
 | `split_loop` | Proposes 2 or more loops to replace 1. |
 | `merge_loops` | Proposes 1 loop to replace 2 or more. |
 | `retire_loop` | Proposes retiring a loop, with the reason. |
-| `set_measuring` | Starts or stops measuring an unmapped loop. |
+| `set_measuring` | Starts or stops measuring a loop that isn't measured yet. |
 | `record_baseline` | Records what a loop costs today. |
-| `register_stage_try` | Registers the next stage of an experiment before it starts. |
-| `close_stage_try` | Closes a stage as achieved, not achieved or terminated. |
-| `record_hold` | Records whether an achieved stage kept passing for 3 weeks. |
+| `register_stage_try` | Writes down the next round of an experiment before it starts. |
+| `close_stage_try` | Ends a round as passed, didn't pass or stopped. |
+| `record_hold` | Records whether a passed round kept passing for 3 weeks. |
 | `record_drop` | Moves a loop down after failing days, harm or lost consent. |
-| `add_learned` | Adds the public lesson of a closed stage. It waits for approval. |
+| `add_learned` | Adds the public lesson of an ended round. It waits for approval. |
 
 </details>
 
@@ -232,12 +232,12 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 | `approve_loops` | Approves proposed loops and applies retirements. |
 | `approve_text` | Publishes text agents wrote. |
 | `reject_text` | Discards pending text. The live version stays. |
-| `approve_baseline` | Approves a baseline. The loop moves to mapped. |
+| `approve_baseline` | Approves a measured cost. The loop is marked measured. |
 | `set_published` | Publishes a partner loop once your partner agrees. |
-| `freeze_inventory` | Freezes the inventory at exactly 100 loops. |
-| `register_experiment` | Registers an experiment: slot, question, bet, loops and goal. |
-| `conclude_experiment` | Records the bet as confirmed, refuted or unclear. |
-| `set_meta` | Changes settings: your name, languages, publishing, the cycle and the grid. |
+| `freeze_inventory` | Freezes your list at exactly 100 loops. |
+| `register_experiment` | Writes down an experiment: pick, question, bet, loops and goal. |
+| `conclude_experiment` | Records the bet as right, wrong or not clear. |
+| `set_meta` | Changes settings: your name, why you run this, your links, languages, publishing, check-in dates and the grid. |
 | `adopt_protocol` | Moves your log to the protocol version in this code. |
 | `undo_event` | Restores the values from before an event, as a new event. |
 | `override` | Runs 1 change past the checks, for emergencies, and records it. |
@@ -249,7 +249,7 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 
 **Documents** your agent reads: the protocol, `LOOPS.md` (how to write a loop), `VOICE.md` (how to write public text) and `protocol.json` (the numbers the rules use).
 
-**Starter prompts:** "Help me build my 100 loops", "Which loops should fill my 3 slots?" and "Run my cycle review". Apps that support MCP prompts show them as shortcuts.
+**Starter prompts:** "Help me build my 100 loops", "Which loops should I pick for my 3 experiments?" and "Run my check-in". Apps that support MCP prompts show them as shortcuts.
 
 **A link after every change.** Each write returns where the grid stands, what moved and a link. Your agent ends its reply with that link, so you watch your grid change as you go. The squares that moved light up. For connections with owner access, the link opens your log without a sign-in for 24 hours. That view can't change anything, and it stops working when you revoke the connection. Approving still needs your sign-in.
 
@@ -257,7 +257,7 @@ Apps you sign in to get **owner** access. API keys get **agent** or **owner** ac
 
 - **Every change is checked.** A change that would break a protocol rule is rejected with the rule it broke. A log that's already broken can be repaired 1 step at a time.
 - **Public text waits for you.** Names, done-when, scope, questions, bets and lessons an agent writes stay pending until you approve them, in your AI app or on your log page.
-- **Levels never change by hand.** Only held stages raise them and drops lower them.
+- **Levels never change by hand.** Only rounds that passed and proved it raise them, and drops lower them.
 - **Nothing is erased.** The history is append-only. An undo is a new event that restores the old value.
 
 ## What stays private
@@ -270,6 +270,8 @@ Your log is private unless you set `PUBLISH` to `"true"`. Even then, these are n
 - company money and time figures, unless you turn on `companyFigures`
 - partner loops (R-PAR) and their experiments, until your partner agrees to publish them
 - text that's still waiting for your approval
+
+Visitors also see what moved each day for the last 12 weeks, and whether you or an agent did it. It shows the date, never the time. It leaves out app names, proposals, discarded text, undone changes and anything about private loops.
 
 The public page and `/public.json` render from an allowlist, so any new field stays private by default.
 
@@ -305,7 +307,7 @@ The setup page asks only for `PUBLISH` and `LANGUAGES`. Add the others later und
 
 `PUBLISH_HOOK_URL` is an optional secret: a deploy hook called 1 minute after the public view changes, to rebuild a site that shows it. Set it with `npx wrangler secret put PUBLISH_HOOK_URL`, or as a Secret in the dashboard, so it survives redeploys and stays out of your repo.
 
-Your agents can change the rest with `set_meta`: the cycle start date, the "still you" figure, the grid layout.
+Your agents can change the rest with `set_meta`: the first check-in date, the "still you" figure, the grid layout.
 
 </details>
 
@@ -316,7 +318,7 @@ New versions of this template are published as releases named `vX.Y.Z`. Once a w
 
 1. **A pull request arrives** with the release notes, the protocol version change, and the files you edited since the last update. Template files overwrite your copies; `wrangler.jsonc` keeps your name, vars, routes, account id and resource ids.
 2. **Merge it to deploy.** Cloudflare rebuilds your Worker from the merged code.
-3. **Adopt the new protocol version** from the notice on your log page, or ask your AI app to call `adopt_protocol`. Your log keeps the old rules until you do. With no cycle running, the new rules apply at once; otherwise at the start of the next cycle. Anything that breaks the new rules shows under "Waiting for you": rename it through your AI app.
+3. **Adopt the new protocol version** from the notice on your log page, or ask your AI app to call `adopt_protocol`. Your log keeps the old rules until you do. Before your check-ins start, the new rules apply at once; otherwise after the next check-in. Anything that breaks the new rules shows under "Waiting for you": rename it through your AI app.
 4. **Reconnect your AI app** so it loads the new tools and descriptions.
 
 If the workflow isn't allowed to open pull requests, it pushes the branch and opens an issue with the link and the setting to change (Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests").

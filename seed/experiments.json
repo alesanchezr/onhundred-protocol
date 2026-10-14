@@ -11,7 +11,7 @@
       "es": "Si un agente paga cada cuenta a partir de una lista que apruebo una vez al mes, entonces nada se pagará tarde en 6 semanas, porque los pagos atrasados vienen de mi memoria, no de mi dinero."
     },
     "loops": ["P-FIN-01", "P-FIN-02", "P-FIN-03"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-04-06",
     "peopleInvolved": "Only me.",
@@ -55,7 +55,7 @@
       "es": "Si un agente redacta y envía el informe mensual a inversionistas a partir de mis notas, entonces los inversionistas no harán más preguntas de lo normal, porque el informe es casi todo números."
     },
     "loops": ["C-LDR-01"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-04-06",
     "peopleInvolved": "Investors were told updates may be drafted by an agent.",
@@ -99,7 +99,7 @@
       "es": "Si un agente elige y pide las cenas entre semana a partir de una lista de lo que nos gusta, entonces comeremos más en casa, porque decidir es lo que evitamos."
     },
     "loops": ["P-HOM-03", "P-HOM-04"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "autonomous",
     "registeredAt": "2026-04-13",
     "peopleInvolved": "My family at home. Everyone agreed.",
@@ -155,7 +155,7 @@
       "es": "Si un agente responde los correos de soporte rutinarios y reembolsa dentro de la política, entonces la satisfacción de los clientes se mantiene en la línea base, porque la mayoría de las preguntas se repiten."
     },
     "loops": ["C-SUP-01", "C-SUP-02"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "autonomous",
     "registeredAt": "2026-06-15",
     "peopleInvolved": "Customers get the standard notice. The support team agreed.",
@@ -210,7 +210,7 @@
       "es": "Si un agente negocia renovaciones por correo con proveedores que aceptaron, entonces conseguirá al menos un 5% de descuento, porque los proveedores esperan que una persona ceda primero."
     },
     "loops": ["C-OPS-02"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-06-22",
     "peopleInvolved": "3 suppliers agreed in writing.",
@@ -255,7 +255,7 @@
       "es": "Si un agente planea y reserva nuestras citas a partir de lo que nos gustó antes, entonces ella las calificará igual que las mías, porque casi siempre repito lo que funcionó."
     },
     "loops": ["R-PAR-01"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-07-27",
     "peopleInvolved": "My partner. She agreed and can stop it at any time.",
@@ -308,7 +308,7 @@
       "es": "Si un agente envía los mensajes y los regalos a partir de una lista que apruebo, entonces nadie recibe un cumpleaños tarde en 2 meses, porque solo olvido la fecha, no a la persona."
     },
     "loops": ["R-FAM-01", "R-FAM-02", "R-FRN-02"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-09-07",
     "peopleInvolved": "Family and friends who get messages. They know the protocol is running.",
@@ -348,7 +348,7 @@
       "es": "Si un agente calcula mis pagos provisionales a partir de mis datos bancarios, entonces sus números coincidirán con los de mi contador con un margen del 2%, porque las reglas son públicas."
     },
     "loops": ["P-ADM-02"],
-    "startLevel": "mapped",
+    "startLevel": "still",
     "goal": "delegated",
     "registeredAt": "2026-09-14",
     "peopleInvolved": "My accountant checks every number.",

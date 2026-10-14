@@ -1,6 +1,6 @@
 // Entry point: OAuth for chat apps, API keys for API agents, MCP at /mcp, the log page, backups.
 import { AuthorizationError, CimdFetchError, OAuthProvider } from "@cloudflare/workers-oauth-provider";
-import { compareVersions, parseCode, publicView, protocol as P } from "../lib/protocol.mjs";
+import { PROFILE_LINKS, PUBLIC_TOOLS, compareVersions, normalizeLink, parseCode, publicActivity, publicView, protocol as P } from "../lib/protocol.mjs";
 import {
   checkPassword,
   checkViewPass,
@@ -22,7 +22,7 @@ import {
 } from "./auth.mjs";
 import { handleMcp } from "./mcp.mjs";
 import { connectPage, connectionsPage, consentPage, html, logPage, loginPage, loopPage, messagePage, privatePage } from "./pages.mjs";
-import { getEvents, isPublished, logEvent, readState, snapshot } from "./store.mjs";
+import { getEvents, getPublicEvents, isPublished, logEvent, readState, snapshot } from "./store.mjs";
 import { writer } from "./writer.mjs";
 
 export { Writer } from "./writer.mjs";
@@ -166,7 +166,8 @@ async function route(request, env) {
 
   if (path === "/public.json") {
     if (!published) return Response.json({ error: "This log is private." }, { status: 404 });
-    return Response.json(publicView(state, { generatedAt: new Date().toISOString() }), {
+    const view = publicView(state, { generatedAt: new Date().toISOString() });
+    return Response.json({ ...view, activity: publicActivity(await getPublicEvents(env.DB, PUBLIC_TOOLS), view) }, {
       headers: { "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" },
     });
   }
@@ -176,7 +177,7 @@ async function route(request, env) {
     if (owner && url.searchParams.get("view") === "public") {
       return html(
         published
-          ? logPage({ state, owner: false, url, configured: true, preview: true })
+          ? logPage({ state, owner: false, publicEvents: await getPublicEvents(env.DB, PUBLIC_TOOLS), url, configured: true, preview: true })
           : privatePage({ meta, origin, configured: true, hasConnections: true, preview: true })
       );
     }
@@ -188,7 +189,8 @@ async function route(request, env) {
       const events = await getEvents(env.DB, { limit: 30 });
       return html(logPage({ state, owner: true, viewOnly: true, events, url, configured: true, hasConnections: connected, published }));
     }
-    if (published) return html(logPage({ state, owner: false, url, configured: true }), { cache: "public, max-age=30" });
+    if (published)
+      return html(logPage({ state, owner: false, publicEvents: await getPublicEvents(env.DB, PUBLIC_TOOLS), url, configured: true }), { cache: "public, max-age=30" });
     return html(privatePage({ meta, origin, configured: configured(env), hasConnections: connected }));
   }
 
@@ -237,13 +239,40 @@ const OWNER_PAGE_OPS = {
   approve_text: (f) => ({ targets: f.getAll("targets").map(String) }),
   reject_text: (f) => ({ targets: f.getAll("targets").map(String) }),
   approve_baseline: (f) => ({ code: String(f.get("code") || "") }),
-  // The page only publishes; other settings change through set_meta in an AI app.
-  set_meta: () => ({ publish: true }),
+  // The page publishes and saves the header (name, about line, links); every other setting changes through set_meta in an AI app.
+  set_meta: (f, meta) => {
+    const setting = f.get("setting");
+    if (setting === "links") return { links: linksFromForm(f) };
+    if (setting === "about") return { about: aboutFromForm(f, meta.languages || ["en"]) };
+    if (setting === "name") return { ownerName: String(f.get("ownerName") || "") };
+    return { publish: true };
+  },
 };
 
-const DONE_MESSAGES = {
-  set_meta: "Your log is public.",
-};
+// One textarea per language of the log. All empty clears the line.
+function aboutFromForm(f, languages) {
+  const about = Object.fromEntries(languages.map((lang) => [lang, String(f.get(`about_${lang}`) || "").trim()]));
+  return Object.values(about).some(Boolean) ? about : null;
+}
+
+// One field per kind, each a handle or an address. "none" saves an empty list: the person has no accounts
+// to show, so nobody asks again. All fields empty clears the setting, so the reminder comes back.
+function linksFromForm(f) {
+  if (f.get("none")) return [];
+  const links = Object.keys(PROFILE_LINKS)
+    .map((kind) => ({ kind, url: normalizeLink(kind, f.get(`link_${kind}`)) }))
+    .filter((l) => l.url);
+  return links.length ? links : null;
+}
+
+function doneMessage(op, args) {
+  if (op !== "set_meta") return "Saved.";
+  if ("ownerName" in args) return "Your name is saved.";
+  if ("about" in args) return args.about ? "Your line is saved." : "Your line is removed.";
+  if (!("links" in args)) return "Your log is public.";
+  if (args.links?.length) return "Your links are saved.";
+  return args.links ? "Saved. Nobody will ask for your links again." : "Your links are removed.";
+}
 
 async function ownerAction(request, env, meta) {
   const form = await request.formData();
@@ -270,15 +299,18 @@ async function ownerAction(request, env, meta) {
   }
 
   if (!Object.hasOwn(OWNER_PAGE_OPS, op)) return redirect(withQuery("/", "error", "Unknown action."));
-  const r = await writer(env).write({ op, args: OWNER_PAGE_OPS[op](form), actor: OWNER_USER, access: "owner", directText: true });
-  // app.js asks for JSON to approve a loop without leaving the page.
-  if (request.headers.get("Accept")?.includes("application/json")) return Response.json(r.ok ? { ok: true } : { ok: false, error: r.error }, { status: r.ok ? 200 : 400 });
+  const args = OWNER_PAGE_OPS[op](form, meta);
+  const r = await writer(env).write({ op, args, actor: OWNER_USER, access: "owner", directText: true });
+  const done = op === "adopt_protocol" && r.ok ? adoptedMessage(r.result) : doneMessage(op, args);
+  // app.js asks for JSON to approve a loop or save the header without leaving the page.
+  if (request.headers.get("Accept")?.includes("application/json"))
+    return Response.json(r.ok ? { ok: true, done } : { ok: false, error: r.error }, { status: r.ok ? 200 : 400 });
   if (!r.ok) return redirect(withQuery("/", "error", r.error));
-  return redirect(withQuery("/", "done", op === "adopt_protocol" ? adoptedMessage(r.result) : DONE_MESSAGES[op] || "Saved."));
+  return redirect(withQuery("/", "done", done));
 }
 
 function adoptedMessage({ to, takesEffect, breaksNewRules }) {
-  const when = takesEffect === "now" ? `Protocol v${to} is adopted.` : `Protocol v${to} takes effect at ${takesEffect}.`;
+  const when = takesEffect === "now" ? `Protocol v${to} is adopted.` : `Protocol v${to} takes effect ${takesEffect}.`;
   const n = breaksNewRules.length;
   return n ? `${when} ${n} ${n === 1 ? "item breaks" : "items break"} the new rules. They're listed under Waiting for you.` : when;
 }

@@ -83,6 +83,7 @@ Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the
 
 ## Words
 
+<!-- voice:skip: this list names the words on purpose -->
 **Use, and keep consistent**
 
 | Word | Meaning |
@@ -101,6 +102,7 @@ Onhundred has two voices, mirroring DESIGN.md's Two Voices Rule (Archivo for the
 **Retired:** part (now loop), subject (now owner, except in the site's Social Experiment 001 framing), test, free slot, Phase 0.
 
 **Never use:** leverage, unlock, empower, revolutionize, game-changer, seamless, cutting-edge, supercharge, journey, delve, robust, "AI-powered," "10x," "hack," "in today's world," "the future of work."
+<!-- voice:end -->
 
 ## Templates
 

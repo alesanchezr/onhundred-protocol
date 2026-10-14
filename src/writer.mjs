@@ -1,7 +1,7 @@
 // The single writer. Every change to the log goes through here, one at a time, so two agents
 // can never break a rule together. Reads go straight to D1.
 import { DurableObject } from "cloudflare:workers";
-import { compareViolations, gridChange, publicView, validate } from "../lib/protocol.mjs";
+import { compareViolations, gridChange, publicView, upgradeLevels, validate } from "../lib/protocol.mjs";
 import { OWNER_OPS, RULE_CHANGE_OPS, ToolError, clone, diffState, ops, restore } from "./ops.mjs";
 import { effectiveMeta, ensureSchema, getEvents, isPublished, loadState, saveDiff, upgradeDiff } from "./store.mjs";
 
@@ -45,6 +45,7 @@ export class Writer extends DurableObject {
         const ev = await getEvents(env.DB, { id: args.id });
         if (!ev || !ev.before) throw new ToolError(`event ${args.id} has nothing to undo.`);
         restore(next, ev.before);
+        Object.assign(next, upgradeLevels(next));
         out = { target: ev.target, result: { undid: ev.id, tool: ev.tool } };
       } else {
         if (!Object.hasOwn(ops, op)) throw new ToolError(`${op} is not a write this log accepts.`);

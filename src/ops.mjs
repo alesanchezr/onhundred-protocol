@@ -4,11 +4,15 @@ import {
   LEVELS,
   areaExists,
   compareVersions,
+  estimateCanStart,
   isActive,
+  isMeasured,
   isOpen,
+  levelName,
   logVersion,
   nameIssues,
   newRuleBreaks,
+  normalizeLink,
   parseCode,
   protocol as P,
   scopeIssues,
@@ -52,7 +56,7 @@ function date(value, field, fallback) {
   return d;
 }
 
-function triage(value, level) {
+function triage(value, measured) {
   if (value == null) return undefined;
   const out = {};
   for (const k of P.triage.criteria) {
@@ -61,8 +65,18 @@ function triage(value, level) {
       fail(`triage.${k} is a whole number from ${P.triage.min} to ${P.triage.max}.`);
     out[k] = v;
   }
-  out.source = level === "unmapped" ? "estimate" : "baseline";
+  out.source = measured ? "baseline" : "estimate";
   return out;
+}
+
+// What a loop costs today, copied onto the experiment card before round 1 so nobody adjusts it after the results.
+function costToday(loop) {
+  if (loop.baseline) {
+    const { hoursPerWeek, moneyUsd, occurrences, confidence } = loop.baseline;
+    return { source: "measured", hoursPerWeek, ...(moneyUsd != null ? { moneyUsd } : {}), occurrences, confidence };
+  }
+  if (loop.estimate?.hoursPerWeek != null) return { source: "estimated", ...loop.estimate };
+  return null;
 }
 
 function estimate(value) {
@@ -105,19 +119,19 @@ function setText(target, fields, ctx) {
 
 function newLoop(state, spec, ctx, extra = {}) {
   const areaCode = String(spec.area || "").toUpperCase();
-  if (!/^[CPR]-[A-Z]{3}$/.test(areaCode)) fail(`area is written BRANCH-AREA, like R-PAR or C-SAL.`);
+  if (!/^[CPR]-[A-Z]{3}$/.test(areaCode)) fail(`area is written PART-AREA, like R-PAR or C-SAL.`);
   if (!areaExists(areaCode, state.meta)) fail(`${areaCode} is not an area in protocol section 2.4.`);
   const code = nextLoopCode(state, areaCode);
   const scope = text(spec.scope, "scope", { required: false });
   const loop = {
     code,
-    level: "unmapped",
+    level: "still",
     proposed: true,
     name: text(spec.name, "name"),
     doneWhen: text(spec.doneWhen, "doneWhen"),
     ...(scope ? { scope } : {}),
     ...(spec.estimate ? { estimate: estimate(spec.estimate) } : {}),
-    ...(spec.triage ? { triage: triage(spec.triage, "unmapped") } : {}),
+    ...(spec.triage ? { triage: triage(spec.triage, false) } : {}),
     ...(spec.evidence ? { evidence: String(spec.evidence) } : {}),
     ...(spec.over500 ? { over500: true } : {}),
     ...(P.consentRequired.includes(areaCode) ? { published: false } : {}),
@@ -183,7 +197,7 @@ export const ops = {
     const loop = findLoop(state, code);
     if (loop.retired) fail(`${code} is retired.`);
     if (est !== undefined) loop.estimate = { ...(loop.estimate || {}), ...estimate(est) };
-    if (tri !== undefined) loop.triage = triage(tri, loop.level);
+    if (tri !== undefined) loop.triage = triage(tri, isMeasured(loop));
     if (evidence !== undefined) loop.evidence = String(evidence);
     if (over500 !== undefined) loop.over500 = Boolean(over500);
     if (visibility !== undefined) {
@@ -200,7 +214,7 @@ export const ops = {
     if (!Array.isArray(into) || into.length < 2) fail("into lists 2 or more new loops.");
     const area = parseCode(code).areaCode;
     const extra = { replaces: [code] };
-    if (keepBaseline && loop.baseline) Object.assign(extra, { level: "mapped", baseline: { ...loop.baseline } });
+    if (keepBaseline && loop.baseline) extra.baseline = { ...loop.baseline };
     const codes = into.map((spec) => newLoop(state, { ...spec, area }, ctx, extra).code);
     return { target: [code, ...codes].join(","), result: { proposed: codes, note: `${code} retires when the owner approves the new loops.` } };
   },
@@ -233,7 +247,9 @@ export const ops = {
 
   set_measuring(state, { code, measuring }, ctx) {
     const loop = findLoop(state, code);
-    if (loop.level !== "unmapped") fail(`${code} is ${loop.level}. Only unmapped loops are measured.`);
+    if (measuring && isMeasured(loop)) fail(`${code} is already measured.`);
+    if (measuring && loop.level !== "still")
+      fail(`${code} is at ${levelName(loop.level)}. Once an agent does a loop, you can't measure doing it by hand anymore.`);
     loop.measuring = Boolean(measuring);
     if (!loop.measuring) delete loop.measuring;
     touch(loop, ctx);
@@ -243,9 +259,11 @@ export const ops = {
   record_baseline(state, { code, occurrences, hoursPerWeek, moneyUsd = 0, quality }, ctx) {
     const loop = findLoop(state, code);
     if (!isActive(loop)) fail(`${code} is not an active loop.`);
-    if (loop.level !== "unmapped") fail(`${code} is already ${loop.level}. Baselines are recorded once, before any agent touches the loop.`);
+    if (isMeasured(loop)) fail(`${code} is already measured. What it costs today is recorded once.`);
+    if (loop.level !== "still")
+      fail(`${code} is at ${levelName(loop.level)}. Once an agent does a loop, you can't measure doing it by hand anymore.`);
     const n = Number(occurrences);
-    if (!Number.isInteger(n) || n < 0) fail("occurrences is the number of times the loop was observed.");
+    if (!Number.isInteger(n) || n < 0) fail("occurrences is the number of times you watched the loop happen.");
     const h = Number(hoursPerWeek);
     if (!Number.isFinite(h) || h < 0) fail("hoursPerWeek is a number of hours, 0 or more.");
     loop.pendingBaseline = {
@@ -257,29 +275,36 @@ export const ops = {
       recordedAt: ctx.now,
       recordedBy: ctx.actor,
     };
-    return { target: code, result: { code, note: "The baseline waits for the owner's approve_baseline." } };
+    return { target: code, result: { code, note: "The measured cost waits for the owner's approve_baseline." } };
   },
 
   // Stages
   register_stage_try(state, args, ctx) {
     const exp = findExp(state, args.experiment);
-    if (!isOpen(exp)) fail(`${exp.code} is concluded. Register a new experiment instead.`);
+    if (!isOpen(exp)) fail(`${exp.code} has ended. Register a new experiment instead.`);
     const last = lastTry(exp);
     let stage = 1;
     let attempt = 1;
     if (last) {
-      if (last.outcome == null) fail(`${exp.code} stage ${last.stage} try ${last.try} is still running. Close it first.`);
-      if (last.outcome === "achieved" && !last.hold) fail(`${exp.code} is holding. Record the hold before the next stage.`);
+      if (last.outcome == null) fail(`${exp.code} round ${last.stage} try ${last.try} is still running. End it first.`);
+      if (last.outcome === "achieved" && !last.hold) fail(`${exp.code} is proving. Record whether it held before the next round.`);
       if (last.outcome === "achieved" && last.hold.result === "passed") stage = last.stage + 1;
       else {
         stage = last.stage;
         attempt = last.try + 1;
       }
     }
-    if (stage > P.limits.maxStages) fail(`${exp.code} already used its ${P.limits.maxStages} stages. Conclude it.`);
+    if (stage > P.limits.maxStages) fail(`${exp.code} already used its ${P.limits.maxStages} rounds. End it.`);
     const level = LEVELS[lv(exp.startLevel) + stage];
     if (!args.approach || !args.successTests || !args.deadline)
-      fail("approach, successTests and deadline are required. A stage is fully written before it starts.");
+      fail("approach, successTests and deadline are required. A round is fully written down before it starts.");
+    if (!last) {
+      const loops = exp.loops.map((c) => findLoop(state, c));
+      const missing = loops.filter((l) => !costToday(l)).map((l) => l.code);
+      if (missing.length && estimateCanStart(logVersion(state.meta)))
+        fail(`${missing.join(", ")} ${missing.length === 1 ? "has" : "have"} no cost today. Write down the estimated hours a week with update_loop before round 1.`);
+      if (!exp.costToday) exp.costToday = Object.fromEntries(loops.filter(costToday).map((l) => [l.code, costToday(l)]));
+    }
     const t = {
       stage,
       try: attempt,
@@ -303,9 +328,9 @@ export const ops = {
   close_stage_try(state, { experiment, outcome, closedAt, reason, actualCost, notes }, ctx) {
     const exp = findExp(state, experiment);
     const t = lastTry(exp);
-    if (!t || t.outcome != null) fail(`${experiment} has no running stage to close.`);
+    if (!t || t.outcome != null) fail(`${experiment} has no running round to end.`);
     if (!P.outcomes.includes(outcome)) fail(`outcome is ${P.outcomes.join(", ")}.`);
-    if (outcome === "terminated" && !reason) fail("a terminated stage records the reason it stopped.");
+    if (outcome === "terminated" && !reason) fail("a stopped round records the reason it stopped.");
     Object.assign(t, { outcome, closedAt: date(closedAt, "closedAt", day(ctx)) });
     if (reason) t.reason = String(reason);
     if (actualCost) t.actualCost = String(actualCost);
@@ -317,7 +342,7 @@ export const ops = {
   record_hold(state, { experiment, result, at }, ctx) {
     const exp = findExp(state, experiment);
     const t = lastTry(exp);
-    if (!t || t.outcome !== "achieved" || t.hold) fail(`${experiment} is not holding.`);
+    if (!t || t.outcome !== "achieved" || t.hold) fail(`${experiment} is not proving.`);
     if (!P.holds.includes(result)) fail(`result is ${P.holds.join(" or ")}.`);
     t.hold = { result, at: date(at, "at", day(ctx)) };
     const moved = [];
@@ -335,13 +360,14 @@ export const ops = {
   record_drop(state, { code, cause, at, note }, ctx) {
     const loop = findLoop(state, code);
     if (!(cause in P.drops)) fail(`cause is ${Object.keys(P.drops).join(", ")}.`);
-    if (lv(loop.level) <= lv("mapped")) fail(`${code} is ${loop.level}. Only assisted loops and above can drop.`);
+    if (lv(loop.level) <= lv("still"))
+      fail(`${code} is ${levelName("still").toLowerCase()}. Only loops at ${levelName("assisted")} or above can drop.`);
     const to = P.drops[cause] === "oneLevel" ? LEVELS[lv(loop.level) - 1] : P.drops[cause];
     loop.drops = [...(loop.drops || []), { at: date(at, "at", day(ctx)), cause, from: loop.level, to, ...(note ? { note: String(note) } : {}) }];
     loop.level = to;
     touch(loop, ctx);
     const open = state.experiments.find((e) => isOpen(e) && e.loops.includes(code));
-    const hint = to === "mapped" && open ? ` ${open.code} should conclude: its loop dropped back to mapped.` : "";
+    const hint = to === "still" && open ? ` ${open.code} should end: its loop dropped back to ${levelName("still").toLowerCase()}.` : "";
     return { target: code, result: { code, from: loop.drops.at(-1).from, to, note: `Dropped.${hint}`.trim() } };
   },
 
@@ -350,7 +376,7 @@ export const ops = {
     const tries = sortTries(exp);
     const t =
       stage != null ? tries.find((x) => x.stage === Number(stage) && x.try === Number(attempt ?? 1)) : tries.findLast((x) => x.outcome != null);
-    if (!t) fail(`${experiment} has no closed stage try to add a lesson to.`);
+    if (!t) fail(`${experiment} has no ended round to add a lesson to.`);
     setText(t, { learned: text(learned, "learned") }, ctx);
     return { target: exp.code, result: { experiment, stage: t.stage, try: t.try, pending: !ctx.directText } };
   },
@@ -408,15 +434,14 @@ export const ops = {
   approve_baseline(state, { code }, ctx) {
     owner(ctx);
     const loop = findLoop(state, code);
-    if (!loop.pendingBaseline) fail(`${code} has no baseline waiting.`);
+    if (!loop.pendingBaseline) fail(`${code} has no measured cost waiting.`);
     const { recordedBy, ...baseline } = loop.pendingBaseline;
     loop.baseline = { ...baseline, approvedAt: day(ctx) };
     delete loop.pendingBaseline;
     delete loop.measuring;
-    if (loop.level === "unmapped") loop.level = "mapped";
     if (loop.triage) loop.triage.source = "baseline";
     touch(loop, ctx);
-    return { target: code, result: { code, level: loop.level } };
+    return { target: code, result: { code, level: loop.level, measured: true } };
   },
 
   set_published(state, { code, published }, ctx) {
@@ -429,7 +454,7 @@ export const ops = {
 
   freeze_inventory(state, _args, ctx) {
     owner(ctx);
-    if (state.meta.mode === "frozen") fail("the inventory is already frozen.");
+    if (state.meta.mode === "frozen") fail("your list is already frozen.");
     const n = state.loops.filter(isActive).length;
     if (n !== P.limits.loops) fail(`${n} approved loops. Freezing needs exactly ${P.limits.loops}, so the list can't only grow.`);
     Object.assign(state.meta, { mode: "frozen", inventoryVersion: 1, frozenAt: ctx.now });
@@ -443,7 +468,7 @@ export const ops = {
     const loops = args.loops.map((c) => findLoop(state, c));
     const levels = new Set(loops.map((l) => l.level));
     if (levels.size > 1) fail("the loops in one experiment start at the same level.");
-    if (!LEVELS.includes(args.goal)) fail(`goal is a level: ${LEVELS.slice(2).join(", ")}.`);
+    if (!LEVELS.includes(args.goal)) fail(`goal is a level: ${LEVELS.slice(1).join(", ")}.`);
     const exp = {
       code: nextExpCode(state),
       slot: args.slot,
@@ -463,9 +488,9 @@ export const ops = {
   conclude_experiment(state, { experiment, hypothesis, level }, ctx) {
     owner(ctx);
     const exp = findExp(state, experiment);
-    if (!isOpen(exp)) fail(`${experiment} is already concluded.`);
+    if (!isOpen(exp)) fail(`${experiment} has already ended.`);
     const t = lastTry(exp);
-    if (t && t.outcome == null) fail(`${experiment} stage ${t.stage} is still running. Close it first.`);
+    if (t && t.outcome == null) fail(`${experiment} round ${t.stage} is still running. End it first.`);
     if (!P.conclusions.includes(hypothesis)) fail(`hypothesis is ${P.conclusions.join(", ")}.`);
     const reached = exp.loops.map((c) => findLoop(state, c).level).sort((a, b) => lv(a) - lv(b))[0];
     exp.conclusion = { at: day(ctx), level: level || reached, hypothesis };
@@ -475,7 +500,22 @@ export const ops = {
   set_meta(state, args, ctx) {
     owner(ctx);
     const allowed = {
-      ownerName: (v) => String(v).slice(0, 80),
+      ownerName: (v) => {
+        const name = String(v ?? "").trim().slice(0, 80);
+        if (!name) fail("ownerName can't be empty: it's the name visitors see above your numbers.");
+        return name;
+      },
+      about: (v) => {
+        if (typeof v !== "object" || Array.isArray(v)) fail('about is text in every language of the log, like { "en": "..." }.');
+        return Object.fromEntries(Object.entries(v).map(([lang, s]) => [lang, String(s).trim()]));
+      },
+      links: (v) => {
+        if (!Array.isArray(v)) fail('links is a list like [{ "kind": "x", "url": "https://x.com/you" }].');
+        return v.map((l) => {
+          const kind = String(l?.kind || "").toLowerCase();
+          return { kind, url: normalizeLink(kind, l?.url) };
+        });
+      },
       languages: (v) => {
         if (!Array.isArray(v) || !v.length || v.some((l) => !/^[a-z]{2}$/.test(l))) fail('languages is a list like ["en"] or ["en", "es"].');
         return v;
@@ -496,9 +536,11 @@ export const ops = {
       },
     };
     const changed = [];
+    const clearable = new Set(["about", "links"]);
     for (const [k, v] of Object.entries(args)) {
       if (!(k in allowed)) fail(`${k} is not a setting. Settings: ${Object.keys(allowed).join(", ")}.`);
-      state.meta[k] = allowed[k](v);
+      if (v == null && clearable.has(k)) delete state.meta[k];
+      else state.meta[k] = allowed[k](v);
       changed.push(k);
     }
     if (!changed.length) fail("send at least 1 setting.");
@@ -513,14 +555,14 @@ export const ops = {
     const to = P.version;
     if (compareVersions(from, to) >= 0) fail(`the log already runs v${from}, the newest version in this code.`);
     const scheduled = state.meta.protocolUpgrade;
-    if (scheduled?.version === to) fail(`v${to} is already adopted. It takes effect at the start of cycle ${scheduled.fromCycle}.`);
+    if (scheduled?.version === to) fail(`v${to} is already adopted. It takes effect after check-in ${scheduled.fromCycle - 1}.`);
     const breaksNewRules = newRuleBreaks(state, from, to).map((v) => v.message);
     const cycle = Number(state.meta.cycle) || 0;
     if (state.meta.mode === "frozen" && cycle >= 1) {
       state.meta.protocolUpgrade = { version: to, fromCycle: cycle + 1, adoptedAt: ctx.now };
       return {
         target: "meta",
-        result: { from, to, takesEffect: `the start of cycle ${cycle + 1}`, fromCycle: cycle + 1, breaksNewRules },
+        result: { from, to, takesEffect: `after check-in ${cycle}`, fromCycle: cycle + 1, breaksNewRules },
       };
     }
     const change = versionChange(state, to, { at: ctx.now, cycle });

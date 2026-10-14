@@ -1,12 +1,18 @@
 {
-  "version": "1.1",
+  "version": "1.5",
   "attribution": {
     "text": "Onhundred Protocol by Ale Sánchez",
     "url": "https://onhundred.com",
     "license": "CC BY 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
-  "levels": ["unmapped", "mapped", "assisted", "delegated", "autonomous"],
+  "levels": ["still", "assisted", "delegated", "autonomous"],
+  "levelNames": {
+    "still": { "en": "Still yours", "es": "Todavía tuyo" },
+    "assisted": { "en": "Help me", "es": "Ayúdame" },
+    "delegated": { "en": "Do it, I approve", "es": "Hazlo, yo apruebo" },
+    "autonomous": { "en": "Do it alone", "es": "Hazlo solo" }
+  },
   "branchOrder": ["R", "P", "C"],
   "branches": {
     "C": {
@@ -77,8 +83,11 @@
   "holds": ["passed", "failed"],
   "drops": {
     "failingDays": "oneLevel",
-    "harm": "mapped",
-    "consentLost": "mapped"
+    "harm": "still",
+    "consentLost": "still"
+  },
+  "rules": {
+    "estimateCanStart": "1.4"
   },
   "conclusions": ["confirmed", "refuted", "unclear"],
   "naming": {
@@ -104,7 +113,11 @@
     "assistedWeight": { "1.0": 0, "1.1": 0.5 }
   },
   "changes": {
-    "1.1": { "en": "assisted counts half", "es": "asistido cuenta la mitad" }
+    "1.1": { "en": "assisted counts half", "es": "asistido cuenta la mitad" },
+    "1.2": { "en": "4 levels: still yours replaces unmapped and mapped, and measured is a mark", "es": "4 niveles: todavía tuyo reemplaza a sin mapear y mapeado, y medido es una marca" },
+    "1.3": { "en": "your list holds 10 or 100 loops", "es": "tu lista tiene 10 o 100 loops" },
+    "1.4": { "en": "an estimated cost is enough to start an experiment", "es": "un costo estimado basta para empezar un experimento" },
+    "1.5": { "en": "plain words, same rules", "es": "palabras simples, mismas reglas" }
   },
   "voice": {
     "neverUse": [
